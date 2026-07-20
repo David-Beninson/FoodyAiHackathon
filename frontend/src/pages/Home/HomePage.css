@@ -1,4 +1,4 @@
-/* Container & Toolbar */
+/* Container & Toolbar Master Styles */
 .apple-calendar-container {
   display: flex;
   flex-direction: column;
@@ -7,7 +7,7 @@
   background-color: var(--bg);
   color: var(--text-h);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  direction: ltr; /* Ensure LTR for English */
+  direction: ltr;
 }
 
 .calendar-toolbar {
@@ -40,7 +40,7 @@
   letter-spacing: -0.5px;
 }
 
-/* Apple-style Segment Control */
+/* Segmented State Controller */
 .segment-control {
   display: flex;
   background: var(--bg);
@@ -67,7 +67,7 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-/* Nav Buttons */
+/* Toolbar Control Buttons */
 .nav-arrows {
   display: flex;
   gap: 8px;
@@ -80,6 +80,11 @@
   color: var(--text-h);
   border-radius: 6px;
   cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.icon-btn:hover, .today-btn:hover {
+  background-color: var(--code-bg);
 }
 
 .icon-btn {
@@ -99,7 +104,12 @@
   flex-direction: column;
 }
 
-/* -------------------- Week View -------------------- */
+/* Global Interactive Element Indicators */
+.clickable {
+  cursor: pointer;
+}
+
+/* -------------------- Week View Layout -------------------- */
 .apple-week-view {
   display: flex;
   flex-direction: column;
@@ -113,7 +123,7 @@
 }
 
 .time-axis-spacer {
-  width: 60px;
+  width: 80px;
   flex-shrink: 0;
 }
 
@@ -123,6 +133,13 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  padding: 4px 0;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.day-header-cell:hover {
+  background-color: var(--code-bg);
 }
 
 .day-name {
@@ -144,7 +161,7 @@
 }
 
 .active-day {
-  background-color: #ff3b30; /* Apple Red */
+  background-color: #ff3b30;
   color: white;
   font-weight: 600;
 }
@@ -156,7 +173,7 @@
 }
 
 .time-axis {
-  width: 60px;
+  width: 80px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -167,9 +184,10 @@
   flex: 1;
   display: flex;
   justify-content: center;
-  padding-top: 10px;
-  font-size: 12px;
+  padding-top: 20px;
+  font-size: 13px;
   color: var(--text);
+  font-weight: 500;
 }
 
 .days-columns {
@@ -194,11 +212,11 @@
   position: relative;
 }
 
-.meal-cell:last-child {
+.day-column .meal-cell:last-child {
   border-bottom: none;
 }
 
-/* -------------------- Month View Skeleton -------------------- */
+/* -------------------- Month View Layout -------------------- */
 .apple-month-view {
   display: flex;
   flex-direction: column;
@@ -209,6 +227,7 @@
   display: flex;
   border-bottom: 1px solid var(--border);
   padding: 8px 0;
+  background-color: var(--code-bg);
 }
 
 .month-day-name {
@@ -217,6 +236,7 @@
   font-size: 12px;
   color: var(--text);
   text-transform: uppercase;
+  font-weight: 500;
 }
 
 .month-grid {
@@ -229,15 +249,36 @@
 .month-cell {
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  padding: 8px;
+  padding: 12px;
+  transition: background-color 0.2s ease;
+}
+
+.month-cell.clickable:hover {
+  background-color: var(--code-bg);
+}
+
+.month-cell:nth-child(7n) {
+  border-right: none;
 }
 
 .month-date-number {
   font-size: 14px;
   font-weight: 500;
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
 }
 
-/* -------------------- Year View (Apple Style) -------------------- */
+.active-day-inline {
+  background-color: #ff3b30;
+  color: white;
+  font-weight: 600;
+}
+
+/* -------------------- Year View Layout -------------------- */
 .apple-year-view {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -254,7 +295,7 @@
 .year-month-title {
   font-size: 16px;
   color: #ff3b30;
-  margin: 0 0 12px 8px;
+  margin: 0 0 12px 4px;
   font-weight: 500;
 }
 
@@ -284,6 +325,12 @@
   font-size: 12px;
   color: var(--text-h);
   height: 24px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.mini-day.clickable:hover {
+  background-color: var(--border);
 }
 
 .mini-active-day {
@@ -298,12 +345,12 @@
   font-weight: 600;
 }
 
-/* -------------------- Day View Skeleton -------------------- */
+/* -------------------- Single Day View Layout -------------------- */
 .apple-day-view {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 24px;
+  padding: 32px;
 }
 
 .day-header-single {
@@ -317,17 +364,29 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .day-meal-row {
   flex: 1;
   display: flex;
-  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.day-meal-row:last-child {
+  border-bottom: none;
 }
 
 .day-meal-row .time-label {
-  width: 100px;
-  text-align: left;
-  padding: 16px;
+  width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--code-bg);
   border-right: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
 }

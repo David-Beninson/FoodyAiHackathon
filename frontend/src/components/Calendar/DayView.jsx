@@ -6,9 +6,9 @@ export default function DayView({
   mealSections,
   isFutureDay,
   dayPlan,
-  onUpdateStatus
+  onUpdateStatus,
+  onRegenerateMeal
 }) {
-  const [customMeals, setCustomMeals] = useState({});
   const [openDropdown, setOpenDropdown] = useState(null);
 
   const [activeModalSection, setActiveModalSection] = useState(null);
@@ -28,12 +28,8 @@ export default function DayView({
     setOpenDropdown(prev => prev === dropdownId ? null : dropdownId);
   };
 
-  const handleSaveCustomMeal = (mealData) => {
-    setCustomMeals(prev => ({
-      ...prev,
-      [activeModalSection]: mealData
-    }));
-    onUpdateStatus(activeModalSection, 'replaced', mealData.prompt);
+  const handleSaveCustomMeal = (promptText) => {
+    onRegenerateMeal(activeModalSection, promptText);
   };
 
   const getAdjustmentPrompt = (section) => {
@@ -75,7 +71,6 @@ export default function DayView({
           const isSkipped = meal?.status === 'skipped';
           const isEaten = meal?.status === 'eaten';
           const isReplaced = meal?.status === 'replaced';
-          const currentCustomMeal = customMeals[section];
           const promptMessage = getAdjustmentPrompt(section);
 
           return (
@@ -112,6 +107,15 @@ export default function DayView({
                         ? `Custom: ${meal.replaced_with_meal_name}`
                         : meal.name}
                     </h3>
+                    <p className="meal-description" style={{ fontSize: '13px', color: 'var(--text)', margin: '0 0 8px 0', textAlign: 'left' }}>
+                      {meal.description}
+                    </p>
+                    <div className="meal-macros-badges" style={{ display: 'flex', gap: '8px', fontSize: '12px' }}>
+                      <span className="macro-badge calories">🔥 {meal.planned_macros?.calories} kcal</span>
+                      <span className="macro-badge protein">🥩 {meal.planned_macros?.protein}g Pro</span>
+                      <span className="macro-badge carbs">🍞 {meal.planned_macros?.carbs}g Carb</span>
+                      <span className="macro-badge fat">🥑 {meal.planned_macros?.fat}g Fat</span>
+                    </div>
                   </div>
                 ) : (
                   <div className="meal-content-placeholder">
@@ -175,7 +179,10 @@ export default function DayView({
                         <button
                           type="button"
                           className="dropdown-item"
-                          onClick={() => setOpenDropdown(null)}
+                          onClick={() => {
+                            onRegenerateMeal(section, null);
+                            setOpenDropdown(null);
+                          }}
                         >
                           🔄 Regenerate
                         </button>

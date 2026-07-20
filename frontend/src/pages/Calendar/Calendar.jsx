@@ -22,6 +22,7 @@ export default function Calendar() {
     isLoading,
     error,
     updateMealStatus,
+    regenerateMeal,
   } = useWeeklyPlan(currentDateString);
 
   // Parse string date to Date object for calculation logic
@@ -133,6 +134,9 @@ export default function Calendar() {
                 dayPlan={weeklyPlan?.days?.[daysOfWeek[currentDate.getDay()]]}
                 onUpdateStatus={(mealType, status, replacedWithMealName) =>
                   updateMealStatus(daysOfWeek[currentDate.getDay()], mealType, status, replacedWithMealName)
+                }
+                onRegenerateMeal={(mealType, promptOverride) =>
+                  regenerateMeal(daysOfWeek[currentDate.getDay()], mealType, promptOverride)
                 }
               />
             )}

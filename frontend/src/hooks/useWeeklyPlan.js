@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getWeeklyPlan, updateMealStatus as apiUpdateMealStatus } from '../api/apiClient';
+import { getWeeklyPlan, updateMealStatus as apiUpdateMealStatus, regenerateSingleMeal as apiRegenerateSingleMeal } from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
 
 import { getLocalDateString, getWeekStartLocalDate } from '../utils/calendarUtils';
@@ -114,11 +114,34 @@ export function useWeeklyPlan(currentDateString) {
     }
   };
 
+  const handleRegenerateMeal = async (dayName, mealType, promptOverride = null) => {
+    if (!weeklyPlan || !userId) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const weekStartStr = getLocalDateString(weekStartDate);
+      const updatedPlanFromServer = await apiRegenerateSingleMeal(
+        userId,
+        weekStartStr,
+        dayName,
+        mealType,
+        promptOverride
+      );
+      setWeeklyPlan(updatedPlanFromServer);
+    } catch (err) {
+      console.error('Failed to regenerate meal:', err);
+      setError(err.response?.data?.detail || 'Failed to regenerate meal.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     weeklyPlan,
     isLoading,
     error,
     updateMealStatus: handleUpdateMealStatus,
+    regenerateMeal: handleRegenerateMeal,
     weekStartDate
   };
 }

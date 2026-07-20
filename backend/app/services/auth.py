@@ -3,14 +3,11 @@ from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from passlib.context import CryptContext
+import bcrypt
 from beanie import PydanticObjectId
 
 from app.config import settings
 from app.models.user import UserProfile
-
-# Password hashing configuration
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # OAuth2 scheme for token retrieval
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/login")
@@ -19,12 +16,18 @@ class AuthService:
     @staticmethod
     def hash_password(password: str) -> str:
         """Hash a plain text password using bcrypt."""
-        return pwd_context.hash(password)
+        # bcrypt.hashpw expects bytes, returns bytes
+        pwd_bytes = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(pwd_bytes, salt)
+        return hashed.decode('utf-8')
 
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
         """Verify a plain password against its hashed version."""
-        return pwd_context.verify(plain_password, hashed_password)
+        pwd_bytes = plain_password.encode('utf-8')
+        hashed_bytes = hashed_password.encode('utf-8')
+        return bcrypt.checkpw(pwd_bytes, hashed_bytes)
 
     @staticmethod
     def create_access_token(user_id: str, email: str) -> str:

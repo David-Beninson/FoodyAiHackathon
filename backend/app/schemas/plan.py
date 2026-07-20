@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from app.models.plan import MealStatus
 
 class GeneratePlanRequest(BaseModel):
     user_id: str
@@ -7,7 +8,7 @@ class GeneratePlanRequest(BaseModel):
     prompt_override: Optional[str] = None
 
 class UpdateMealStatusRequest(BaseModel):
-    status: str = Field(..., pattern="^(planned|eaten|skipped|replaced)$", description="Must be 'planned', 'eaten', 'skipped', or 'replaced'")
+    status: MealStatus
     replaced_with_meal_name: Optional[str] = None
 
 class RegenerateMealRequest(BaseModel):

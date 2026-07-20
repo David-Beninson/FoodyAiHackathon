@@ -1,13 +1,20 @@
+from enum import Enum
 from beanie import Document
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Dict, Optional
 from app.models.user import Macros
 
+class MealStatus(str, Enum):
+    PLANNED = "planned"
+    EATEN = "eaten"
+    SKIPPED = "skipped"
+    REPLACED = "replaced"
+
 class MealPlan(BaseModel):
     name: str
     description: str
-    status: str = "planned"  # "planned", "eaten", "skipped", "replaced"
+    status: MealStatus = MealStatus.PLANNED
     planned_macros: Macros
     actual_macros: Macros = Field(default_factory=Macros)
     ai_explanation: Optional[str] = None
@@ -16,9 +23,9 @@ class MealPlan(BaseModel):
 
     def update_actual_macros(self):
         """Helper to sync actual macros according to status."""
-        if self.status == "eaten":
+        if self.status == MealStatus.EATEN:
             self.actual_macros = self.planned_macros
-        elif self.status == "skipped":
+        elif self.status == MealStatus.SKIPPED:
             self.actual_macros = Macros(calories=0, protein=0, carbs=0, fat=0)
         # For "replaced", actual_macros can be set to different values than planned,
         # but if not explicitly set, we could leave it.

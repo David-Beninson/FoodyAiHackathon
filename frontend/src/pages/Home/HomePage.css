@@ -1,4 +1,4 @@
-/* Container & Toolbar */
+/* Container & Toolbar Master Styles */
 .apple-calendar-container {
   display: flex;
   flex-direction: column;
@@ -7,7 +7,7 @@
   background-color: var(--bg);
   color: var(--text-h);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  direction: ltr; /* Ensure LTR for English */
+  direction: ltr;
 }
 
 .calendar-toolbar {
@@ -27,6 +27,7 @@
 
 .toolbar-center {
   justify-content: center;
+  gap: 16px;
 }
 
 .toolbar-right {
@@ -35,12 +36,14 @@
 
 .current-date-title {
   margin: 0;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 500;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
+  min-width: 220px;
+  text-align: center;
 }
 
-/* Apple-style Segment Control */
+/* Segmented Control Selectors */
 .segment-control {
   display: flex;
   background: var(--bg);
@@ -67,29 +70,43 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-/* Nav Buttons */
-.nav-arrows {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.icon-btn, .today-btn {
+/* Toolbar Buttons */
+.today-btn {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-h);
   border-radius: 6px;
   cursor: pointer;
-}
-
-.icon-btn {
-  font-size: 18px;
-  padding: 2px 10px;
-}
-
-.today-btn {
   font-size: 13px;
   padding: 4px 12px;
+  transition: background-color 0.2s ease;
+}
+
+.today-btn:hover {
+  background-color: var(--code-bg);
+}
+
+.arrow-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-h);
+  font-size: 24px;
+  font-weight: 300;
+  cursor: pointer;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.arrow-btn:hover {
+  background-color: var(--border);
+}
+
+.arrow-btn:active {
+  transform: scale(0.9);
 }
 
 .calendar-content {
@@ -97,6 +114,10 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+.clickable {
+  cursor: pointer;
 }
 
 /* -------------------- Week View -------------------- */
@@ -113,7 +134,7 @@
 }
 
 .time-axis-spacer {
-  width: 60px;
+  width: 80px;
   flex-shrink: 0;
 }
 
@@ -123,6 +144,13 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  padding: 4px 0;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.day-header-cell:hover {
+  background-color: var(--code-bg);
 }
 
 .day-name {
@@ -144,7 +172,7 @@
 }
 
 .active-day {
-  background-color: #ff3b30; /* Apple Red */
+  background-color: #ff3b30;
   color: white;
   font-weight: 600;
 }
@@ -156,20 +184,30 @@
 }
 
 .time-axis {
-  width: 60px;
+  width: 80px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--border);
+  background-color: var(--code-bg);
+}
+
+.time-axis .time-label {
+  border-bottom: 1px solid var(--border);
+}
+
+.time-axis .time-label:last-child {
+  border-bottom: none;
 }
 
 .time-label {
   flex: 1;
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding-top: 10px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text);
+  font-weight: 500;
 }
 
 .days-columns {
@@ -194,11 +232,11 @@
   position: relative;
 }
 
-.meal-cell:last-child {
+.day-column .meal-cell:last-child {
   border-bottom: none;
 }
 
-/* -------------------- Month View Skeleton -------------------- */
+/* -------------------- Month View -------------------- */
 .apple-month-view {
   display: flex;
   flex-direction: column;
@@ -209,6 +247,7 @@
   display: flex;
   border-bottom: 1px solid var(--border);
   padding: 8px 0;
+  background-color: var(--code-bg);
 }
 
 .month-day-name {
@@ -217,6 +256,7 @@
   font-size: 12px;
   color: var(--text);
   text-transform: uppercase;
+  font-weight: 500;
 }
 
 .month-grid {
@@ -229,15 +269,36 @@
 .month-cell {
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  padding: 8px;
+  padding: 12px;
+  transition: background-color 0.2s ease;
+}
+
+.month-cell.clickable:hover {
+  background-color: var(--code-bg);
+}
+
+.month-cell:nth-child(7n) {
+  border-right: none;
 }
 
 .month-date-number {
   font-size: 14px;
   font-weight: 500;
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
 }
 
-/* -------------------- Year View (Apple Style) -------------------- */
+.active-day-inline {
+  background-color: #ff3b30;
+  color: white;
+  font-weight: 600;
+}
+
+/* -------------------- Year View -------------------- */
 .apple-year-view {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -254,7 +315,7 @@
 .year-month-title {
   font-size: 16px;
   color: #ff3b30;
-  margin: 0 0 12px 8px;
+  margin: 0 0 12px 4px;
   font-weight: 500;
 }
 
@@ -284,6 +345,12 @@
   font-size: 12px;
   color: var(--text-h);
   height: 24px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.mini-day.clickable:hover {
+  background-color: var(--border);
 }
 
 .mini-active-day {
@@ -298,36 +365,40 @@
   font-weight: 600;
 }
 
-/* -------------------- Day View Skeleton -------------------- */
+/* -------------------- Single Day View Layout -------------------- */
 .apple-day-view {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 24px;
-}
-
-.day-header-single {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-bottom: 24px;
+  padding: 32px 32px 0 32px;
 }
 
 .day-sections {
   flex: 1;
   display: flex;
   flex-direction: column;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
 }
 
 .day-meal-row {
-  flex: 1;
   display: flex;
-  border-top: 1px solid var(--border);
+  flex: 1;
+  border-bottom: 1px solid var(--border);
 }
 
+/* Strictly sets the meal labels column to exactly 25% (one quarter) of the table width */
 .day-meal-row .time-label {
-  width: 100px;
-  text-align: left;
-  padding: 16px;
+  flex: 0 0 25%; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--code-bg);
   border-right: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  box-sizing: border-box;
 }

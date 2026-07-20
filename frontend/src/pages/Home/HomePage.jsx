@@ -1,35 +1,48 @@
+import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setViewMode, setCurrentDate } from '../../store/calendarSlice';
 import './HomePage.css';
 
 export default function HomePage() {
   const dispatch = useDispatch();
-
-  // Fetch state from Redux store
+  
+  // Connect to Redux global state
   const viewMode = useSelector((state) => state.calendar.viewMode);
   const currentDateString = useSelector((state) => state.calendar.currentDate);
-
-  // Convert ISO string back to a Date object for local calculations
+  
+  // Parse string date to Date object for calculation logic
   const currentDate = new Date(currentDateString);
   const today = new Date();
 
-  // Arrays for views (English UI)
-  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  // Structural arrays for English calendar layout
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const mealSections = ['Breakfast', 'Lunch', 'Dinner'];
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
+    'January', 'February', 'March', 'April', 'May', 'June', 
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
-  // Basic navigation functions
+  // Global toolbar navigation handlers
   const handlePrev = () => {
-    // Example: dispatch(setCurrentDate(newDate.toISOString()))
+    const newDate = new Date(currentDate);
+    if (viewMode === 'day') newDate.setDate(currentDate.getDate() - 1);
+    else if (viewMode === 'week') newDate.setDate(currentDate.getDate() - 7);
+    else if (viewMode === 'month') newDate.setMonth(currentDate.getMonth() - 1);
+    else if (viewMode === 'year') newDate.setFullYear(currentDate.getFullYear() - 1);
+    
+    dispatch(setCurrentDate(newDate.toISOString()));
   };
-
+  
   const handleNext = () => {
-    // Example: dispatch(setCurrentDate(newDate.toISOString()))
+    const newDate = new Date(currentDate);
+    if (viewMode === 'day') newDate.setDate(currentDate.getDate() + 1);
+    else if (viewMode === 'week') newDate.setDate(currentDate.getDate() + 7);
+    else if (viewMode === 'month') newDate.setMonth(currentDate.getMonth() + 1);
+    else if (viewMode === 'year') newDate.setFullYear(currentDate.getFullYear() + 1);
+    
+    dispatch(setCurrentDate(newDate.toISOString()));
   };
-
+  
   const handleToday = () => {
     dispatch(setCurrentDate(new Date().toISOString()));
   };
@@ -38,64 +51,108 @@ export default function HomePage() {
     dispatch(setViewMode(mode));
   };
 
-  // --- Internal View Components ---
+  // Triggers when clicking any calendar cell to shift focus into a single day
+  const handleDayClick = (targetDate) => {
+    dispatch(setCurrentDate(targetDate.toISOString()));
+    dispatch(setViewMode('day'));
+  };
 
-  // 1. Week View (7 days, 3 meals per day)
-  const renderWeekView = () => (
-    <div className="apple-week-view">
-      <div className="week-header">
-        <div className="time-axis-spacer"></div>
-        {daysOfWeek.map((day, idx) => (
-          <div key={idx} className="day-header-cell">
-            <span className="day-name">{day}</span>
-            <span className={`day-number ${idx === currentDate.getDay() ? 'active-day' : ''}`}>
-              {/* Mock dates for the current week */}
-              {currentDate.getDate() - currentDate.getDay() + idx}
-            </span>
+  // --- Layout Renderers ---
+
+  // 1. Week View Component
+  const renderWeekView = () => {
+    const startOfWeek = new Date(currentDate);
+    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+
+    return (
+      <div className="apple-week-view">
+        <div className="week-header">
+          <div className="time-axis-spacer"></div>
+          {daysOfWeek.map((day, idx) => {
+            const dayDate = new Date(startOfWeek);
+            dayDate.setDate(startOfWeek.getDate() + idx);
+            const isSelectedDay = dayDate.getDate() === currentDate.getDate() && dayDate.getMonth() === currentDate.getMonth();
+
+            return (
+              <div 
+                key={idx} 
+                className="day-header-cell clickable"
+                onClick={() => handleDayClick(dayDate)}
+              >
+                <span className="day-name">{day.substring(0, 3)}</span>
+                <span className={`day-number ${isSelectedDay ? 'active-day' : ''}`}>
+                  {dayDate.getDate()}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="week-grid">
+          <div className="time-axis">
+            {mealSections.map((section, idx) => (
+              <div key={idx} className="time-label">{section}</div>
+            ))}
           </div>
-        ))}
+          <div className="days-columns">
+            {daysOfWeek.map((_, dayIdx) => (
+              <div key={dayIdx} className="day-column">
+                {mealSections.map((_, secIdx) => (
+                  <div key={secIdx} className="meal-cell"></div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-      <div className="week-grid">
-        <div className="time-axis">
-          {mealSections.map((section, idx) => (
-            <div key={idx} className="time-label">{section}</div>
+    );
+  };
+
+  // 2. Month View Component
+  const renderMonthView = () => {
+    const year = currentDate.getFullYear();
+    const monthIndex = currentDate.getMonth();
+    
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+    const firstDayOfWeek = new Date(year, monthIndex, 1).getDay();
+
+    const blanks = Array.from({ length: firstDayOfWeek }).map((_, i) => (
+      <div key={`blank-${i}`} className="month-cell empty"></div>
+    ));
+
+    const days = Array.from({ length: daysInMonth }).map((_, i) => {
+      const dayNum = i + 1;
+      const dayDate = new Date(year, monthIndex, dayNum);
+      const isSelectedDay = dayNum === currentDate.getDate();
+
+      return (
+        <div 
+          key={`month-day-${dayNum}`} 
+          className="month-cell clickable"
+          onClick={() => handleDayClick(dayDate)}
+        >
+          <span className={`month-date-number ${isSelectedDay ? 'active-day-inline' : ''}`}>
+            {dayNum}
+          </span>
+        </div>
+      );
+    });
+
+    return (
+      <div className="apple-month-view">
+        <div className="month-header">
+          {daysOfWeek.map((day) => (
+            <div key={day} className="month-day-name">{day.substring(0, 3)}</div>
           ))}
         </div>
-        <div className="days-columns">
-          {daysOfWeek.map((_, dayIdx) => (
-            <div key={dayIdx} className="day-column">
-              {mealSections.map((_, secIdx) => (
-                <div key={secIdx} className="meal-cell">
-                  {/* Meal card component will be injected here */}
-                </div>
-              ))}
-            </div>
-          ))}
+        <div className="month-grid">
+          {blanks}
+          {days}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
-  // 2. Month View (Skeleton grid for 35 days)
-  const renderMonthView = () => (
-    <div className="apple-month-view">
-      <div className="month-header">
-        {daysOfWeek.map((day) => (
-          <div key={day} className="month-day-name">{day}</div>
-        ))}
-      </div>
-      <div className="month-grid">
-        {/* Creating 35 cells to simulate a 5-week calendar month */}
-        {Array.from({ length: 35 }).map((_, idx) => (
-          <div key={idx} className="month-cell">
-            <span className="month-date-number">{(idx % 31) + 1}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  // 3. Year View (Apple-style 12 months with calculated days)
+  // 3. Year View Component
   const renderYearView = () => {
     const year = currentDate.getFullYear();
     const miniDaysOfWeek = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -103,26 +160,28 @@ export default function HomePage() {
     return (
       <div className="apple-year-view">
         {months.map((monthName, monthIndex) => {
-          // Calculate the number of days in the month and the starting day of the week
           const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
           const firstDayOfWeek = new Date(year, monthIndex, 1).getDay();
 
-          // Create empty blanks to align the first day correctly
           const blanks = Array.from({ length: firstDayOfWeek }).map((_, i) => (
             <div key={`blank-${i}`} className="mini-day empty"></div>
           ));
 
-          // Create the actual day numbers
           const days = Array.from({ length: daysInMonth }).map((_, i) => {
             const dayNum = i + 1;
-            const isToday =
+            const dayDate = new Date(year, monthIndex, dayNum);
+            const isCurrentToday =
               today.getFullYear() === year &&
               today.getMonth() === monthIndex &&
               today.getDate() === dayNum;
 
             return (
-              <div key={`day-${dayNum}`} className="mini-day">
-                <span className={isToday ? 'mini-active-day' : ''}>{dayNum}</span>
+              <div 
+                key={`year-day-${dayNum}`} 
+                className="mini-day clickable"
+                onClick={() => handleDayClick(dayDate)}
+              >
+                <span className={isCurrentToday ? 'mini-active-day' : ''}>{dayNum}</span>
               </div>
             );
           });
@@ -130,15 +189,11 @@ export default function HomePage() {
           return (
             <div key={monthIndex} className="year-month-card">
               <h3 className="year-month-title">{monthName}</h3>
-
-              {/* Weekday letters header */}
               <div className="mini-month-days-header">
                 {miniDaysOfWeek.map((d, i) => (
                   <span key={i} className="mini-day-name">{d}</span>
                 ))}
               </div>
-
-              {/* Mini grid combining blanks and days */}
               <div className="mini-month-grid">
                 {blanks}
                 {days}
@@ -150,73 +205,52 @@ export default function HomePage() {
     );
   };
 
-  // 4. Day View (Single day with 3 meals)
+  // 4. Day View Component (Focused day grid layout)
   const renderDayView = () => (
     <div className="apple-day-view">
-      <div className="day-header-single">
-        <span className="day-name">{daysOfWeek[currentDate.getDay()]}</span>
-        <span className="active-day day-number">{currentDate.getDate()}</span>
-      </div>
-      <div className="day-sections">
-        {mealSections.map((section, idx) => (
-          <div key={idx} className="day-meal-row">
-            <div className="time-label">{section}</div>
-            <div className="meal-cell flex-1"></div>
-          </div>
-        ))}
-      </div>
+       <div className="day-sections">
+         {mealSections.map((section, idx) => (
+            <div key={idx} className="day-meal-row">
+              <div className="time-label">{section}</div>
+              <div className="meal-cell flex-1"></div>
+            </div>
+          ))}
+       </div>
     </div>
   );
 
   return (
     <div className="apple-calendar-container">
-      {/* Internal Calendar Toolbar */}
+      {/* Top Header Control Toolbar */}
       <header className="calendar-toolbar">
         <div className="toolbar-left">
-          <div className="nav-arrows">
-            <button onClick={handlePrev} className="icon-btn">‹</button>
-            <button onClick={handleToday} className="today-btn">Today</button>
-            <button onClick={handleNext} className="icon-btn">›</button>
-          </div>
+          <button onClick={handleToday} className="today-btn">Today</button>
         </div>
-
+        
         <div className="toolbar-center">
+          <button onClick={handlePrev} className="arrow-btn">‹</button>
+          
           <h2 className="current-date-title">
-            {months[currentDate.getMonth()]} {currentDate.getFullYear()}
+            {/* Dynamic string formatting with required comma injection for single day layout */}
+            {viewMode === 'day' && `${daysOfWeek[currentDate.getDay()]}, ${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
+            {(viewMode === 'week' || viewMode === 'month') && `${currentDate.getDate()} ${months[currentDate.getMonth()]}`}
+            {viewMode === 'year' && currentDate.getFullYear()}
           </h2>
+          
+          <button onClick={handleNext} className="arrow-btn">›</button>
         </div>
 
         <div className="toolbar-right">
           <div className="segment-control">
-            <button
-              className={viewMode === 'day' ? 'active' : ''}
-              onClick={() => handleViewModeChange('day')}
-            >
-              Day
-            </button>
-            <button
-              className={viewMode === 'week' ? 'active' : ''}
-              onClick={() => handleViewModeChange('week')}
-            >
-              Week
-            </button>
-            <button
-              className={viewMode === 'month' ? 'active' : ''}
-              onClick={() => handleViewModeChange('month')}
-            >
-              Month
-            </button>
-            <button
-              className={viewMode === 'year' ? 'active' : ''}
-              onClick={() => handleViewModeChange('year')}
-            >
-              Year
-            </button>
+            <button className={viewMode === 'day' ? 'active' : ''} onClick={() => handleViewModeChange('day')}>Day</button>
+            <button className={viewMode === 'week' ? 'active' : ''} onClick={() => handleViewModeChange('week')}>Week</button>
+            <button className={viewMode === 'month' ? 'active' : ''} onClick={() => handleViewModeChange('month')}>Month</button>
+            <button className={viewMode === 'year' ? 'active' : ''} onClick={() => handleViewModeChange('year')}>Year</button>
           </div>
         </div>
       </header>
 
-      {/* Dynamic Content Area */}
+      {/* Main Container Dynamic Target Area */}
       <main className="calendar-content">
         {viewMode === 'week' && renderWeekView()}
         {viewMode === 'month' && renderMonthView()}

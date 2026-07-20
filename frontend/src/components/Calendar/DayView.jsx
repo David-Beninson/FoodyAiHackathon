@@ -7,10 +7,11 @@ export default function DayView({
   isFutureDay,
   dayPlan,
   onUpdateStatus,
+  onUpdateFavorite,
   onRegenerateMeal
 }) {
   const [openDropdown, setOpenDropdown] = useState(null);
-
+   
   const [activeModalSection, setActiveModalSection] = useState(null);
 
   // New state: stores the active section name (Breakfast/Lunch/Dinner) to show details dynamically
@@ -20,6 +21,7 @@ export default function DayView({
   const isReplacedActive = activeMeal?.status === 'replaced';
   const activeDetailsMeal = activeMeal ? {
     section: activeDetailsSection,
+    isFavorite: activeMeal.is_favorite || false, 
     title: isReplacedActive && activeMeal.replaced_with_meal_name ? `AI Custom: ${activeMeal.replaced_with_meal_name}` : activeMeal.name,
     description: activeMeal.description,
     calories: activeMeal.planned_macros?.calories,
@@ -34,6 +36,13 @@ export default function DayView({
     const targetStatus = currentMeal?.status === status ? 'planned' : status;
     onUpdateStatus(section, targetStatus, null);
     setOpenDropdown(null);
+  };
+
+  const handleFavoriteToggle = (section) => {
+    const mealKey = section.toLowerCase();
+    const currentMeal = dayPlan?.meals?.[mealKey];
+    const targetFavorite = !(currentMeal?.is_favorite === true);
+    onUpdateFavorite(section, targetFavorite);
   };
 
   const toggleDropdown = (dropdownId) => {
@@ -169,6 +178,10 @@ export default function DayView({
         isOpen={Boolean(activeDetailsSection)}
         meal={activeDetailsMeal}
         onClose={() => setActiveDetailsSection(null)}
+        onToggleFavorite={() => {
+          handleFavoriteToggle(activeDetailsSection);
+        }}
+
         onRegenerate={(prompt) => {
           if (activeDetailsSection) {
             return onRegenerateMeal(activeDetailsSection, prompt);

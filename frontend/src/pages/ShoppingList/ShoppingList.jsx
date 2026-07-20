@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getNextSundayLocalDate } from '../../utils/calendarUtils';
 import { getShoppingList, syncShoppingList, checkShoppingListItem } from '../../api/apiClient';
+import LoadingSpinner from '../../components/Common/LoadingSpinner';
 import './ShoppingList.css';
 
 export default function ShoppingList() {
@@ -15,8 +16,13 @@ export default function ShoppingList() {
   const [weekStartDate, setWeekStartDate] = useState(getNextSundayLocalDate());
   const [message, setMessage] = useState({ text: '', type: '' });
 
+  const showMessage = useCallback((text, type = 'success') => {
+    setMessage({ text, type });
+    setTimeout(() => setMessage({ text: '', type: '' }), 4000);
+  }, []);
+
   // Fetch the shopping list
-  const fetchShoppingListData = async (showLoading = true) => {
+  const fetchShoppingListData = useCallback(async (showLoading = true) => {
     if (!userId || !weekStartDate) return;
     if (showLoading) setLoading(true);
     try {
@@ -29,16 +35,15 @@ export default function ShoppingList() {
     } finally {
       if (showLoading) setLoading(false);
     }
-  };
+  }, [userId, weekStartDate, showMessage]);
 
   useEffect(() => {
-    fetchShoppingListData();
-  }, [userId, weekStartDate]);
+    Promise.resolve().then(() => {
+      fetchShoppingListData();
+    });
+  }, [fetchShoppingListData]);
 
-  const showMessage = (text, type = 'success') => {
-    setMessage({ text, type });
-    setTimeout(() => setMessage({ text: '', type: '' }), 4000);
-  };
+
 
   const handleSyncList = async () => {
     if (!userId || !weekStartDate) return;
@@ -59,7 +64,7 @@ export default function ShoppingList() {
     if (!userId || !weekStartDate) return;
     // Optimistic UI update
     setShoppingItems(prev => prev.filter(i => i !== item));
-    
+
     try {
       const res = await checkShoppingListItem(userId, weekStartDate, item, true);
       setShoppingItems(res.shopping_list || []);
@@ -116,10 +121,7 @@ export default function ShoppingList() {
       </div>
 
       {loading ? (
-        <div className="shopping-loading-container">
-          <div className="shopping-spinner"></div>
-          <p>Loading your shopping list...</p>
-        </div>
+        <LoadingSpinner message="Loading your shopping list..." />
       ) : (
         <div className="shopping-card-panel">
           {!hasPlan ? (
@@ -138,7 +140,7 @@ export default function ShoppingList() {
             <div className="shopping-checklist-container">
               <h2>Items to Buy ({shoppingItems.length})</h2>
               <p className="checklist-subtitle">Checking off an item removes it from this list and automatically adds it to your Pantry.</p>
-              
+
               <div className="shopping-items-list">
                 {shoppingItems.map((item) => (
                   <div key={item} className="shopping-item-row" onClick={() => handleToggleCheckItem(item)}>

@@ -9,10 +9,12 @@ import TagManagerCard from '../../components/Profile/TagManagerCard';
 import LoadingSpinner from '../../components/Common/LoadingSpinner';
 import OnboardingQuestionnaire from '../../components/Profile/OnboardingQuestionnaire';
 import FamilySettingsCard from '../../components/Profile/FamilySettingsCard';
+import FavoritesModal from '../../components/Profile/FavoritesModal';
 import './Profile.css';
 
 export default function Profile() {
-    const { isOnboarded } = useAuth();
+    const { isOnboarded, user } = useAuth();
+    const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
     const {
         currentProfile,
         tempProfile,
@@ -91,6 +93,7 @@ export default function Profile() {
                 onStartEdit={handleStartEdit}
                 onSave={handleSave}
                 onCancel={handleCancelEdit}
+                onViewFavorites={() => setIsFavoritesOpen(true)}
             />
 
             <div className="profile-content-area">
@@ -188,6 +191,12 @@ export default function Profile() {
                     )}
                 </form>
             </div>
+            
+            <FavoritesModal
+                isOpen={isFavoritesOpen}
+                onClose={() => setIsFavoritesOpen(false)}
+                userId={user?.id || user?._id}
+            />
         </div>
     );
 }

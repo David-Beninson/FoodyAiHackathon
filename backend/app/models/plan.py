@@ -18,6 +18,7 @@ class MealPlan(BaseModel):
     actual_macros: Macros = Field(default_factory=Macros)
     ai_explanation: Optional[str] = None
     is_completion: bool = False
+    is_favorite: bool = False
 
     def update_actual_macros(self):
         """Helper to sync actual macros according to status."""

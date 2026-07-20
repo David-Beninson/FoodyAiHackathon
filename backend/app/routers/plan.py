@@ -47,6 +47,30 @@ async def get_weekly_plan(
         )
     return plan
 
+@router.get("/user/{user_id}/favorites")
+async def get_user_favorite_meals(user_id: str):
+    """
+    Retrieve all meals marked as favorite across all weekly plans of the user.
+    """
+    plans = await WeeklyPlan.find(WeeklyPlan.user_id == user_id).to_list()
+    favorites = []
+    seen_names = set()
+    for plan in plans:
+        for day, day_plan in plan.days.items():
+            for meal_type, meal in day_plan.meals.items():
+                if getattr(meal, 'is_favorite', False):
+                    if meal.name.lower() not in seen_names:
+                        favorites.append({
+                            "name": meal.name,
+                            "description": meal.description,
+                            "planned_macros": meal.planned_macros,
+                            "meal_type": meal_type,
+                            "day": day,
+                            "week_start_date": plan.week_start_date
+                        })
+                        seen_names.add(meal.name.lower())
+    return favorites
+
 @router.post("/generate", response_model=WeeklyPlan, status_code=status.HTTP_201_CREATED)
 async def generate_weekly_plan(payload: GeneratePlanRequest):
     """
@@ -179,8 +203,16 @@ async def update_meal_status(
         )
 
     meal = day_plan.meals[meal_type]
-    meal.status = payload.status
-    meal.update_actual_macros()
+
+    if payload.is_favorite is not None:
+        meal.is_favorite = payload.is_favorite
+
+    if payload.status is not None:
+        meal.status = payload.status
+        meal.update_actual_macros()
+
+    day_plan.meals[meal_type] = meal
+    plan.days[day] = day_plan
 
     plan.updated_at = datetime.utcnow()
     await plan.save()

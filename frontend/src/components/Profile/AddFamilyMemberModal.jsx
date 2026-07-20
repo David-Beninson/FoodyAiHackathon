@@ -1,55 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import TagManagerCard from './TagManagerCard';
 
 export default function AddFamilyMemberModal({ isOpen, onClose, onSave, memberData }) {
-    const [newMember, setNewMember] = useState({
-        name: '',
-        age: '',
-        weight: '',
-        height: '',
-        gender: 'male',
-        activity_level: 'moderately_active',
-        goals: [],
-        allergies: [],
-        preferences: []
-    });
+    const [newMember, setNewMember] = useState(() => ({
+        name: memberData?.name || '',
+        age: memberData?.age !== undefined ? memberData.age : '',
+        weight: memberData?.weight !== undefined ? memberData.weight : '',
+        height: memberData?.height !== undefined ? memberData.height : '',
+        gender: memberData?.gender || 'male',
+        activity_level: memberData?.activity_level || 'moderately_active',
+        goals: memberData?.goals || [],
+        allergies: memberData?.allergies || [],
+        preferences: memberData?.preferences || []
+    }));
 
     const [newMemberTagInputs, setNewMemberTagInputs] = useState({
         goals: '',
         allergies: '',
         preferences: ''
     });
-
-    useEffect(() => {
-        if (isOpen) {
-            if (memberData) {
-                setNewMember({
-                    name: memberData.name || '',
-                    age: memberData.age !== undefined ? memberData.age : '',
-                    weight: memberData.weight !== undefined ? memberData.weight : '',
-                    height: memberData.height !== undefined ? memberData.height : '',
-                    gender: memberData.gender || 'male',
-                    activity_level: memberData.activity_level || 'moderately_active',
-                    goals: memberData.goals || [],
-                    allergies: memberData.allergies || [],
-                    preferences: memberData.preferences || []
-                });
-            } else {
-                setNewMember({
-                    name: '',
-                    age: '',
-                    weight: '',
-                    height: '',
-                    gender: 'male',
-                    activity_level: 'moderately_active',
-                    goals: [],
-                    allergies: [],
-                    preferences: []
-                });
-            }
-            setNewMemberTagInputs({ goals: '', allergies: '', preferences: '' });
-        }
-    }, [isOpen, memberData]);
 
     if (!isOpen) return null;
 

@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import LoadingSpinner from '../Common/LoadingSpinner';
 
-export default function MealDetailsModal({ isOpen, meal, onClose, onRegenerate }) {
+export default function MealDetailsModal({ isOpen, meal, onClose, onToggleFavorite, onRegenerate }) {
   const [isEditingCustom, setIsEditingCustom] = useState(false);
   const [promptText, setPromptText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+
 
   if (!isOpen || !meal) return null;
 
@@ -88,9 +90,32 @@ export default function MealDetailsModal({ isOpen, meal, onClose, onRegenerate }
           </div>
         ) : (
           <>
-            <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '12px', textAlign: 'left' }}>
-              {meal.title}
-            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', paddingRight: '24px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', margin: 0, textAlign: 'left' }}>
+                {meal.title}
+              </h2>
+              {onToggleFavorite && (
+                <button
+                  onClick={onToggleFavorite}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '22px',
+                    cursor: 'pointer',
+                    padding: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'transform 0.2s',
+                  }}
+                  title={meal.isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.15)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  {meal.isFavorite ? '❤️' : '🤍'}
+                </button>
+              )}
+            </div>
             
             <p style={{ fontSize: '14px', color: '#555', marginBottom: '20px', textAlign: 'left', lineHeight: '1.4' }}>
               {meal.description}

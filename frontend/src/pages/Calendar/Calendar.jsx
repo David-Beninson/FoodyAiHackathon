@@ -135,6 +135,9 @@ export default function Calendar() {
                 onUpdateStatus={(mealType, status, replacedWithMealName) =>
                   updateMealStatus(daysOfWeek[currentDate.getDay()], mealType, status, replacedWithMealName)
                 }
+                onUpdateFavorite={(mealType, isFavorite) =>
+                  updateMealStatus(daysOfWeek[currentDate.getDay()], mealType, null, null, isFavorite)
+                }
                 onRegenerateMeal={(mealType, promptOverride) =>
                   regenerateMeal(daysOfWeek[currentDate.getDay()], mealType, promptOverride)
                 }

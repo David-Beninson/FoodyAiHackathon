@@ -1,16 +1,12 @@
-import { Outlet } from "react-router-dom";
 import Footer from "./Footer.jsx";
-import Navbar from "./Navbar.jsx";
+import HomePage from "../../pages/Home/HomePage.jsx";
 import './Common.css'
 export default function Layout() {
     return (
         <>
             <header>
-                <Navbar />
+                <HomePage />
             </header>
-            <main className="content">
-                <Outlet />
-            </main>
             <footer>
                 <Footer />
             </footer>

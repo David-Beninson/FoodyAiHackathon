@@ -1,7 +1,14 @@
+import { Outlet } from "react-router-dom";
+import Navbar from "../../components/Layout/Navbar.jsx";
 export default function HomePage() {
     return (
         <>
-            HomePage
+            <header>
+                <Navbar />
+            </header>
+            <main>
+                <Outlet />
+            </main>
         </>
     );
 }

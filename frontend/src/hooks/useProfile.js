@@ -167,7 +167,7 @@ export function useProfile() {
     };
 
     const addTag = (type, tagVal, setter) => {
-        const trimmed = tagVal.trim();
+        const trimmed = (tagVal || '').trim();
         if (!trimmed) return;
         setTempProfile(prev => {
             const list = prev[type] || [];

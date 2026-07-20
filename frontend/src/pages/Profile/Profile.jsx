@@ -48,7 +48,6 @@ export default function Profile() {
                 <UserMetaCard
                     userName={currentProfile.username || mockUserPlan.userName}
                     email={currentProfile.email || currentProfile.email}
-                    weekId={mockUserPlan.weekId}
                 />
 
                 <form onSubmit={handleSave}>

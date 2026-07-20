@@ -1,15 +1,14 @@
-import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setViewMode, setCurrentDate } from '../../store/calendarSlice';
 import './HomePage.css';
 
 export default function HomePage() {
   const dispatch = useDispatch();
-  
+
   // Connect to Redux global state
   const viewMode = useSelector((state) => state.calendar.viewMode);
   const currentDateString = useSelector((state) => state.calendar.currentDate);
-  
+
   // Parse string date to Date object for calculation logic
   const currentDate = new Date(currentDateString);
   const today = new Date();
@@ -18,7 +17,7 @@ export default function HomePage() {
   const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const mealSections = ['Breakfast', 'Lunch', 'Dinner'];
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June', 
+    'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
@@ -29,20 +28,20 @@ export default function HomePage() {
     else if (viewMode === 'week') newDate.setDate(currentDate.getDate() - 7);
     else if (viewMode === 'month') newDate.setMonth(currentDate.getMonth() - 1);
     else if (viewMode === 'year') newDate.setFullYear(currentDate.getFullYear() - 1);
-    
+
     dispatch(setCurrentDate(newDate.toISOString()));
   };
-  
+
   const handleNext = () => {
     const newDate = new Date(currentDate);
     if (viewMode === 'day') newDate.setDate(currentDate.getDate() + 1);
     else if (viewMode === 'week') newDate.setDate(currentDate.getDate() + 7);
     else if (viewMode === 'month') newDate.setMonth(currentDate.getMonth() + 1);
     else if (viewMode === 'year') newDate.setFullYear(currentDate.getFullYear() + 1);
-    
+
     dispatch(setCurrentDate(newDate.toISOString()));
   };
-  
+
   const handleToday = () => {
     dispatch(setCurrentDate(new Date().toISOString()));
   };
@@ -74,8 +73,8 @@ export default function HomePage() {
             const isSelectedDay = dayDate.getDate() === currentDate.getDate() && dayDate.getMonth() === currentDate.getMonth();
 
             return (
-              <div 
-                key={idx} 
+              <div
+                key={idx}
                 className="day-header-cell clickable"
                 onClick={() => handleDayClick(dayDate)}
               >
@@ -111,7 +110,7 @@ export default function HomePage() {
   const renderMonthView = () => {
     const year = currentDate.getFullYear();
     const monthIndex = currentDate.getMonth();
-    
+
     const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
     const firstDayOfWeek = new Date(year, monthIndex, 1).getDay();
 
@@ -125,8 +124,8 @@ export default function HomePage() {
       const isSelectedDay = dayNum === currentDate.getDate();
 
       return (
-        <div 
-          key={`month-day-${dayNum}`} 
+        <div
+          key={`month-day-${dayNum}`}
           className="month-cell clickable"
           onClick={() => handleDayClick(dayDate)}
         >
@@ -176,8 +175,8 @@ export default function HomePage() {
               today.getDate() === dayNum;
 
             return (
-              <div 
-                key={`year-day-${dayNum}`} 
+              <div
+                key={`year-day-${dayNum}`}
                 className="mini-day clickable"
                 onClick={() => handleDayClick(dayDate)}
               >
@@ -208,14 +207,14 @@ export default function HomePage() {
   // 4. Day View Component (Focused day grid layout)
   const renderDayView = () => (
     <div className="apple-day-view">
-       <div className="day-sections">
-         {mealSections.map((section, idx) => (
-            <div key={idx} className="day-meal-row">
-              <div className="time-label">{section}</div>
-              <div className="meal-cell flex-1"></div>
-            </div>
-          ))}
-       </div>
+      <div className="day-sections">
+        {mealSections.map((section, idx) => (
+          <div key={idx} className="day-meal-row">
+            <div className="time-label">{section}</div>
+            <div className="meal-cell flex-1"></div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 
@@ -226,17 +225,17 @@ export default function HomePage() {
         <div className="toolbar-left">
           <button onClick={handleToday} className="today-btn">Today</button>
         </div>
-        
+
         <div className="toolbar-center">
           <button onClick={handlePrev} className="arrow-btn">‹</button>
-          
+
           <h2 className="current-date-title">
             {/* Dynamic string formatting with required comma injection for single day layout */}
             {viewMode === 'day' && `${daysOfWeek[currentDate.getDay()]}, ${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
             {(viewMode === 'week' || viewMode === 'month') && `${currentDate.getDate()} ${months[currentDate.getMonth()]}`}
             {viewMode === 'year' && currentDate.getFullYear()}
           </h2>
-          
+
           <button onClick={handleNext} className="arrow-btn">›</button>
         </div>
 

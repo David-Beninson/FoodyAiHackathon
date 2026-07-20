@@ -1,4 +1,4 @@
-export default function UserMetaCard({ userName, email, weekId }) {
+export default function UserMetaCard({ userName, email }) {
     return (
         <div className="card" style={{ marginBottom: '2rem' }}>
             <div className="info-row">
@@ -11,10 +11,6 @@ export default function UserMetaCard({ userName, email, weekId }) {
                     <span className="info-value">{email}</span>
                 </div>
             )}
-            <div className="info-row">
-                <span className="info-label">Active Week:</span>
-                <span className="info-value">{weekId}</span>
-            </div>
         </div>
     );
 }

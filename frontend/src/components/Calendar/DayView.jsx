@@ -13,8 +13,20 @@ export default function DayView({
 
   const [activeModalSection, setActiveModalSection] = useState(null);
 
-  // New state: stores the meal data to show in the details modal
-  const [activeDetailsMeal, setActiveDetailsMeal] = useState(null);
+  // New state: stores the active section name (Breakfast/Lunch/Dinner) to show details dynamically
+  const [activeDetailsSection, setActiveDetailsSection] = useState(null);
+
+  const activeMeal = activeDetailsSection ? dayPlan?.meals?.[activeDetailsSection.toLowerCase()] : null;
+  const isReplacedActive = activeMeal?.status === 'replaced';
+  const activeDetailsMeal = activeMeal ? {
+    section: activeDetailsSection,
+    title: isReplacedActive && activeMeal.replaced_with_meal_name ? `AI Custom: ${activeMeal.replaced_with_meal_name}` : activeMeal.name,
+    description: activeMeal.description,
+    calories: activeMeal.planned_macros?.calories,
+    protein: activeMeal.planned_macros?.protein,
+    carbs: activeMeal.planned_macros?.carbs,
+    fats: activeMeal.planned_macros?.fat
+  } : null;
 
   const handleStatusToggle = (section, status) => {
     const mealKey = section.toLowerCase();
@@ -94,28 +106,12 @@ export default function DayView({
                     <h3
                       className="meal-title"
                       style={{ fontSize: '15px', fontWeight: '600', margin: '0', textAlign: 'left', cursor: 'pointer', textDecoration: 'underline' }}
-                      onClick={() => setActiveDetailsMeal({
-                        title: isReplaced && meal.replaced_with_meal_name ? `AI Custom: ${meal.replaced_with_meal_name}` : meal.name,
-                        description: currentCustomMeal ? `Custom meal added: ${currentCustomMeal.name}` : meal.description,
-                        calories: currentCustomMeal ? currentCustomMeal.calories : meal.planned_macros?.calories,
-                        protein: currentCustomMeal ? currentCustomMeal.protein : meal.planned_macros?.protein,
-                        carbs: currentCustomMeal ? currentCustomMeal.carbs : meal.planned_macros?.carbs,
-                        fats: currentCustomMeal ? currentCustomMeal.fats : meal.planned_macros?.fat
-                      })}
+                      onClick={() => setActiveDetailsSection(section)}
                     >
                       {isReplaced && meal.replaced_with_meal_name
                         ? `Custom: ${meal.replaced_with_meal_name}`
                         : meal.name}
                     </h3>
-                    <p className="meal-description" style={{ fontSize: '13px', color: 'var(--text)', margin: '0 0 8px 0', textAlign: 'left' }}>
-                      {meal.description}
-                    </p>
-                    <div className="meal-macros-badges" style={{ display: 'flex', gap: '8px', fontSize: '12px' }}>
-                      <span className="macro-badge calories">🔥 {meal.planned_macros?.calories} kcal</span>
-                      <span className="macro-badge protein">🥩 {meal.planned_macros?.protein}g Pro</span>
-                      <span className="macro-badge carbs">🍞 {meal.planned_macros?.carbs}g Carb</span>
-                      <span className="macro-badge fat">🥑 {meal.planned_macros?.fat}g Fat</span>
-                    </div>
                   </div>
                 ) : (
                   <div className="meal-content-placeholder">
@@ -155,40 +151,6 @@ export default function DayView({
                     </div>
                   )}
 
-                  <div className="dropdown-wrapper">
-                    <button
-                      type="button"
-                      className="action-btn dropdown-toggle"
-                      onClick={() => toggleDropdown(`${section}-replace`)}
-                    >
-                      Replace Meal ▾
-                    </button>
-
-                    {openDropdown === `${section}-replace` && (
-                      <div className="dropdown-menu">
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            setActiveModalSection(section);
-                            setOpenDropdown(null);
-                          }}
-                        >
-                          ✨ Custom
-                        </button>
-                        <button
-                          type="button"
-                          className="dropdown-item"
-                          onClick={() => {
-                            onRegenerateMeal(section, null);
-                            setOpenDropdown(null);
-                          }}
-                        >
-                          🔄 Regenerate
-                        </button>
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
             </div>
@@ -204,9 +166,14 @@ export default function DayView({
       />
 
       <MealDetailsModal
-        isOpen={Boolean(activeDetailsMeal)}
+        isOpen={Boolean(activeDetailsSection)}
         meal={activeDetailsMeal}
-        onClose={() => setActiveDetailsMeal(null)}
+        onClose={() => setActiveDetailsSection(null)}
+        onRegenerate={(prompt) => {
+          if (activeDetailsSection) {
+            return onRegenerateMeal(activeDetailsSection, prompt);
+          }
+        }}
       />
     </div>
   );

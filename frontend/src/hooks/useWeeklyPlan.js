@@ -116,7 +116,6 @@ export function useWeeklyPlan(currentDateString) {
 
   const handleRegenerateMeal = async (dayName, mealType, promptOverride = null) => {
     if (!weeklyPlan || !userId) return;
-    setIsLoading(true);
     setError(null);
     try {
       const weekStartStr = getLocalDateString(weekStartDate);
@@ -131,8 +130,7 @@ export function useWeeklyPlan(currentDateString) {
     } catch (err) {
       console.error('Failed to regenerate meal:', err);
       setError(err.response?.data?.detail || 'Failed to regenerate meal.');
-    } finally {
-      setIsLoading(false);
+      throw err;
     }
   };
 

@@ -7,6 +7,7 @@ export default function DayView({
   isFutureDay,
   dayPlan,
   onUpdateStatus,
+  onUpdateFavorite,
   onRegenerateMeal
 }) {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -37,12 +38,11 @@ export default function DayView({
     setOpenDropdown(null);
   };
 
-  const handleFavoriteToggle = (section, favorite) => {
+  const handleFavoriteToggle = (section) => {
     const mealKey = section.toLowerCase();
     const currentMeal = dayPlan?.meals?.[mealKey];
-    const targetFavorite = currentMeal?.is_favorite === true ?currentMeal?.is_favorite : false;
-    onUpdateFavorite(section, targetFavorite, null);
-
+    const targetFavorite = !(currentMeal?.is_favorite === true);
+    onUpdateFavorite(section, targetFavorite);
   };
 
   const toggleDropdown = (dropdownId) => {
@@ -179,7 +179,7 @@ export default function DayView({
         meal={activeDetailsMeal}
         onClose={() => setActiveDetailsSection(null)}
         onToggleFavorite={() => {
-
+          handleFavoriteToggle(activeDetailsSection);
         }}
 
         onRegenerate={(prompt) => {

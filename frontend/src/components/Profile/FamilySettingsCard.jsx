@@ -122,21 +122,23 @@ export default function FamilySettingsCard({
                 </div>
             )}
 
-            <AddFamilyMemberModal
-                isOpen={isModalOpen}
-                onClose={() => {
-                    setIsModalOpen(false);
-                    setEditIndex(null);
-                }}
-                onSave={(member) => {
-                    if (editIndex !== null) {
-                        handleUpdateFamilyMember(editIndex, member);
-                    } else {
-                        handleAddFamilyMember(member);
-                    }
-                }}
-                memberData={editIndex !== null ? currentProfile.family_members[editIndex] : null}
-            />
+            {isModalOpen && (
+                <AddFamilyMemberModal
+                    isOpen={isModalOpen}
+                    onClose={() => {
+                        setIsModalOpen(false);
+                        setEditIndex(null);
+                    }}
+                    onSave={(member) => {
+                        if (editIndex !== null) {
+                            handleUpdateFamilyMember(editIndex, member);
+                        } else {
+                            handleAddFamilyMember(member);
+                        }
+                    }}
+                    memberData={editIndex !== null ? currentProfile.family_members[editIndex] : null}
+                />
+            )}
         </div>
     );
 }

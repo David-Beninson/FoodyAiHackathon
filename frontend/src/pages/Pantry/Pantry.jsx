@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getPantry, updatePantry } from '../../api/apiClient';
+import LoadingSpinner from '../../components/Common/LoadingSpinner';
 import './Pantry.css';
 
 const POPULAR_INGREDIENTS = [
@@ -107,10 +108,7 @@ export default function Pantry() {
       )}
 
       {loading ? (
-        <div className="pantry-loading-container">
-          <div className="pantry-spinner"></div>
-          <p>Loading your pantry...</p>
-        </div>
+        <LoadingSpinner message="Loading your pantry..." />
       ) : (
         <div className="pantry-grid-layout">
           {/* Left panel: Quick Select & Custom Add */}

@@ -82,6 +82,11 @@ export const updateMealStatus = async (
   return response.data;
 };
 
+export const getFavoriteMeals = async (userId) => {
+  const response = await apiClient.get(`/plans/user/${userId}/favorites`);
+  return response.data;
+};
+
 export const getPlannerChatSession = async (userId) => {
   const response = await apiClient.get(`/ai/planner/chat/${userId}`);
   return response.data;

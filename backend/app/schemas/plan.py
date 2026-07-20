@@ -9,7 +9,6 @@ class GeneratePlanRequest(BaseModel):
 
 class UpdateMealStatusRequest(BaseModel):
     status: MealStatus
-    replaced_with_meal_name: Optional[str] = None
 
 class RegenerateMealRequest(BaseModel):
     user_id: str

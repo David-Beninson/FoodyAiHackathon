@@ -1,13 +1,13 @@
-from typing import List
-from app.models.user import Macros
+from typing import List, Union
+from app.models.user import Macros, UserGoal, ActivityLevel
 
 def calculate_target_macros(
     age: int,
     weight: float,
     height: float,
     gender: str,
-    activity_level: str,
-    goals: List[str]
+    activity_level: Union[ActivityLevel, str],
+    goals: List[Union[UserGoal, str]]
 ) -> Macros:
     """
     Calculates target calories and macros using the Mifflin-St Jeor equation:
@@ -25,15 +25,26 @@ def calculate_target_macros(
         "very_active": 1.725,
         "extremely_active": 1.9
     }
-    multiplier = activity_multipliers.get(activity_level.lower(), 1.2)
+    act_str = activity_level.value if hasattr(activity_level, "value") else str(activity_level)
+    multiplier = activity_multipliers.get(act_str.strip().lower(), 1.2)
     tdee = bmr * multiplier
 
     # 3. Adjust calories for goals
     calories = tdee
-    goal_str = " ".join(goals).lower()
-    if "lose" in goal_str:
+    has_lose = False
+    has_gain = False
+    
+    for goal in goals:
+        goal_val = goal.value if hasattr(goal, "value") else str(goal)
+        goal_val = goal_val.lower()
+        if "lose" in goal_val:
+            has_lose = True
+        elif "gain" in goal_val or "build" in goal_val:
+            has_gain = True
+
+    if has_lose:
         calories -= 500  # calorie deficit
-    elif "gain" in goal_str or "build" in goal_str:
+    elif has_gain:
         calories += 300  # calorie surplus
 
     # Keep a safe floor

@@ -9,7 +9,6 @@ class MealStatus(str, Enum):
     PLANNED = "planned"
     EATEN = "eaten"
     SKIPPED = "skipped"
-    REPLACED = "replaced"
 
 class MealPlan(BaseModel):
     name: str
@@ -19,7 +18,6 @@ class MealPlan(BaseModel):
     actual_macros: Macros = Field(default_factory=Macros)
     ai_explanation: Optional[str] = None
     is_completion: bool = False
-    replaced_with_meal_name: Optional[str] = None
 
     def update_actual_macros(self):
         """Helper to sync actual macros according to status."""
@@ -27,8 +25,6 @@ class MealPlan(BaseModel):
             self.actual_macros = self.planned_macros
         elif self.status == MealStatus.SKIPPED:
             self.actual_macros = Macros(calories=0, protein=0, carbs=0, fat=0)
-        # For "replaced", actual_macros can be set to different values than planned,
-        # but if not explicitly set, we could leave it.
 
 class DayPlan(BaseModel):
     meals: Dict[str, MealPlan]  # Keys: "breakfast", "lunch", "dinner"

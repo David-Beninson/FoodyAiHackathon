@@ -5,6 +5,7 @@ import WeekView from '../../components/Calendar/WeekView';
 import MonthView from '../../components/Calendar/MonthView';
 import YearView from '../../components/Calendar/YearView';
 import DayView from '../../components/Calendar/DayView';
+import { useWeeklyPlan } from '../../hooks/useWeeklyPlan';
 import './Calendar.css';
 
 export default function Calendar() {
@@ -13,6 +14,13 @@ export default function Calendar() {
   // Connect to Redux global state
   const viewMode = useSelector((state) => state.calendar.viewMode);
   const currentDateString = useSelector((state) => state.calendar.currentDate);
+
+  // Hook to fetch and manage weekly plan from DB
+  const {
+    weeklyPlan,
+    error,
+    updateMealStatus,
+  } = useWeeklyPlan(currentDateString);
 
   // Parse string date to Date object for calculation logic
   const currentDate = new Date(currentDateString);
@@ -77,6 +85,20 @@ export default function Calendar() {
         handleViewModeChange={handleViewModeChange}
       />
 
+      {error && error.includes('Connection error') && (
+        <div style={{
+          backgroundColor: 'rgba(255, 59, 48, 0.1)',
+          borderBottom: '1px solid rgba(255, 59, 48, 0.2)',
+          color: '#ff3b30',
+          padding: '8px 16px',
+          fontSize: '12px',
+          textAlign: 'center',
+          fontWeight: 500
+        }}>
+          Connection error: Cannot connect to the server. Meals will not load.
+        </div>
+      )}
+
       <main className="calendar-content">
         {viewMode === 'week' && (
           <WeekView
@@ -84,6 +106,7 @@ export default function Calendar() {
             daysOfWeek={daysOfWeek}
             mealSections={mealSections}
             handleDayClick={handleDayClick}
+            weeklyPlan={weeklyPlan}
           />
         )}
         {viewMode === 'month' && (
@@ -91,6 +114,7 @@ export default function Calendar() {
             currentDate={currentDate}
             daysOfWeek={daysOfWeek}
             handleDayClick={handleDayClick}
+            weeklyPlan={weeklyPlan}
           />
         )}
         {viewMode === 'year' && (
@@ -105,6 +129,11 @@ export default function Calendar() {
           <DayView
             mealSections={mealSections}
             isFutureDay={isFutureDay}
+            dayName={daysOfWeek[currentDate.getDay()]}
+            dayPlan={weeklyPlan?.days?.[daysOfWeek[currentDate.getDay()]]}
+            onUpdateStatus={(mealType, status, replacedWithMealName) =>
+              updateMealStatus(daysOfWeek[currentDate.getDay()], mealType, status, replacedWithMealName)
+            }
           />
         )}
       </main>

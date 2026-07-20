@@ -19,4 +19,24 @@ export const onboardUser = async (userId, profileData) => {
   return response.data;
 };
 
+export const getWeeklyPlan = async (userId, dateStr) => {
+  const response = await apiClient.get('/plans', {
+    params: {
+      user_id: userId,
+      date: dateStr,
+    },
+  });
+  return response.data;
+};
+
+export const updateMealStatus = async (planId, day, mealType, status, replacedWithMealName = null) => {
+  const response = await apiClient.patch(`/plans/${planId}/meals/${day}/${mealType.toLowerCase()}/status`, {
+    status,
+    replaced_with_meal_name: replacedWithMealName,
+  });
+  return response.data;
+};
+
 export default apiClient;
+
+

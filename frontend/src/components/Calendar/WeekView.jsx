@@ -1,10 +1,9 @@
-import React from 'react';
-
 export default function WeekView({
   currentDate,
   daysOfWeek,
   mealSections,
-  handleDayClick
+  handleDayClick,
+  weeklyPlan
 }) {
   const startOfWeek = new Date(currentDate);
   startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
@@ -39,15 +38,44 @@ export default function WeekView({
           ))}
         </div>
         <div className="days-columns">
-          {daysOfWeek.map((_, dayIdx) => (
-            <div key={dayIdx} className="day-column">
-              {mealSections.map((_, secIdx) => (
-                <div key={secIdx} className="meal-cell"></div>
-              ))}
-            </div>
-          ))}
+          {daysOfWeek.map((dayName, dayIdx) => {
+            const dayDate = new Date(startOfWeek);
+            dayDate.setDate(startOfWeek.getDate() + dayIdx);
+            const dayPlan = weeklyPlan?.days?.[dayName];
+
+            return (
+              <div key={dayIdx} className="day-column">
+                {mealSections.map((section, secIdx) => {
+                  const mealKey = section.toLowerCase();
+                  const meal = dayPlan?.meals?.[mealKey];
+
+                  return (
+                    <div
+                      key={secIdx}
+                      className={`meal-cell clickable ${meal ? meal.status : ''}`}
+                      onClick={() => handleDayClick(dayDate)}
+                    >
+                      {meal && (
+                        <div className="week-meal-info">
+                          <span className="week-meal-name" title={meal.status === 'replaced' ? meal.replaced_with_meal_name : meal.name}>
+                            {meal.status === 'replaced' && meal.replaced_with_meal_name
+                              ? meal.replaced_with_meal_name
+                              : meal.name}
+                          </span>
+                          <span className="week-meal-calories">
+                            {meal.planned_macros?.calories} kcal
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
   );
 }
+

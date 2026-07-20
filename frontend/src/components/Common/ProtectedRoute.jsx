@@ -15,11 +15,7 @@ export default function ProtectedRoute({ children }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If the user is logged in but not onboarded, redirect them to /Profile (onboarding page)
-  const isProfilePage = location.pathname.toLowerCase() === '/profile';
-  if (!isOnboarded && !isProfilePage) {
-    return <Navigate to="/Profile" replace state={{ alertOnboarding: true }} />;
-  }
+
 
   return children;
 }

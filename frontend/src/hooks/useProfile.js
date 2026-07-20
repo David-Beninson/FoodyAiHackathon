@@ -77,13 +77,23 @@ export function useProfile() {
     });
 
     const [isEditing, setIsEditing] = useState(false);
-    const [tempProfile, setTempProfile] = useState(profile);
+    const [tempProfile, setTempProfile] = useState(() => {
+        const savedTemp = localStorage.getItem('foodyai_temp_profile');
+        if (savedTemp) return JSON.parse(savedTemp);
+        const saved = localStorage.getItem('foodyai_profile');
+        return saved ? JSON.parse(saved) : defaultProfileState;
+    });
     const [newAllergy, setNewAllergy] = useState('');
     const [newPref, setNewPref] = useState('');
     const [newGoal, setNewGoal] = useState('');
     const [showSuccessToast, setShowSuccessToast] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    // Save temporary profile progress to localStorage
+    useEffect(() => {
+        localStorage.setItem('foodyai_temp_profile', JSON.stringify(tempProfile));
+    }, [tempProfile]);
 
     // Fetch profile from backend on mount or when user changes
     useEffect(() => {
@@ -96,7 +106,11 @@ export function useProfile() {
                 const data = await getUserProfile(userId);
                 const mapped = mapBackendToFrontend(data);
                 setProfile(mapped);
-                setTempProfile(mapped);
+                // Only overwrite temp profile if there is no unsaved progress
+                const savedTemp = localStorage.getItem('foodyai_temp_profile');
+                if (!savedTemp) {
+                    setTempProfile(mapped);
+                }
                 localStorage.setItem('foodyai_profile', JSON.stringify(mapped));
             } catch (err) {
                 console.error('Error fetching profile from API:', err);
@@ -126,6 +140,8 @@ export function useProfile() {
         setNewAllergy('');
         setNewPref('');
         setNewGoal('');
+        localStorage.removeItem('foodyai_temp_profile');
+        setTempProfile({ ...profile });
     };
 
     const handleSave = async (e) => {
@@ -139,6 +155,7 @@ export function useProfile() {
             const mapped = mapBackendToFrontend(savedData);
             setProfile(mapped);
             localStorage.setItem('foodyai_profile', JSON.stringify(mapped));
+            localStorage.removeItem('foodyai_temp_profile');
             
             // Sync with global auth state (updates isOnboarded flag)
             await refreshProfile();
@@ -197,6 +214,7 @@ export function useProfile() {
 
     return {
         currentProfile,
+        tempProfile,
         isEditing,
         showSuccessToast,
         newAllergy,

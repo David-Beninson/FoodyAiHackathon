@@ -27,6 +27,7 @@
 
 .toolbar-center {
   justify-content: center;
+  gap: 16px;
 }
 
 .toolbar-right {
@@ -35,12 +36,14 @@
 
 .current-date-title {
   margin: 0;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 500;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
+  min-width: 220px;
+  text-align: center;
 }
 
-/* Segmented State Controller */
+/* Segmented Control Selectors */
 .segment-control {
   display: flex;
   background: var(--bg);
@@ -67,34 +70,43 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-/* Toolbar Control Buttons */
-.nav-arrows {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.icon-btn, .today-btn {
+/* Toolbar Buttons */
+.today-btn {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-h);
   border-radius: 6px;
   cursor: pointer;
+  font-size: 13px;
+  padding: 4px 12px;
   transition: background-color 0.2s ease;
 }
 
-.icon-btn:hover, .today-btn:hover {
+.today-btn:hover {
   background-color: var(--code-bg);
 }
 
-.icon-btn {
-  font-size: 18px;
-  padding: 2px 10px;
+.arrow-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-h);
+  font-size: 24px;
+  font-weight: 300;
+  cursor: pointer;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
-.today-btn {
-  font-size: 13px;
-  padding: 4px 12px;
+.arrow-btn:hover {
+  background-color: var(--border);
+}
+
+.arrow-btn:active {
+  transform: scale(0.9);
 }
 
 .calendar-content {
@@ -104,12 +116,11 @@
   flex-direction: column;
 }
 
-/* Global Interactive Element Indicators */
 .clickable {
   cursor: pointer;
 }
 
-/* -------------------- Week View Layout -------------------- */
+/* -------------------- Week View -------------------- */
 .apple-week-view {
   display: flex;
   flex-direction: column;
@@ -178,13 +189,22 @@
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--border);
+  background-color: var(--code-bg);
+}
+
+.time-axis .time-label {
+  border-bottom: 1px solid var(--border);
+}
+
+.time-axis .time-label:last-child {
+  border-bottom: none;
 }
 
 .time-label {
   flex: 1;
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding-top: 20px;
   font-size: 13px;
   color: var(--text);
   font-weight: 500;
@@ -216,7 +236,7 @@
   border-bottom: none;
 }
 
-/* -------------------- Month View Layout -------------------- */
+/* -------------------- Month View -------------------- */
 .apple-month-view {
   display: flex;
   flex-direction: column;
@@ -278,7 +298,7 @@
   font-weight: 600;
 }
 
-/* -------------------- Year View Layout -------------------- */
+/* -------------------- Year View -------------------- */
 .apple-year-view {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -350,14 +370,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 32px;
-}
-
-.day-header-single {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-bottom: 24px;
+  padding: 32px 32px 0 32px;
 }
 
 .day-sections {
@@ -365,22 +378,20 @@
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
   overflow: hidden;
 }
 
 .day-meal-row {
-  flex: 1;
   display: flex;
+  flex: 1;
   border-bottom: 1px solid var(--border);
 }
 
-.day-meal-row:last-child {
-  border-bottom: none;
-}
-
+/* Strictly sets the meal labels column to exactly 25% (one quarter) of the table width */
 .day-meal-row .time-label {
-  width: 120px;
+  flex: 0 0 25%; 
   display: flex;
   align-items: center;
   justify-content: center;
@@ -389,4 +400,5 @@
   font-size: 14px;
   font-weight: 500;
   color: var(--text);
+  box-sizing: border-box;
 }

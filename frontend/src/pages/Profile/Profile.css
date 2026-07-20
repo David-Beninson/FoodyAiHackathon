@@ -1,5 +1,3 @@
-/* Profile.css - Apple Minimalist Clean Design */
-
 .profile-container {
     display: flex;
     flex-direction: column;
@@ -7,116 +5,90 @@
     min-height: 100%;
     background-color: var(--bg);
     color: var(--text-h);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     direction: ltr;
+    align-items: center;
 }
 
-/* Apple-style Profile Header */
 .profile-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 32px;
+    padding: 24px 48px;
     border-bottom: 1px solid var(--border);
-    background: var(--bg);
+    background: var(--surface);
+    width: 100%;
+    max-width: 1200px;
+    box-sizing: border-box;
 }
 
 .profile-title {
     margin: 0;
-    font-size: 20px;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-}
-
-/* Buttons */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text-h);
-    border-radius: 0px;
-    font-size: 13px;
-    font-weight: 400;
-    padding: 8px 18px;
-    cursor: pointer;
-    transition: background 0.15s ease;
-}
-
-.btn:hover {
-    background: var(--code-bg);
-}
-
-.btn-primary {
-    background: var(--text-h);
-    color: var(--bg);
-    border-color: var(--text-h);
-}
-
-.btn-primary:hover {
-    opacity: 0.85;
-    background: var(--text-h);
-    color: var(--bg);
-}
-
-.btn-secondary {
-    background: transparent;
-    border: 1px solid var(--border);
+    font-size: 26px;
+    font-weight: 600;
     color: var(--text-h);
 }
 
-.btn-secondary:hover {
-    background: var(--code-bg);
-}
-
-/* Page Content Area */
 .profile-content-area {
-    max-width: 860px;
     width: 100%;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 40px 32px;
+    padding: 36px 24px;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-/* Profile Grid */
-.profile-grid {
+.profile-content-area form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+}
+
+.profile-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 24px;
+    align-items: start;
+    width: 100%;
+}
+
+.metrics-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    margin-bottom: 24px;
+    gap: 16px;
 }
 
-@media (max-width: 768px) {
-    .profile-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Cards - שטוח לחלוטין ללא עומק */
 .card {
-    background: var(--bg);
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 0px;
-    padding: 24px;
-    box-shadow: none;
+    border-radius: var(--radius);
+    padding: 28px;
+    box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
     gap: 20px;
-    text-align: left;
-    margin-bottom: 24px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.profile-meta-card {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 0;
 }
 
 .card-title {
-    font-size: 16px;
-    font-weight: 500;
+    font-size: 18px;
+    font-weight: 600;
     color: var(--text-h);
     margin: 0;
     padding-bottom: 12px;
     border-bottom: 1px solid var(--border);
 }
 
-/* Metadata lists */
 .info-row {
     display: flex;
     justify-content: space-between;
@@ -124,173 +96,139 @@
     font-size: 14px;
 }
 
-.info-label {
-    font-weight: 400;
-    color: var(--text);
-}
-
-.info-value {
-    font-weight: 500;
-    color: var(--text-h);
-}
-
-/* Form fields */
 .form-group {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    width: 100%;
-    text-align: left;
 }
 
 .form-group label {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-h);
 }
 
 .form-control {
-    background-color: var(--bg);
+    background-color: var(--code-bg);
     border: 1px solid var(--border);
-    border-radius: 0px;
-    padding: 10px 14px;
+    border-radius: var(--radius);
+    padding: 12px 14px;
     font-size: 14px;
     color: var(--text-h);
-    transition: border-color 0.15s ease;
-    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .form-control:focus {
     outline: none;
-    border-color: var(--text-h);
-    box-shadow: none;
+    border-color: var(--accent);
+    box-shadow: var(--accent-glow);
 }
 
 .form-control:disabled, .form-control[readonly] {
-    background-color: var(--code-bg);
+    background-color: #1a1e29;
     color: var(--text);
-    border-color: var(--border);
     cursor: default;
 }
 
-/* Tags styles */
-.tag-input-wrapper {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
+.btn {
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
 }
 
+.btn-primary {
+    background: var(--accent);
+    color: #000;
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+    box-shadow: var(--accent-glow);
+}
+
+.btn-secondary {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    color: var(--text-h);
+}
+
+.btn-secondary:hover {
+    background: var(--surface);
+    border-color: var(--accent);
+}
+
+/* Tags & Macro Visualizer */
 .tags-container {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    padding: 14px;
-    background-color: var(--code-bg);
-    border: 1px solid var(--border);
-    border-radius: 0px;
-    min-height: 52px;
-    box-sizing: border-box;
-    align-items: center;
+    margin-top: 8px;
 }
 
 .tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background-color: var(--bg);
-    color: var(--text-h);
+    background: var(--code-bg);
     border: 1px solid var(--border);
-    padding: 4px 12px;
-    border-radius: 0px;
+    color: var(--text-h);
+    padding: 6px 12px;
+    border-radius: 6px;
     font-size: 13px;
-    font-weight: 400;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .tag-remove {
-    background: none;
+    background: transparent;
     border: none;
     color: var(--text);
     cursor: pointer;
     font-size: 14px;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
-    transition: color 0.15s ease;
+}
+.tag-remove:hover { color: #ef4444; }
+
+.macro-visualizer-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
 }
 
-.tag-remove:hover {
-    color: var(--text-h);
-}
-
-/* Macro Nutrition Visualizer */
 .macro-visualizer {
     display: flex;
-    height: 6px;
-    border-radius: 0px;
+    height: 10px;
+    border-radius: 5px;
     overflow: hidden;
-    background-color: var(--border);
-    margin-top: 12px;
+    background: var(--code-bg);
+    gap: 2px;
 }
 
-.vis-protein {
-    background-color: #34c759;
-    height: 100%;
-}
-
-.vis-carbs {
-    background-color: #007aff;
-    height: 100%;
-}
-
-.vis-fats {
-    background-color: #ff9500;
-    height: 100%;
-}
+.vis-protein { background: #3b82f6; width: var(--width); }
+.vis-carbs { background: var(--accent); width: var(--width); }
+.vis-fats { background: #eab308; width: var(--width); }
 
 .vis-legend {
     display: flex;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    gap: 20px;
-    margin-top: 12px;
+    gap: 16px;
     font-size: 12px;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
     color: var(--text);
 }
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot-protein { background: #3b82f6; }
+.dot-carbs { background: var(--accent); }
+.dot-fats { background: #eab308; }
 
-.dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 0px;
-    display: inline-block;
-}
-
-/* Success Toast */
-.toast {
-    position: fixed;
-    bottom: 32px;
-    right: 32px;
-    background-color: var(--text-h);
-    color: var(--bg);
-    padding: 12px 24px;
-    border-radius: 0px;
-    box-shadow: none;
-    border: 1px solid var(--border);
-    z-index: 1000;
-    font-size: 13px;
-    font-weight: 400;
+.profile-form-actions {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    gap: 16px;
+    width: 100%;
+    max-width: 400px;
+    justify-content: center;
+    margin-top: 16px;
 }

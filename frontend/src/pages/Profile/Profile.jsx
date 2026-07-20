@@ -48,7 +48,6 @@ export default function Profile() {
         );
     }
 
-    // 1. Render Questionnaire if user is NOT onboarded yet
     if (!isOnboarded) {
         return (
             <OnboardingQuestionnaire
@@ -66,7 +65,6 @@ export default function Profile() {
         );
     }
 
-    // 2. Render standard beautiful Profile view if user is already onboarded
     return (
         <div className="profile-container">
             {showSuccessToast && (
@@ -95,7 +93,8 @@ export default function Profile() {
                 />
 
                 <form onSubmit={handleSave}>
-                    <div className="profile-grid">
+                    {/* הפריסה המקבילה - רשת של כרטיסיות */}
+                    <div className="profile-dashboard-grid">
                         <WeightCard
                             weight={currentProfile.weight}
                             goalWeight={currentProfile.goalWeight}
@@ -116,47 +115,47 @@ export default function Profile() {
                             fatsPct={fatsPct}
                             isLoading={isLoading}
                         />
-                    </div>
 
-                    <div className="card">
-                        <h2 className="card-title">Goals, Preferences & Dietary Constraints</h2>
+                        <div className="card">
+                            <h2 className="card-title">Goals, Preferences & Dietary Constraints</h2>
 
-                        <TagManagerCard
-                            title="Personal Goals"
-                            placeholder="Select a goal..."
-                            tags={currentProfile.goals || []}
-                            inputValue={newGoal}
-                            setInputValue={setNewGoal}
-                            onAddTag={(val) => addTag('goals', val, setNewGoal)}
-                            onRemoveTag={(tag) => removeTag('goals', tag)}
-                            isEditing={isEditing}
-                            emptyMessage="No goals recorded"
-                            options={['lose weight', 'gain muscle', 'eat healthier']}
-                        />
+                            <TagManagerCard
+                                title="Personal Goals"
+                                placeholder="Select a goal..."
+                                tags={currentProfile.goals || []}
+                                inputValue={newGoal}
+                                setInputValue={setNewGoal}
+                                onAddTag={(val) => addTag('goals', val, setNewGoal)}
+                                onRemoveTag={(tag) => removeTag('goals', tag)}
+                                isEditing={isEditing}
+                                emptyMessage="No goals recorded"
+                                options={['lose weight', 'gain muscle', 'eat healthier']}
+                            />
 
-                        <TagManagerCard
-                            title="Allergies & Restrictions"
-                            placeholder="Add allergy (e.g. peanuts)..."
-                            tags={currentProfile.allergies || []}
-                            inputValue={newAllergy}
-                            setInputValue={setNewAllergy}
-                            onAddTag={(val) => addTag('allergies', val, setNewAllergy)}
-                            onRemoveTag={(tag) => removeTag('allergies', tag)}
-                            isEditing={isEditing}
-                            emptyMessage="No allergies recorded"
-                        />
+                            <TagManagerCard
+                                title="Allergies & Restrictions"
+                                placeholder="Add allergy (e.g. peanuts)..."
+                                tags={currentProfile.allergies || []}
+                                inputValue={newAllergy}
+                                setInputValue={setNewAllergy}
+                                onAddTag={(val) => addTag('allergies', val, setNewAllergy)}
+                                onRemoveTag={(tag) => removeTag('allergies', tag)}
+                                isEditing={isEditing}
+                                emptyMessage="No allergies recorded"
+                            />
 
-                        <TagManagerCard
-                            title="Dietary Preferences (e.g. vegetarian, gluten-free)"
-                            placeholder="Add preference..."
-                            tags={currentProfile.preferences || []}
-                            inputValue={newPref}
-                            setInputValue={setNewPref}
-                            onAddTag={(val) => addTag('preferences', val, setNewPref)}
-                            onRemoveTag={(tag) => removeTag('preferences', tag)}
-                            isEditing={isEditing}
-                            emptyMessage="No preferences recorded"
-                        />
+                            <TagManagerCard
+                                title="Dietary Preferences (e.g. vegetarian)"
+                                placeholder="Add preference..."
+                                tags={currentProfile.preferences || []}
+                                inputValue={newPref}
+                                setInputValue={setNewPref}
+                                onAddTag={(val) => addTag('preferences', val, setNewPref)}
+                                onRemoveTag={(tag) => removeTag('preferences', tag)}
+                                isEditing={isEditing}
+                                emptyMessage="No preferences recorded"
+                            />
+                        </div>
                     </div>
 
                     {isEditing && (

@@ -5,6 +5,7 @@ import WeekView from '../../components/Calendar/WeekView';
 import MonthView from '../../components/Calendar/MonthView';
 import YearView from '../../components/Calendar/YearView';
 import DayView from '../../components/Calendar/DayView';
+import LoadingSpinner from '../../components/Common/LoadingSpinner';
 import { useWeeklyPlan } from '../../hooks/useWeeklyPlan';
 import './Calendar.css';
 
@@ -18,6 +19,7 @@ export default function Calendar() {
   // Hook to fetch and manage weekly plan from DB
   const {
     weeklyPlan,
+    isLoading,
     error,
     updateMealStatus,
   } = useWeeklyPlan(currentDateString);
@@ -100,41 +102,49 @@ export default function Calendar() {
       )}
 
       <main className="calendar-content">
-        {viewMode === 'week' && (
-          <WeekView
-            currentDate={currentDate}
-            daysOfWeek={daysOfWeek}
-            mealSections={mealSections}
-            handleDayClick={handleDayClick}
-            weeklyPlan={weeklyPlan}
-          />
-        )}
-        {viewMode === 'month' && (
-          <MonthView
-            currentDate={currentDate}
-            daysOfWeek={daysOfWeek}
-            handleDayClick={handleDayClick}
-            weeklyPlan={weeklyPlan}
-          />
-        )}
-        {viewMode === 'year' && (
-          <YearView
-            currentDate={currentDate}
-            months={months}
-            today={today}
-            handleDayClick={handleDayClick}
-          />
-        )}
-        {viewMode === 'day' && (
-          <DayView
-            mealSections={mealSections}
-            isFutureDay={isFutureDay}
-            dayName={daysOfWeek[currentDate.getDay()]}
-            dayPlan={weeklyPlan?.days?.[daysOfWeek[currentDate.getDay()]]}
-            onUpdateStatus={(mealType, status, replacedWithMealName) =>
-              updateMealStatus(daysOfWeek[currentDate.getDay()], mealType, status, replacedWithMealName)
-            }
-          />
+        {isLoading ? (
+          <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
+            <LoadingSpinner message="Loading meals..." />
+          </div>
+        ) : (
+          <>
+            {viewMode === 'week' && (
+              <WeekView
+                currentDate={currentDate}
+                daysOfWeek={daysOfWeek}
+                mealSections={mealSections}
+                handleDayClick={handleDayClick}
+                weeklyPlan={weeklyPlan}
+              />
+            )}
+            {viewMode === 'month' && (
+              <MonthView
+                currentDate={currentDate}
+                daysOfWeek={daysOfWeek}
+                handleDayClick={handleDayClick}
+                weeklyPlan={weeklyPlan}
+              />
+            )}
+            {viewMode === 'year' && (
+              <YearView
+                currentDate={currentDate}
+                months={months}
+                today={today}
+                handleDayClick={handleDayClick}
+              />
+            )}
+            {viewMode === 'day' && (
+              <DayView
+                mealSections={mealSections}
+                isFutureDay={isFutureDay}
+                dayName={daysOfWeek[currentDate.getDay()]}
+                dayPlan={weeklyPlan?.days?.[daysOfWeek[currentDate.getDay()]]}
+                onUpdateStatus={(mealType, status, replacedWithMealName) =>
+                  updateMealStatus(daysOfWeek[currentDate.getDay()], mealType, status, replacedWithMealName)
+                }
+              />
+            )}
+          </>
         )}
       </main>
     </div>

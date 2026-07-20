@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional
-from app.models.user import Macros
+from app.models.user import Macros, UserGoal, ActivityLevel
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -22,8 +22,8 @@ class OnboardRequest(BaseModel):
     weight: float = Field(..., gt=10, lt=500)  # in kg
     height: float = Field(..., gt=50, lt=300)  # in cm
     gender: str = Field(..., description="male, female, or other")
-    activity_level: str = Field(..., description="sedentary, lightly_active, moderately_active, very_active, extremely_active")
-    goals: List[str] = Field(..., min_items=1)
+    activity_level: ActivityLevel = Field(..., description="Activity level of the user")
+    goals: List[UserGoal] = Field(..., min_items=1, description="List of user nutritional goals")
     allergies: List[str] = Field(default_factory=list)
     preferences: List[str] = Field(default_factory=list)
     daily_macros_target: Optional[Macros] = None

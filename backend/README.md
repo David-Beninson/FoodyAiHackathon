@@ -8,7 +8,7 @@ This is the backend API for **FoodyAI**, built using **FastAPI**, **Beanie ODM (
 
 - **Onboarding & Profile Management**: Save user settings (weight, age, goals, allergies, preferences) and automatically calculate daily calorie and macronutrient targets.
 - **Weekly Meal Planner**: AI-powered calendar generation (Sunday to Saturday, divided into Breakfast, Lunch, Dinner). Single database query optimization to retrieve the entire weekly plan by date.
-- **Toggle Eating Status**: Mark meals as `eaten`, `skipped`, or `replaced` (updates actual daily macro stats dynamically).
+- **Toggle Eating Status**: Mark meals as `eaten` or `skipped` (updates actual daily macro stats dynamically).
 - **Smart Completion ("ארוחת השלמה")**: If a meal is marked as `skipped`, the AI calculates the exact daily deficit (target minus actual eaten) and suggests a healthy snack/meal to make up for the missing nutrients, logging it as a historical record.
 - **AI Food Adviser**: Real-time chat advisor to answer nutritional questions and suggest substitutions.
 - **Meal Explanation**: Get immediate scientific feedback (info button) explaining why the AI suggested a specific meal.

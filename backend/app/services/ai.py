@@ -52,7 +52,11 @@ class AIService:
             return None
         try:
             from google import genai
-            return genai.Client(api_key=settings.GEMINI_API_KEY)
+            from google.genai import types
+            return genai.Client(
+                api_key=settings.GEMINI_API_KEY,
+                http_options=types.HttpOptions(timeout=15_000)  # 15 seconds timeout
+            )
         except ImportError:
             logger.warning("google-genai package is not available, falling back.")
             return None
@@ -80,8 +84,8 @@ class AIService:
         1. 90% of meals must follow the user's preferences and completely avoid all listed allergies.
         2. 10% of meals should introduce healthy variety or address the user's request: '{prompt_override or "None"}'.
         3. The sum of macros for breakfast, lunch, and dinner each day must match the daily target macros (within 10% tolerance).
-        4. Meals should be described in Hebrew to match the user's interface language.
-        5. Provide a short explanation (in Hebrew) for why this meal fits their goal in the 'ai_explanation' field.
+        4. Meals should be described in English to match the user's interface language.
+        5. Provide a short explanation (in English) for why this meal fits their goal in the 'ai_explanation' field.
         """
 
         user_prompt = "Generate the 7-day meal plan conforming to the requested schema."
@@ -155,8 +159,8 @@ class AIService:
         Strict Rules:
         1. Fully respect allergies and preferences.
         2. Address custom requests if specified: '{prompt_override or "None"}'.
-        3. Meal description and name must be in Hebrew.
-        4. Provide an explanation in Hebrew why it fits their goal in the 'ai_explanation' field.
+        3. Meal description and name must be in English.
+        4. Provide an explanation in English why it fits their goal in the 'ai_explanation' field.
         """
 
         # 1. Try Gemini
@@ -207,10 +211,10 @@ class AIService:
         Carbs: {missing_macros.carbs}g
         Fat: {missing_macros.fat}g
 
-        Generate a single meal or snack (called 'ארוחת השלמה' in Hebrew) that closely matches these missing macros.
+        Generate a single meal or snack (called a 'Completion Meal') that closely matches these missing macros.
         - Respect allergies: {", ".join(user.allergies) if user.allergies else 'None'}
         - Respect preferences: {", ".join(user.preferences) if user.preferences else 'None'}
-        - Language: Hebrew.
+        - Language: English.
         """
 
         # 1. Try Gemini
@@ -262,7 +266,7 @@ class AIService:
         Daily Target: {user.daily_macros_target.calories} kcal, Protein: {user.daily_macros_target.protein}g
 
         Help the user, answer questions, recommend healthy substitutions, and give friendly nutritional tips.
-        Speak in Hebrew. Keep responses concise, friendly, and supportive.
+        Speak in English. Keep responses concise, friendly, and supportive.
         """
 
         messages = [{"role": "system", "content": system_prompt}]
@@ -303,7 +307,7 @@ class AIService:
                 logger.error(f"OpenAI chat failed: {e}")
 
         # 3. Fallback mock
-        return "שלום! כרגע מפתח המערכת לא הגדיר מפתח API עבור ה-AI. אשמח לעזור לך ברגע שמפתחות ה-API יוגדרו! בינתיים, אוכל לומר לך שחשוב מאוד לשתות מים ולהקפיד על אכילת חלבון מספקת."
+        return "Hello! Currently, the system developer has not configured the AI API key. I will be happy to help you once the AI keys are configured! In the meantime, I can tell you that it is very important to drink water and ensure you consume enough protein."
 
     @classmethod
     def generate_meal_explanation(cls, user: UserProfile, meal_name: str, meal_description: str) -> str:
@@ -311,7 +315,7 @@ class AIService:
         Generates an explanation for why a specific meal is suitable for the user (info button logic).
         """
         system_prompt = f"""
-        Explain in Hebrew why the meal '{meal_name}' ({meal_description}) fits a user with goals: {', '.join(user.goals)} and target calories: {user.daily_macros_target.calories} kcal.
+        Explain in English why the meal '{meal_name}' ({meal_description}) fits a user with goals: {', '.join(user.goals)} and target calories: {user.daily_macros_target.calories} kcal.
         Keep the explanation positive, brief (2-3 sentences), and scientifically grounded but easy to read.
         """
 
@@ -340,7 +344,7 @@ class AIService:
                 logger.error(f"OpenAI explanation failed: {e}")
 
         # 3. Fallback mock
-        return f"מנה זו נבחרה עבורך מכיוון שהיא עשירה בחלבון וסיבים תזונתיים, אשר תורמים לתחושת שובע ממושכת ומסייעים להשגת המטרה שלך: {', '.join(user.goals)}. בנוסף, היא מתאימה בדיוק לערכי המטרה היומיים שלך."
+        return f"This meal was selected for you because it is rich in protein and dietary fiber, which contribute to a prolonged feeling of fullness and help achieve your goals: {', '.join(user.goals)}. Additionally, it perfectly fits your daily target macros."
 
     # --- Fallback Mock Data Generation ---
     @classmethod
@@ -367,35 +371,35 @@ class AIService:
 
         is_veg = "vegetarian" in [p.lower() for p in user.preferences] or "vegan" in [p.lower() for p in user.preferences]
 
-        # Delicious mock Hebrew meals
+        # Delicious mock English meals
         breakfast_meals = [
-            ("דייסת שיבולת שועל מפנקת", "דייסת קוואקר מבושלת במים/חלב שקדים עם פרוסות בננה, חמאת בוטנים וסילאן"),
-            ("יוגורט חלבון עם גרנולה", "גביע יוגורט חלבון 20 גרם עם גרנולה ללא תוספת סוכר, אוכמניות וכפית דבש"),
-            ("שקשוקה ביתית קלאסית", "שתי ביצים מבושלות ברוטב עגבניות עשיר, שום ופלפלים עם לחם כוסמין קל בצד")
+            ("Delicious Oatmeal Bowl", "Oatmeal cooked in water/almond milk with banana slices, peanut butter, and maple syrup"),
+            ("High-Protein Greek Yogurt", "Greek protein yogurt cup (20g) with sugar-free granola, blueberries, and a teaspoon of honey"),
+            ("Classic Homemade Shakshuka", "Two eggs poached in a rich tomato, garlic, and bell pepper sauce, served with whole wheat toast on the side")
         ]
         
         lunch_meals_meat = [
-            ("חזה עוף מוקפץ עם ירקות", "חזה עוף צלוי במחבת עם ברוקולי, פלפלים ובצל, מוגש על מצע אורז בסמטי"),
-            ("פילה סלמון בתנור", "פילה סלמון אפוי בעשבי תיבול, מוגש עם פירה בטטה רך ושעועית ירוקה מוקפצת"),
-            ("קציצות בשר ברוטב עגבניות", "קציצות בקר רזה מבושלות ברוטב עגבניות עשיר, מוגש לצד פסטה מקמח מלא")
+            ("Stir-Fried Chicken Breast with Veggies", "Grilled chicken breast stir-fried with broccoli, bell peppers, and onions, served on a bed of basmati rice"),
+            ("Oven-Baked Salmon Fillet", "Salmon fillet baked with herbs, served with sweet potato mash and sautéed green beans"),
+            ("Meatballs in Tomato Sauce", "Lean beef meatballs simmered in a rich tomato sauce, served alongside whole wheat pasta")
         ]
         
         lunch_meals_veg = [
-            ("קציצות עדשים אדומות וטחינה", "קציצות עדשים אדומות אפויות בתנור ברוטב עגבניות פיקנטי, מוגש עם קינואה"),
-            ("תבשיל קארי טופו וחומוס", "קוביות טופו מוקפצות עם גרגרי חומוס, גזר ודלעת ברוטב קארי ירוק וחלב קוקוס מעל אורז מלא"),
-            ("קערת בודהה טבעונית", "קערת בריאות המכילה קינואה, טופו צרוב, קוביות אבוקדו, גזר, מלפפון ורוטב טחינה ירוקה")
+            ("Red Lentil Patties with Tahini", "Baked red lentil patties in a zesty tomato sauce, served with quinoa"),
+            ("Tofu and Chickpea Curry", "Tofu cubes sautéed with chickpeas, carrots, and squash in green curry and coconut milk, over brown rice"),
+            ("Vegan Buddha Bowl", "Health bowl containing quinoa, seared tofu, avocado cubes, carrots, cucumbers, and a green tahini dressing")
         ]
 
         dinner_meals = [
-            ("חביתת ירק וגבינות", "חביתה משתי ביצים עם פטרוזיליה ובצל ירוק, מוגשת עם גבינת קוטג' 5%, סלט קצוץ ופרוסת לחם מלא"),
-            ("טוסט כוסמין עשיר", "שתי פרוסות לחם כוסמין עם גבינה צהובה 15%, פרוסות עגבנייה, זעתר וזיתי קלמטה"),
-            ("סלט טונה וביצה קשה", "סלט ירקות עשיר עם קופסת טונה במים, ביצה קשה, מלפפון חמוץ, מיונז קל ולימון")
+            ("Veggie Omelette with Cheese", "Two-egg omelette with parsley and green onions, served with 5% cottage cheese, chopped salad, and a slice of whole wheat bread"),
+            ("Spelt Cheese Toast", "Two slices of spelt bread toasted with 15% yellow cheese, tomato slices, hyssop (za'atar), and kalamata olives"),
+            ("Tuna and Hard-Boiled Egg Salad", "Rich vegetable salad with a can of water-packed tuna, a hard-boiled egg, pickles, light mayonnaise, and lemon")
         ]
 
         completion_meals = [
-            ("שייק חלבון עשיר", "שייק המורכב ממנת חלבון, בננה, חמאת בוטנים וחלב שקדים"),
-            ("פריכיות עם טונה ואבוקדו", "שלוש פריכיות אורז מלא עם רבע אבוקדו מעוך וטונה"),
-            ("תפוח עץ עם שקדים ויוגורט", "תפוח עץ פרוס לצד חופן שקדים טבעיים ויוגורט פרוביוטי")
+            ("Rich Protein Shake", "Shake blended with protein powder, banana, peanut butter, and almond milk"),
+            ("Rice Cakes with Tuna and Avocado", "Three brown rice cakes topped with a quarter mashed avocado and tuna"),
+            ("Apple Slices with Almonds and Yogurt", "Sliced apple served with a handful of raw almonds and probiotic yogurt")
         ]
 
         if meal_type == "breakfast":
@@ -419,5 +423,5 @@ class AIService:
             protein=round(target_protein * scale, 1),
             carbs=round(target_carbs * scale, 1),
             fat=round(target_fat * scale, 1),
-            ai_explanation="מנה זו מותאמת באופן מדויק ליעדים שלך, מספקת מקור איכותי לחלבון מן החי או הצומח ושומרת על מאזן קלורי מיטבי התומך במטרותיך."
+            ai_explanation="This meal is perfectly tailored to your targets, providing a high-quality source of protein and maintaining an optimal caloric balance that supports your goals."
         )

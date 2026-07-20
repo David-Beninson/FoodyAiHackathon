@@ -14,9 +14,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 24px;
+  padding: 16px 32px;
   border-bottom: 1px solid var(--border);
-  background: var(--code-bg);
+  background: var(--bg);
 }
 
 .toolbar-left, .toolbar-right, .toolbar-center {
@@ -27,7 +27,7 @@
 
 .toolbar-center {
   justify-content: center;
-  gap: 16px;
+  gap: 20px;
 }
 
 .toolbar-right {
@@ -36,37 +36,37 @@
 
 .current-date-title {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 500;
-  letter-spacing: -0.3px;
-  min-width: 220px;
+  letter-spacing: -0.01em;
+  min-width: 240px;
   text-align: center;
 }
 
-/* Segmented Control Selectors - Flat corners */
+/* Segmented Control - פינות מעוגלות עדינות */
 .segment-control {
   display: flex;
-  background: var(--bg);
+  background: var(--code-bg);
   border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 2px;
-  overflow: hidden;
+  border-radius: var(--radius);
+  padding: 3px;
 }
 
 .segment-control button {
   background: transparent;
   border: none;
   color: var(--text);
-  padding: 4px 16px;
+  padding: 6px 16px;
   font-size: 13px;
   cursor: pointer;
-  border-radius: 2px;
-  transition: all 0.2s ease;
+  border-radius: calc(var(--radius) - 2px);
+  transition: all 0.15s ease;
 }
 
 .segment-control button.active {
-  background: var(--border);
+  background: var(--bg);
   color: var(--text-h);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
 /* Toolbar Buttons */
@@ -74,11 +74,11 @@
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-h);
-  border-radius: 4px;
+  border-radius: var(--radius);
   cursor: pointer;
   font-size: 13px;
-  padding: 4px 12px;
-  transition: background-color 0.2s ease;
+  padding: 6px 16px;
+  transition: background-color 0.15s ease;
 }
 
 .today-btn:hover {
@@ -87,21 +87,22 @@
 
 .arrow-btn {
   background: transparent;
-  border: none;
+  border: 1px solid var(--border);
   color: var(--text-h);
-  font-size: 24px;
-  font-weight: 300;
+  font-size: 18px;
+  font-weight: 400;
   cursor: pointer;
-  padding: 0 8px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
+  border-radius: var(--radius);
+  transition: background-color 0.15s ease;
 }
 
 .arrow-btn:hover {
-  background-color: var(--border);
+  background-color: var(--code-bg);
 }
 
 .calendar-content {
@@ -125,11 +126,12 @@
 .week-header {
   display: flex;
   border-bottom: 1px solid var(--border);
-  padding: 10px 0;
+  padding: 16px 0;
+  background: var(--bg);
 }
 
 .time-axis-spacer {
-  width: 80px;
+  width: 100px;
   flex-shrink: 0;
 }
 
@@ -138,10 +140,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 4px 0;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
+  gap: 6px;
+  padding: 8px 0;
+  border-radius: var(--radius);
+  transition: background-color 0.15s ease;
 }
 
 .day-header-cell:hover {
@@ -149,28 +151,29 @@
 }
 
 .day-name {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text);
   font-weight: 500;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .day-number {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 400;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
 }
 
-/* Classic Apple red */
+/* אדום קלאסי של אפל ליום הנוכחי */
 .active-day {
   background-color: #ff3b30;
   color: white;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .week-grid {
@@ -180,7 +183,7 @@
 }
 
 .time-axis {
-  width: 80px;
+  width: 100px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -222,6 +225,7 @@
   flex: 1;
   border-bottom: 1px solid var(--border);
   position: relative;
+  transition: background-color 0.15s ease;
 }
 
 /* -------------------- Month View -------------------- */
@@ -234,7 +238,7 @@
 .month-header {
   display: flex;
   border-bottom: 1px solid var(--border);
-  padding: 8px 0;
+  padding: 12px 0;
   background-color: var(--code-bg);
 }
 
@@ -245,6 +249,7 @@
   color: var(--text);
   text-transform: uppercase;
   font-weight: 500;
+  letter-spacing: 0.05em;
 }
 
 .month-grid {
@@ -257,8 +262,8 @@
 .month-cell {
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  padding: 12px;
-  transition: background-color 0.2s ease;
+  padding: 16px;
+  transition: background-color 0.15s ease;
 }
 
 .month-cell.clickable:hover {
@@ -271,10 +276,10 @@
 
 .month-date-number {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   display: inline-flex;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
@@ -283,15 +288,15 @@
 .active-day-inline {
   background-color: #ff3b30;
   color: white;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* -------------------- Year View -------------------- */
 .apple-year-view {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 32px 24px;
-  padding: 32px;
+  gap: 40px 32px;
+  padding: 40px;
   overflow-y: auto;
 }
 
@@ -301,20 +306,20 @@
 }
 
 .year-month-title {
-  font-size: 16px;
-  color: #ff3b30;
-  margin: 0 0 12px 4px;
-  font-weight: 500;
+  font-size: 15px;
+  color: var(--text-h);
+  margin: 0 0 16px 0;
+  font-weight: 600;
 }
 
 .mini-month-days-header {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .mini-day-name {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text);
   text-align: center;
   font-weight: 500;
@@ -323,7 +328,7 @@
 .mini-month-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px 0;
+  gap: 6px 0;
 }
 
 .mini-day {
@@ -332,25 +337,25 @@
   justify-content: center;
   font-size: 12px;
   color: var(--text-h);
-  height: 24px;
-  border-radius: 2px;
-  transition: background-color 0.2s ease;
+  height: 28px;
+  border-radius: var(--radius);
+  transition: background-color 0.15s ease;
 }
 
 .mini-day.clickable:hover {
-  background-color: var(--border);
+  background-color: var(--code-bg);
 }
 
 .mini-active-day {
   background-color: #ff3b30;
   color: white;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* -------------------- Single Day View Layout -------------------- */
@@ -358,7 +363,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 32px 32px 0 32px;
+  padding: 40px 40px 0 40px;
 }
 
 .day-sections {
@@ -367,7 +372,7 @@
   flex-direction: column;
   border: 1px solid var(--border);
   border-bottom: none;
-  border-radius: 4px 4px 0 0;
+  border-radius: var(--radius) var(--radius) 0 0;
   overflow: hidden;
 }
 
@@ -378,13 +383,13 @@
 }
 
 .day-meal-row .time-label {
-  flex: 0 0 25%; 
+  flex: 0 0 20%; 
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 16px;
+  padding: 24px;
   background-color: var(--code-bg);
   border-right: 1px solid var(--border);
   font-size: 14px;
@@ -398,8 +403,8 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  gap: 16px;
+  padding: 24px;
+  gap: 24px;
   box-sizing: border-box;
 }
 
@@ -415,7 +420,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
@@ -423,82 +428,50 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   background: var(--bg);
   border: 1px solid var(--border);
   color: var(--text-h);
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-size: 13px;
-  font-weight: 500;
-  padding: 6px 12px;
+  font-weight: 400;
+  padding: 8px 16px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  width: 145px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  width: 160px;
   box-sizing: border-box;
-}
-
-.action-btn .icon {
-  font-size: 13px;
 }
 
 .action-btn:hover {
   background: var(--code-bg);
 }
 
-.success-btn:hover {
-  background: #f0fdf4;
-  color: #15803d;
-  border-color: #bbf7d0;
-}
-
-.custom-btn:hover {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border-color: #bfdbfe;
-}
-
-/* -------------------- AI Elements (Clean Blue Color) -------------------- */
-.ai-btn:hover {
-  background: rgba(37, 99, 235, 0.08);
-  color: #2563eb;
-  border-color: rgba(37, 99, 235, 0.3);
-}
-
-.dropdown-item.accent-text:hover { 
-  color: #2563eb; 
-}
-/* ----------------------------------------------------------------- */
-
-.skipped-btn:hover {
-  background: #fef2f2;
-  color: #b91c1c;
-  border-color: #fecaca;
-}
-
 /* Active States */
 .action-btn.active-eaten {
-  background: #16a34a;
+  background: #34c759;
   color: #ffffff;
-  border-color: transparent;
+  border-color: #34c759;
 }
 
+/* ארוחה שפוספסה - אדומה בהתאם ללוח שנה (#ff3b30) */
 .action-btn.active-skipped {
-  background: #dc2626;
+  background: #ff3b30;
   color: #ffffff;
-  border-color: transparent;
+  border-color: #ff3b30;
 }
 
+/* סטטוס AI מיוחד בסגול מוגדר מראש */
 .action-btn.active-replaced {
-  background: #2563eb;
+  background: var(--accent);
   color: #ffffff;
-  border-color: transparent;
+  border-color: var(--accent);
 }
 
 /* -------------------- Dropdown Menus -------------------- */
 .dropdown-wrapper {
   position: relative;
   display: inline-block;
-  width: 145px;
+  width: 160px;
 }
 
 .dropdown-menu {
@@ -508,8 +481,8 @@
   width: 100%;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 4px;
-  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   display: flex;
   flex-direction: column;
   z-index: 10;
@@ -520,9 +493,9 @@
   background: none;
   border: none;
   border-bottom: 1px solid var(--border);
-  padding: 8px 12px;
+  padding: 10px 14px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--text-h);
   text-align: left;
   cursor: pointer;
@@ -540,11 +513,7 @@
   background: var(--code-bg);
 }
 
-.dropdown-item.success-text:hover { color: #16a34a; }
-.dropdown-item.danger-text:hover { color: #dc2626; }
-.dropdown-item.primary-text:hover { color: #2563eb; }
-
-/* -------------------- Adjustment Prompt & AI Styling (Blue) -------------------- */
+/* -------------------- Adjustment Prompt & AI Styling (סגול ממוקד) -------------------- */
 .adjustment-prompt-container {
   display: flex;
   justify-content: center;
@@ -552,126 +521,113 @@
 }
 
 .adjust-plan-btn {
-  background-color: rgba(37, 99, 235, 0.06);
-  border: 1px dashed rgba(37, 99, 235, 0.3);
-  color: #2563eb;
-  padding: 6px 10px;
-  font-size: 11px;
+  background-color: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  padding: 8px 12px;
+  font-size: 12px;
   line-height: 1.3;
-  border-radius: 4px;
+  border-radius: var(--radius);
   text-align: center;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease;
   font-weight: 500;
   width: 100%;
   white-space: normal;
 }
 
 .adjust-plan-btn:hover {
-  background-color: #2563eb;
+  background-color: var(--accent);
   color: #ffffff;
-  border-color: transparent;
+  border-color: var(--accent);
 }
 
 .adjust-plan-btn.notice-only {
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
+  background-color: rgba(255, 59, 48, 0.06);
+  border: 1px solid rgba(255, 59, 48, 0.2);
+  color: #ff3b30;
   cursor: default;
 }
-/* ----------------------------------------------------------------------------- */
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* -------------------- Custom Meal Modal Styles (Clean of Purple) -------------------- */
+/* -------------------- Custom Meal Modal Styles -------------------- */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(2px);
 }
 
 .modal-card {
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 24px;
+  border-radius: var(--radius);
+  padding: 32px;
   width: 100%;
-  max-width: 380px;
-  box-shadow: var(--shadow);
+  max-width: 420px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .modal-title {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 500;
   color: var(--text-h);
   margin: 0;
-  padding-bottom: 8px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
 }
 
 .modal-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
-.form-row {
-  display: flex;
-  gap: 12px;
+.modal-form .form-control {
+  border-radius: var(--radius);
 }
 
 .modal-form .form-control:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  border-color: var(--text-h);
+  box-shadow: none;
 }
 
 .modal-actions-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 10px;
+  margin-top: 16px;
 }
 
 .modal-actions-footer .btn-primary {
-  background-color: #2563eb;
-  color: #ffffff;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  padding: 6px 14px;
+  background-color: var(--text-h);
+  color: var(--bg);
+  border: 1px solid var(--text-h);
+  border-radius: var(--radius);
+  padding: 8px 18px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.modal-actions-footer .btn-primary:hover {
-  background-color: #1d4ed8;
 }
 
 .modal-actions-footer .btn-secondary {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-h);
-  border-radius: 4px;
-  padding: 6px 14px;
+  border-radius: var(--radius);
+  padding: 8px 18px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
 }
 
@@ -679,52 +635,37 @@
   background: var(--code-bg);
 }
 
-.custom-meal-display {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-}
-
-/* Dark Mode Adjustments */
-@media (prefers-color-scheme: dark) {
-  .action-btn.active-eaten { background: #388e3c; }
-  .dropdown-item.success-text:hover { color: #81c784; }
-  .dropdown-item.danger-text:hover { color: #ef5350; }
-  .dropdown-item.primary-text:hover { color: #64b5f6; }
-}
-
-/* Additional Styles for WeekView Meals */
+/* WeekView Meal States - קו צד אדום לארוחות שפוספסו */
 .meal-cell.planned {
-  background-color: var(--code-bg);
-  border-left: 3px solid var(--accent);
+  background-color: var(--bg);
+  border-left: 2px solid var(--border);
 }
 .meal-cell.eaten {
-  background-color: rgba(46, 125, 50, 0.1);
-  border-left: 3px solid #2e7d32;
+  background-color: rgba(52, 199, 89, 0.04);
+  border-left: 2px solid #34c759;
 }
 .meal-cell.skipped {
-  background-color: rgba(198, 40, 40, 0.1);
-  border-left: 3px solid #c62828;
+  background-color: rgba(255, 59, 48, 0.04);
+  border-left: 2px solid #ff3b30;
   opacity: 0.6;
 }
 .meal-cell.replaced {
-  background-color: rgba(21, 101, 192, 0.1);
-  border-left: 3px solid #1565c0;
+  background-color: var(--accent-bg);
+  border-left: 2px solid var(--accent);
 }
 
 .week-meal-info {
   display: flex;
   flex-direction: column;
-  padding: 6px 8px;
-  font-size: 11px;
+  padding: 8px 12px;
+  font-size: 12px;
   height: 100%;
   justify-content: space-between;
   box-sizing: border-box;
 }
 
 .week-meal-name {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-h);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -733,7 +674,7 @@
 
 .week-meal-calories {
   color: var(--text);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 /* Meal Details Styles in DayView */
@@ -741,7 +682,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   align-items: flex-start;
 }
 
@@ -752,20 +693,20 @@
 .meal-content-container.skipped-meal .meal-title,
 .meal-content-container.skipped-meal .meal-description {
   text-decoration: line-through;
+  color: #ff3b30;
 }
 
 .meal-title {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 500;
   color: var(--text-h);
-  margin: 0 0 4px 0;
-  text-align: left;
+  margin: 0;
 }
 
 .meal-description {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text);
-  margin: 0 0 8px 0;
+  margin: 0;
   line-height: 1.4;
   text-align: left;
 }
@@ -774,58 +715,15 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 4px;
-  font-size: 12px;
+  margin-top: 6px;
 }
 
 .macro-badge {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 400;
+  padding: 3px 10px;
+  border-radius: var(--radius);
   background-color: var(--code-bg);
   border: 1px solid var(--border);
-  color: var(--text);
-}
-
-.macro-badge.calories {
-  background-color: rgba(255, 149, 0, 0.1);
-  border-color: rgba(255, 149, 0, 0.2);
-  color: #ff9500;
-}
-
-.macro-badge.protein {
-  background-color: rgba(52, 199, 89, 0.1);
-  border-color: rgba(52, 199, 89, 0.2);
-  color: #34c759;
-}
-
-.macro-badge.carbs {
-  background-color: rgba(0, 122, 255, 0.1);
-  border-color: rgba(0, 122, 255, 0.2);
-  color: #007aff;
-}
-
-.macro-badge.fat {
-  background-color: rgba(175, 82, 222, 0.1);
-  border-color: rgba(175, 82, 222, 0.2);
-  color: #af52de;
-}
-
-.calendar-error-banner {
-  background-color: rgba(255, 59, 48, 0.1);
-  border-bottom: 1px solid rgba(255, 59, 48, 0.2);
-  color: #ff3b30;
-  padding: 8px 16px;
-  font-size: 12px;
-  text-align: center;
-  font-weight: 500;
-}
-
-.calendar-loading-container {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  min-height: 300px;
+  color: var(--text-h);
 }

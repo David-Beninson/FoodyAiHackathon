@@ -16,80 +16,49 @@
     background-color: var(--bg);
 }
 
-/* Navbar */
+/* Navbar - נקי לחלוטין וללא סגול */
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 24px;
+    padding: 16px 32px;
     border-bottom: 1px solid var(--border);
-    background: var(--code-bg);
+    background: var(--bg);
     box-sizing: border-box;
 }
 
 .logo a {
-    font-size: 20px;
-    letter-spacing: -0.5px;
+    font-size: 18px;
+    letter-spacing: -0.01em;
     color: var(--text-h);
     text-decoration: none;
-    font-weight: bold;
+    font-weight: 500;
 }
 
 .linksContainer {
     display: flex;
-    align-items: center;
-    gap: 20px;
+    gap: 16px;
 }
 
 .linksContainer a {
     text-decoration: none;
     color: var(--text);
-    font-weight: 500;
-    font-size: 15px;
-    transition: color 0.2s ease;
-    padding: 4px 8px;
-    border-radius: 4px;
+    font-weight: 400;
+    font-size: 14px;
+    transition: color 0.15s ease;
+    padding: 6px 12px;
+    border-radius: var(--radius);
 }
 
 .linksContainer a:hover {
     color: var(--text-h);
+    background-color: var(--code-bg);
 }
 
 .linksContainer a.active {
-    color: var(--accent);
-    font-weight: 600;
-}
-
-.nav-user-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-left: 12px;
-    border-left: 1px solid var(--border);
-    padding-left: 12px;
-}
-
-.nav-welcome {
-    font-size: 14px;
-    font-weight: 500;
     color: var(--text-h);
-}
-
-.nav-logout-btn {
-    background: none;
-    border: none;
-    color: var(--text);
-    cursor: pointer;
-    font-size: 14px;
+    background-color: var(--code-bg);
     font-weight: 500;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: color 0.2s, background-color 0.2s;
-}
-
-.nav-logout-btn:hover {
-    color: #ef4444;
-    background-color: rgba(239, 68, 68, 0.05);
 }
 
 .main-content {
@@ -105,7 +74,7 @@
     padding: 24px;
     border-top: 1px solid var(--border);
     text-align: center;
-    background: var(--code-bg);
+    background: var(--bg);
 }
 
 .appFooterContent {
@@ -117,10 +86,4 @@
 .appFooterCopyright {
     font-size: 13px;
     color: var(--text);
-}
-
-.appFooterText {
-    font-size: 12px;
-    color: var(--text);
-    opacity: 0.8;
 }

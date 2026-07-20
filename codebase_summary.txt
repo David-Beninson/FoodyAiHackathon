@@ -723,9 +723,6 @@ export default defineConfig({
         "arm64"
       ],
       "dev": true,
-      "libc": [
-        "glibc"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -743,9 +740,6 @@ export default defineConfig({
         "arm64"
       ],
       "dev": true,
-      "libc": [
-        "musl"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -763,9 +757,6 @@ export default defineConfig({
         "ppc64"
       ],
       "dev": true,
-      "libc": [
-        "glibc"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -783,9 +774,6 @@ export default defineConfig({
         "s390x"
       ],
       "dev": true,
-      "libc": [
-        "glibc"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -803,9 +791,6 @@ export default defineConfig({
         "x64"
       ],
       "dev": true,
-      "libc": [
-        "glibc"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -823,9 +808,6 @@ export default defineConfig({
         "x64"
       ],
       "dev": true,
-      "libc": [
-        "musl"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -2138,9 +2120,6 @@ export default defineConfig({
         "arm64"
       ],
       "dev": true,
-      "libc": [
-        "glibc"
-      ],
       "license": "MPL-2.0",
       "optional": true,
       "os": [
@@ -2162,9 +2141,6 @@ export default defineConfig({
         "arm64"
       ],
       "dev": true,
-      "libc": [
-        "musl"
-      ],
       "license": "MPL-2.0",
       "optional": true,
       "os": [
@@ -2186,9 +2162,6 @@ export default defineConfig({
         "x64"
       ],
       "dev": true,
-      "libc": [
-        "glibc"
-      ],
       "license": "MPL-2.0",
       "optional": true,
       "os": [
@@ -2210,9 +2183,6 @@ export default defineConfig({
         "x64"
       ],
       "dev": true,
-      "libc": [
-        "musl"
-      ],
       "license": "MPL-2.0",
       "optional": true,
       "os": [
@@ -2992,8 +2962,7 @@ export default defineConfig({
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",
     "vite": "^8.1.1"
-  },
-  "packageManager": "pnpm@11.9.0+sha512.bd682d5d03fe525ef7c9fd6780c6884d1e756ac4c9c9fe00c538782824310dcf90e3ddc4f53835f06dfaebd5085e41855e0bcbb3b60de2ac5bbab89e5036f03b"
+  }
 }
 ```
 
@@ -3414,36 +3383,53 @@ export default function YearView({
 ### File: ./frontend/src/components/Calendar/DayView.jsx
 ```
 import { useState } from 'react';
+import CustomMealModal from './CustomMealModal';
 
-export default function DayView({ mealSections, isFutureDay }) {
-  const [mealStatuses, setMealStatuses] = useState({});
-  // סטייט לניהול התפריט הפתוח (כדי שרק אחד יהיה פתוח בכל פעם)
+export default function DayView({
+  mealSections,
+  isFutureDay,
+  dayPlan,
+  onUpdateStatus
+}) {
+  const [customMeals, setCustomMeals] = useState({});
   const [openDropdown, setOpenDropdown] = useState(null);
+  
+  // ניהול המודאל הפתוח: שומר את סעיף הארוחה הנוכחי (Breakfast/Lunch/Dinner)
+  const [activeModalSection, setActiveModalSection] = useState(null);
 
   const handleStatusToggle = (section, status) => {
-    setMealStatuses(prev => ({
-      ...prev,
-      [section]: prev[section] === status ? null : status
-    }));
-    setOpenDropdown(null); // סוגר את התפריט אחרי לחיצה
+    const mealKey = section.toLowerCase();
+    const currentMeal = dayPlan?.meals?.[mealKey];
+    const targetStatus = currentMeal?.status === status ? 'planned' : status;
+    onUpdateStatus(section, targetStatus, null);
+    setOpenDropdown(null);
   };
 
   const toggleDropdown = (dropdownId) => {
     setOpenDropdown(prev => prev === dropdownId ? null : dropdownId);
   };
 
-  const getAdjustmentPrompt = (section) => {
-    if (isFutureDay) return null;
+  const handleSaveCustomMeal = (mealData) => {
+    setCustomMeals(prev => ({
+      ...prev,
+      [activeModalSection]: mealData
+    }));
+    onUpdateStatus(activeModalSection, 'replaced', mealData.prompt);
+  };
 
-    const breakfastSkipped = mealStatuses['Breakfast'] === 'skipped';
-    const lunchSkipped = mealStatuses['Lunch'] === 'skipped';
-    const dinnerSkipped = mealStatuses['Dinner'] === 'skipped';
+  const getAdjustmentPrompt = (section) => {
+    if (isFutureDay || !dayPlan) return null;
+
+    const meals = dayPlan.meals;
+    const breakfastSkipped = meals?.breakfast?.status === 'skipped';
+    const lunchSkipped = meals?.lunch?.status === 'skipped';
+    const dinnerSkipped = meals?.dinner?.status === 'skipped';
 
     if (section === 'Dinner' && dinnerSkipped) {
       return "✕ Dinner skipped. Progress won't carry over to tomorrow.";
     }
 
-    if (mealStatuses[section] === 'skipped' || mealStatuses[section] === 'eaten') {
+    if (meals?.[section.toLowerCase()]?.status === 'skipped' || meals?.[section.toLowerCase()]?.status === 'eaten') {
       return null;
     }
 
@@ -3452,13 +3438,7 @@ export default function DayView({ mealSections, isFutureDay }) {
     }
 
     if (section === 'Dinner') {
-      if (breakfastSkipped && lunchSkipped) {
-        return "✨ Regenerating a new meal with AI to reach your goal.";
-      }
-      if (lunchSkipped) {
-        return "✨ Regenerating a new meal with AI to reach your goal.";
-      }
-      if (breakfastSkipped) {
+      if ((breakfastSkipped && lunchSkipped) || lunchSkipped || breakfastSkipped) {
         return "✨ Regenerating a new meal with AI to reach your goal.";
       }
     }
@@ -3470,20 +3450,24 @@ export default function DayView({ mealSections, isFutureDay }) {
     <div className="apple-day-view">
       <div className="day-sections">
         {mealSections.map((section, idx) => {
-          const isSkipped = mealStatuses[section] === 'skipped';
-          const isEaten = mealStatuses[section] === 'eaten';
+          const mealKey = section.toLowerCase();
+          const meal = dayPlan?.meals?.[mealKey];
+
+          const isSkipped = meal?.status === 'skipped';
+          const isEaten = meal?.status === 'eaten';
+          const isReplaced = meal?.status === 'replaced';
+          const currentCustomMeal = customMeals[section];
           const promptMessage = getAdjustmentPrompt(section);
 
           return (
             <div key={idx} className="day-meal-row">
-              {/* העמודה השמאלית */}
               <div className="time-label">
                 <span className="time-label-text">{section}</span>
-                
+
                 {promptMessage && (
                   <div className="adjustment-prompt-container">
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className={`adjust-plan-btn ${promptMessage.startsWith('✕') ? 'notice-only' : ''}`}
                       disabled={promptMessage.startsWith('✕')}
                     >
@@ -3492,37 +3476,55 @@ export default function DayView({ mealSections, isFutureDay }) {
                   </div>
                 )}
               </div>
-              
-              {/* העמודה הימנית */}
+
               <div className="meal-cell flex-1">
-                <div className="meal-content-placeholder">
-                  <span className="empty-meal-text">No meal data yet</span>
-                </div>
+                {meal ? (
+                  <div className={`meal-content-container ${isSkipped ? 'skipped-meal' : ''}`}>
+                    <h3 className="meal-title" style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 4px 0', textAlign: 'left' }}>
+                      {isReplaced && meal.replaced_with_meal_name
+                        ? `AI Custom: ${meal.replaced_with_meal_name}`
+                        : meal.name}
+                    </h3>
+                    <p className="meal-description" style={{ fontSize: '13px', color: 'var(--text)', margin: '0 0 8px 0', textAlign: 'left' }}>
+                      {currentCustomMeal ? `AI tailored portions for your request: "${currentCustomMeal.prompt}"` : meal.description}
+                    </p>
+                    <div className="meal-macros-badges" style={{ display: 'flex', gap: '8px', fontSize: '12px' }}>
+                      <span className="macro-badge calories">🔥 {meal.planned_macros?.calories} kcal</span>
+                      <span className="macro-badge protein">🥩 {meal.planned_macros?.protein}g Pro</span>
+                      <span className="macro-badge carbs">🍞 {meal.planned_macros?.carbs}g Carb</span>
+                      <span className="macro-badge fat">🥑 {meal.planned_macros?.fat}g Fat</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="meal-content-placeholder">
+                    <span className="empty-meal-text">No meal data yet</span>
+                  </div>
+                )}
                 
                 <div className="meal-actions">
-                  
+
                   {/* Dropdown 1: Planned / Eaten / Skipped */}
                   {!isFutureDay && (
                     <div className="dropdown-wrapper">
-                      <button 
+                      <button
                         type="button" 
-                        className={`action-btn dropdown-toggle ${isEaten ? 'active-eaten' : isSkipped ? 'active-skipped' : ''}`}
+                        className={`action-btn dropdown-toggle ${isEaten ? 'active-eaten' : isSkipped ? 'active-skipped' : isReplaced ? 'active-replaced' : ''}`}
                         onClick={() => toggleDropdown(`${section}-planned`)}
                       >
-                        {isEaten ? '✓ Eaten' : isSkipped ? '✕ Skipped' : 'Planned ▾'}
+                        {isEaten ? '✓ Eaten' : isSkipped ? '✕ Skipped' : isReplaced ? '✨ AI Custom' : 'Planned ▾'}
                       </button>
-                      
+
                       {openDropdown === `${section}-planned` && (
                         <div className="dropdown-menu">
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             className="dropdown-item success-text"
                             onClick={() => handleStatusToggle(section, 'eaten')}
                           >
                             <span className="icon">✓</span> Eaten
                           </button>
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             className="dropdown-item danger-text"
                             onClick={() => handleStatusToggle(section, 'skipped')}
                           >
@@ -3548,16 +3550,19 @@ export default function DayView({ mealSections, isFutureDay }) {
                         <button 
                           type="button" 
                           className="dropdown-item primary-text"
-                          onClick={() => setOpenDropdown(null)}
+                          onClick={() => {
+                            setActiveModalSection(section);
+                            setOpenDropdown(null);
+                          }}
                         >
-                          <span className="icon">+</span> Custom
+                          <span className="icon">✨</span> Custom (AI)
                         </button>
                         <button 
                           type="button" 
                           className="dropdown-item accent-text"
                           onClick={() => setOpenDropdown(null)}
                         >
-                          <span className="icon">✨</span> AI Regenerate
+                          <span className="icon">🔄</span> AI Regenerate
                         </button>
                       </div>
                     )}
@@ -3565,11 +3570,18 @@ export default function DayView({ mealSections, isFutureDay }) {
 
                 </div>
               </div>
-              
+
             </div>
           );
         })}
       </div>
+
+      <CustomMealModal 
+        isOpen={Boolean(activeModalSection)}
+        mealSection={activeModalSection}
+        onClose={() => setActiveModalSection(null)}
+        onSave={handleSaveCustomMeal}
+      />
     </div>
   );
 }```
@@ -3617,15 +3629,76 @@ export default function CalendarToolbar({
 }
 ```
 
+### File: ./frontend/src/components/Calendar/CustomMealModal.jsx
+```
+import { useState } from 'react';
+
+export default function CustomMealModal({ isOpen, onClose, onSave, mealSection }) {
+  const [promptText, setPromptText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!promptText.trim()) return;
+
+    setIsLoading(true);
+    // מדמים קריאה ל-AI (או מעבירים את הטקסט החופשי לשמירה)
+    setTimeout(() => {
+      onSave({
+        prompt: promptText.trim(),
+        name: `Custom ${mealSection} (AI Adjusted)`,
+      });
+      setIsLoading(false);
+      setPromptText('');
+      onClose();
+    }, 600);
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-card">
+        <h3 className="modal-title">Replace {mealSection} with AI</h3>
+        <p style={{ fontSize: '13px', color: 'var(--text)', margin: '0 0 8px 0', textAlign: 'left' }}>
+          What would you like to eat instead? The AI will calculate exact portions to match your calorie goal for this meal.
+        </p>
+        
+        <form onSubmit={handleSubmit} className="modal-form">
+          <div className="form-group">
+            <textarea 
+              className="form-control" 
+              rows="4"
+              placeholder="e.g. Greek salad with tuna instead of rice..." 
+              value={promptText} 
+              onChange={(e) => setPromptText(e.target.value)}
+              required 
+              style={{ resize: 'vertical', fontFamily: 'inherit' }}
+            />
+          </div>
+
+          <div className="modal-actions-footer">
+            <button type="button" className="btn btn-secondary" onClick={onClose} disabled={isLoading}>
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary" disabled={isLoading}>
+              {isLoading ? 'Generating with AI...' : '✨ Send to AI'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}```
+
 ### File: ./frontend/src/components/Calendar/WeekView.jsx
 ```
-import React from 'react';
-
 export default function WeekView({
   currentDate,
   daysOfWeek,
   mealSections,
-  handleDayClick
+  handleDayClick,
+  weeklyPlan
 }) {
   const startOfWeek = new Date(currentDate);
   startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
@@ -3660,18 +3733,47 @@ export default function WeekView({
           ))}
         </div>
         <div className="days-columns">
-          {daysOfWeek.map((_, dayIdx) => (
-            <div key={dayIdx} className="day-column">
-              {mealSections.map((_, secIdx) => (
-                <div key={secIdx} className="meal-cell"></div>
-              ))}
-            </div>
-          ))}
+          {daysOfWeek.map((dayName, dayIdx) => {
+            const dayDate = new Date(startOfWeek);
+            dayDate.setDate(startOfWeek.getDate() + dayIdx);
+            const dayPlan = weeklyPlan?.days?.[dayName];
+
+            return (
+              <div key={dayIdx} className="day-column">
+                {mealSections.map((section, secIdx) => {
+                  const mealKey = section.toLowerCase();
+                  const meal = dayPlan?.meals?.[mealKey];
+
+                  return (
+                    <div
+                      key={secIdx}
+                      className={`meal-cell clickable ${meal ? meal.status : ''}`}
+                      onClick={() => handleDayClick(dayDate)}
+                    >
+                      {meal && (
+                        <div className="week-meal-info">
+                          <span className="week-meal-name" title={meal.status === 'replaced' ? meal.replaced_with_meal_name : meal.name}>
+                            {meal.status === 'replaced' && meal.replaced_with_meal_name
+                              ? meal.replaced_with_meal_name
+                              : meal.name}
+                          </span>
+                          <span className="week-meal-calories">
+                            {meal.planned_macros?.calories} kcal
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
   );
 }
+
 ```
 
 ### File: ./frontend/src/components/Calendar/MonthView.jsx
@@ -3756,6 +3858,23 @@ export default function Layout() {
             </footer>
         </div>
     );
+}
+```
+
+### File: ./frontend/src/components/Common/LoadingSpinner.jsx
+```
+import './LoadingSpinner.css';
+
+export default function LoadingSpinner({ message = "Loading...", fullPage = false }) {
+  return (
+    <div className={`loading-spinner-container ${fullPage ? 'full-page' : ''}`}>
+      <div className="spinner-wrapper">
+        <div className="spinner-ring"></div>
+        <div className="spinner-core"></div>
+      </div>
+      {message && <p className="loading-message">{message}</p>}
+    </div>
+  );
 }
 ```
 
@@ -3867,6 +3986,98 @@ export default function Footer() {
     color: var(--text);
     opacity: 0.8;
 }```
+
+### File: ./frontend/src/components/Common/LoadingSpinner.css
+```
+.loading-spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.loading-spinner-container.full-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 9999;
+}
+
+@media (prefers-color-scheme: dark) {
+  .loading-spinner-container.full-page {
+    background: rgba(22, 23, 29, 0.75);
+  }
+}
+
+.spinner-wrapper {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner-ring {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 30%, var(--accent, #aa3bff));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 0);
+  mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 0);
+  animation: spin 1s linear infinite;
+}
+
+.spinner-core {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--bg, #fff);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  .spinner-core {
+    background-color: var(--bg, #16171d);
+  }
+}
+
+.loading-message {
+  margin-top: 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-h, #08060d);
+  letter-spacing: 0.3px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+```
 
 ### File: ./frontend/src/components/Profile/ProfileHeader.jsx
 ```
@@ -4046,52 +4257,106 @@ export default function TagManagerCard({
     onAddTag,
     onRemoveTag,
     isEditing,
-    emptyMessage
+    emptyMessage,
+    options
 }) {
+    const showCheckboxes = isEditing && options;
+
     return (
         <div className="form-group" style={{ marginTop: '1.5rem' }}>
             <label>{title}</label>
-            {isEditing && (
-                <div className="tag-input-wrapper">
-                    <input
-                        type="text"
-                        className="form-control"
-                        placeholder={placeholder}
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                e.preventDefault();
-                                onAddTag();
-                            }
-                        }}
-                    />
-                    <button type="button" className="btn btn-secondary" onClick={onAddTag}>
-                        Add
-                    </button>
+            
+            {showCheckboxes ? (
+                <div className="checkboxes-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                    {options.map(opt => {
+                        const isChecked = tags.includes(opt);
+                        return (
+                            <label 
+                                key={opt} 
+                                style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '8px', 
+                                    cursor: 'pointer', 
+                                    fontSize: '14px', 
+                                    textTransform: 'none', 
+                                    fontWeight: 'normal', 
+                                    color: 'var(--text-h)',
+                                    padding: '4px 0'
+                                }}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={(e) => {
+                                        if (e.target.checked) {
+                                            onAddTag(opt);
+                                        } else {
+                                            onRemoveTag(opt);
+                                        }
+                                    }}
+                                    style={{ 
+                                        width: '16px', 
+                                        height: '16px', 
+                                        cursor: 'pointer',
+                                        accentColor: 'var(--accent)'
+                                    }}
+                                />
+                                {opt}
+                            </label>
+                        );
+                    })}
                 </div>
+            ) : (
+                <>
+                    {isEditing && (
+                        <div className="tag-input-wrapper">
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder={placeholder}
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        onAddTag(inputValue);
+                                    }
+                                }}
+                            />
+                            <button 
+                                type="button" 
+                                className="btn btn-secondary" 
+                                onClick={() => onAddTag(inputValue)}
+                            >
+                                Add
+                            </button>
+                        </div>
+                    )}
+                    
+                    <div className="tags-container">
+                        {tags.length === 0 ? (
+                            <span style={{ color: 'var(--text)', fontSize: '0.9rem' }}>{emptyMessage}</span>
+                        ) : (
+                            tags.map(tag => (
+                                <span key={tag} className="tag">
+                                    {tag}
+                                    {isEditing && (
+                                        <button
+                                            type="button"
+                                            className="tag-remove"
+                                            onClick={() => onRemoveTag(tag)}
+                                            aria-label={`Remove ${tag}`}
+                                        >
+                                            ×
+                                        </button>
+                                    )}
+                                </span>
+                            ))
+                        )}
+                    </div>
+                </>
             )}
-            <div className="tags-container">
-                {tags.length === 0 ? (
-                    <span style={{ color: 'var(--text)', fontSize: '0.9rem' }}>{emptyMessage}</span>
-                ) : (
-                    tags.map(tag => (
-                        <span key={tag} className="tag">
-                            {tag}
-                            {isEditing && (
-                                <button
-                                    type="button"
-                                    className="tag-remove"
-                                    onClick={() => onRemoveTag(tag)}
-                                    aria-label={`Remove ${tag}`}
-                                >
-                                    ×
-                                </button>
-                            )}
-                        </span>
-                    ))
-                )}
-            </div>
         </div>
     );
 }
@@ -4388,7 +4653,7 @@ export function useProfile() {
     };
 
     const addTag = (type, tagVal, setter) => {
-        const trimmed = tagVal.trim();
+        const trimmed = (tagVal || '').trim();
         if (!trimmed) return;
         setTempProfile(prev => {
             const list = prev[type] || [];
@@ -4431,6 +4696,146 @@ export function useProfile() {
         error
     };
 }
+```
+
+### File: ./frontend/src/hooks/useWeeklyPlan.js
+```
+import { useState, useEffect } from 'react';
+import { getWeeklyPlan, updateMealStatus as apiUpdateMealStatus } from '../api/apiClient';
+
+const DEFAULT_USER_ID = import.meta.env.VITE_DEFAULT_USER_ID;
+
+// Formatting helper to get YYYY-MM-DD in local time
+const getLocalDateString = (date) => {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Get start of the week (Sunday) in local time as YYYY-MM-DD
+const getWeekStartLocalDate = (date) => {
+  const d = new Date(date);
+  const dayOfWeek = d.getDay(); // 0 is Sunday, 1 is Monday, etc.
+  d.setDate(d.getDate() - dayOfWeek);
+  return getLocalDateString(d);
+};
+
+export function useWeeklyPlan(currentDateString) {
+  const [weeklyPlan, setWeeklyPlan] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const weekStartDate = getWeekStartLocalDate(new Date(currentDateString));
+
+  // Fetch the weekly plan from database
+  useEffect(() => {
+    let isCurrent = true;
+
+    const fetchPlan = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const queryDate = getLocalDateString(new Date(currentDateString));
+        const planData = await getWeeklyPlan(DEFAULT_USER_ID, queryDate);
+
+        if (isCurrent) {
+          setWeeklyPlan(planData);
+        }
+      } catch (err) {
+        if (isCurrent) {
+          if (err.response && err.response.status === 404) {
+            // Plan does not exist for this week - clear the plan so UI can show generation view
+            setWeeklyPlan(null);
+          } else if (!err.response) {
+            setError('Connection error: Cannot connect to the server. Make sure the Backend is running.');
+            setWeeklyPlan(null);
+          } else {
+            setError(err.response?.data?.detail || 'Error fetching weekly plan.');
+            setWeeklyPlan(null);
+          }
+        }
+      } finally {
+        if (isCurrent) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchPlan();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [weekStartDate]);
+
+  // Update meal status with optimistic updates
+  const handleUpdateMealStatus = async (dayName, mealType, status, replacedWithMealName = null) => {
+    if (!weeklyPlan) return;
+
+    // Save previous state for rollback if server request fails
+    const previousPlan = { ...weeklyPlan };
+
+    // Apply Optimistic Update
+    setWeeklyPlan(prevPlan => {
+      if (!prevPlan) return prevPlan;
+      const updatedDays = { ...prevPlan.days };
+      const updatedDayPlan = { ...updatedDays[dayName] };
+      const updatedMeals = { ...updatedDayPlan.meals };
+      const updatedMeal = { ...updatedMeals[mealType.toLowerCase()] };
+
+      updatedMeal.status = status;
+      updatedMeal.replaced_with_meal_name = replacedWithMealName;
+
+      // Re-calculate actual eaten macros optimistically
+      if (status === 'eaten') {
+        updatedMeal.actual_macros = { ...updatedMeal.planned_macros };
+      } else if (status === 'skipped') {
+        updatedMeal.actual_macros = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+      } else if (status === 'replaced' || status === 'planned') {
+        updatedMeal.actual_macros = { ...updatedMeal.planned_macros };
+        if (status === 'replaced' && replacedWithMealName) {
+          updatedMeal.name = replacedWithMealName;
+        }
+      }
+
+      updatedMeals[mealType.toLowerCase()] = updatedMeal;
+      updatedDayPlan.meals = updatedMeals;
+      updatedDays[dayName] = updatedDayPlan;
+
+      return {
+        ...prevPlan,
+        days: updatedDays
+      };
+    });
+
+    try {
+      const updatedPlanFromServer = await apiUpdateMealStatus(
+        weeklyPlan._id,
+        dayName,
+        mealType,
+        status,
+        replacedWithMealName
+      );
+      setWeeklyPlan(updatedPlanFromServer);
+    } catch (err) {
+      console.error('Failed to update meal status:', err);
+      // Rollback to previous state
+      setWeeklyPlan(previousPlan);
+      setError(err.response?.data?.detail || 'Failed to update meal status.');
+    }
+  };
+
+  return {
+    weeklyPlan,
+    isLoading,
+    error,
+    updateMealStatus: handleUpdateMealStatus,
+    weekStartDate
+  };
+}
+
 ```
 
 ### File: ./frontend/src/main.jsx
@@ -4506,7 +4911,27 @@ export const onboardUser = async (userId, profileData) => {
   return response.data;
 };
 
+export const getWeeklyPlan = async (userId, dateStr) => {
+  const response = await apiClient.get('/plans', {
+    params: {
+      user_id: userId,
+      date: dateStr,
+    },
+  });
+  return response.data;
+};
+
+export const updateMealStatus = async (planId, day, mealType, status, replacedWithMealName = null) => {
+  const response = await apiClient.patch(`/plans/${planId}/meals/${day}/${mealType.toLowerCase()}/status`, {
+    status,
+    replaced_with_meal_name: replacedWithMealName,
+  });
+  return response.data;
+};
+
 export default apiClient;
+
+
 ```
 
 ### File: ./frontend/src/pages/Calendar/Calendar.jsx
@@ -4518,6 +4943,8 @@ import WeekView from '../../components/Calendar/WeekView';
 import MonthView from '../../components/Calendar/MonthView';
 import YearView from '../../components/Calendar/YearView';
 import DayView from '../../components/Calendar/DayView';
+import LoadingSpinner from '../../components/Common/LoadingSpinner';
+import { useWeeklyPlan } from '../../hooks/useWeeklyPlan';
 import './Calendar.css';
 
 export default function Calendar() {
@@ -4526,6 +4953,14 @@ export default function Calendar() {
   // Connect to Redux global state
   const viewMode = useSelector((state) => state.calendar.viewMode);
   const currentDateString = useSelector((state) => state.calendar.currentDate);
+
+  // Hook to fetch and manage weekly plan from DB
+  const {
+    weeklyPlan,
+    isLoading,
+    error,
+    updateMealStatus,
+  } = useWeeklyPlan(currentDateString);
 
   // Parse string date to Date object for calculation logic
   const currentDate = new Date(currentDateString);
@@ -4590,35 +5025,64 @@ export default function Calendar() {
         handleViewModeChange={handleViewModeChange}
       />
 
+      {error && error.includes('Connection error') && (
+        <div style={{
+          backgroundColor: 'rgba(255, 59, 48, 0.1)',
+          borderBottom: '1px solid rgba(255, 59, 48, 0.2)',
+          color: '#ff3b30',
+          padding: '8px 16px',
+          fontSize: '12px',
+          textAlign: 'center',
+          fontWeight: 500
+        }}>
+          Connection error: Cannot connect to the server. Meals will not load.
+        </div>
+      )}
+
       <main className="calendar-content">
-        {viewMode === 'week' && (
-          <WeekView
-            currentDate={currentDate}
-            daysOfWeek={daysOfWeek}
-            mealSections={mealSections}
-            handleDayClick={handleDayClick}
-          />
-        )}
-        {viewMode === 'month' && (
-          <MonthView
-            currentDate={currentDate}
-            daysOfWeek={daysOfWeek}
-            handleDayClick={handleDayClick}
-          />
-        )}
-        {viewMode === 'year' && (
-          <YearView
-            currentDate={currentDate}
-            months={months}
-            today={today}
-            handleDayClick={handleDayClick}
-          />
-        )}
-        {viewMode === 'day' && (
-          <DayView
-            mealSections={mealSections}
-            isFutureDay={isFutureDay}
-          />
+        {isLoading ? (
+          <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
+            <LoadingSpinner message="Loading meals..." />
+          </div>
+        ) : (
+          <>
+            {viewMode === 'week' && (
+              <WeekView
+                currentDate={currentDate}
+                daysOfWeek={daysOfWeek}
+                mealSections={mealSections}
+                handleDayClick={handleDayClick}
+                weeklyPlan={weeklyPlan}
+              />
+            )}
+            {viewMode === 'month' && (
+              <MonthView
+                currentDate={currentDate}
+                daysOfWeek={daysOfWeek}
+                handleDayClick={handleDayClick}
+                weeklyPlan={weeklyPlan}
+              />
+            )}
+            {viewMode === 'year' && (
+              <YearView
+                currentDate={currentDate}
+                months={months}
+                today={today}
+                handleDayClick={handleDayClick}
+              />
+            )}
+            {viewMode === 'day' && (
+              <DayView
+                mealSections={mealSections}
+                isFutureDay={isFutureDay}
+                dayName={daysOfWeek[currentDate.getDay()]}
+                dayPlan={weeklyPlan?.days?.[daysOfWeek[currentDate.getDay()]]}
+                onUpdateStatus={(mealType, status, replacedWithMealName) =>
+                  updateMealStatus(daysOfWeek[currentDate.getDay()], mealType, status, replacedWithMealName)
+                }
+              />
+            )}
+          </>
         )}
       </main>
     </div>
@@ -4672,12 +5136,12 @@ export default function Calendar() {
   text-align: center;
 }
 
-/* Segmented Control Selectors */
+/* Segmented Control Selectors - פינות ישרות */
 .segment-control {
   display: flex;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 2px;
   overflow: hidden;
 }
@@ -4689,14 +5153,13 @@ export default function Calendar() {
   padding: 4px 16px;
   font-size: 13px;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 2px;
   transition: all 0.2s ease;
 }
 
 .segment-control button.active {
   background: var(--border);
   color: var(--text-h);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 /* Toolbar Buttons */
@@ -4704,7 +5167,7 @@ export default function Calendar() {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-h);
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 13px;
   padding: 4px 12px;
@@ -4726,16 +5189,12 @@ export default function Calendar() {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
 }
 
 .arrow-btn:hover {
   background-color: var(--border);
-}
-
-.arrow-btn:active {
-  transform: scale(0.9);
 }
 
 .calendar-content {
@@ -4774,7 +5233,7 @@ export default function Calendar() {
   align-items: center;
   gap: 4px;
   padding: 4px 0;
-  border-radius: 8px;
+  border-radius: 4px;
   transition: background-color 0.2s ease;
 }
 
@@ -4800,6 +5259,7 @@ export default function Calendar() {
   border-radius: 50%;
 }
 
+/* האדום הקלאסי של Apple */
 .active-day {
   background-color: #ff3b30;
   color: white;
@@ -4823,10 +5283,6 @@ export default function Calendar() {
 
 .time-axis .time-label {
   border-bottom: 1px solid var(--border);
-}
-
-.time-axis .time-label:last-child {
-  border-bottom: none;
 }
 
 .time-label {
@@ -4859,10 +5315,6 @@ export default function Calendar() {
   flex: 1;
   border-bottom: 1px solid var(--border);
   position: relative;
-}
-
-.day-column .meal-cell:last-child {
-  border-bottom: none;
 }
 
 /* -------------------- Month View -------------------- */
@@ -4974,7 +5426,7 @@ export default function Calendar() {
   font-size: 12px;
   color: var(--text-h);
   height: 24px;
-  border-radius: 4px;
+  border-radius: 2px;
   transition: background-color 0.2s ease;
 }
 
@@ -5008,7 +5460,7 @@ export default function Calendar() {
   flex-direction: column;
   border: 1px solid var(--border);
   border-bottom: none;
-  border-radius: 12px 12px 0 0;
+  border-radius: 4px 4px 0 0;
   overflow: hidden;
 }
 
@@ -5018,14 +5470,13 @@ export default function Calendar() {
   border-bottom: 1px solid var(--border);
 }
 
-/* Strictly sets the meal labels column to exactly 25% (one quarter) of the table width */
 .day-meal-row .time-label {
   flex: 0 0 25%; 
   display: flex;
-  flex-direction: column; /* חשוב! מסדר את האלמנטים מלמעלה למטה */
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px; /* רווח בין שם הארוחה לכפתור */
+  gap: 12px;
   padding: 16px;
   background-color: var(--code-bg);
   border-right: 1px solid var(--border);
@@ -5034,12 +5485,12 @@ export default function Calendar() {
   color: var(--text);
   box-sizing: border-box;
 }
-/* -------------------- Day View Actions & Cells -------------------- */
+
 .day-meal-row .meal-cell {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: center; /* שונה מ-flex-start ל-center כדי למרכז אנכית את התוכן והכפתורים */
+  align-items: center;
   padding: 16px;
   gap: 16px;
   box-sizing: border-box;
@@ -5057,7 +5508,7 @@ export default function Calendar() {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 12px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -5069,215 +5520,100 @@ export default function Calendar() {
   background: var(--bg);
   border: 1px solid var(--border);
   color: var(--text-h);
-  border-radius: 6px;
-  font-size: 12px;
+  border-radius: 4px;
+  font-size: 13px;
   font-weight: 500;
   padding: 6px 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  width: 140px; /* מעניק רוחב אחיד לכל הכפתורים למראה סימטרי ונקי */
+  transition: all 0.15s ease;
+  width: 145px;
   box-sizing: border-box;
 }
 
 .action-btn .icon {
-  font-size: 14px;
+  font-size: 13px;
 }
 
-/* Hover States with distinct semantic colors */
 .action-btn:hover {
   background: var(--code-bg);
 }
 
 .success-btn:hover {
-  background: #e8f5e9;
-  color: #2e7d32;
-  border-color: #a5d6a7;
+  background: #f0fdf4;
+  color: #15803d;
+  border-color: #bbf7d0;
 }
 
 .custom-btn:hover {
-  background: #e3f2fd;
-  color: #1565c0;
-  border-color: #90caf9;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
 }
 
+/* -------------------- AI Elements (בצבע כחול נקי) -------------------- */
 .ai-btn:hover {
-  background: var(--accent-bg);
-  color: var(--accent);
-  border-color: var(--accent-border);
+  background: rgba(37, 99, 235, 0.08);
+  color: #2563eb;
+  border-color: rgba(37, 99, 235, 0.3);
 }
 
-/* Dark mode adjustments for the buttons */
-@media (prefers-color-scheme: dark) {
-  .success-btn:hover {
-    background: rgba(46, 125, 50, 0.15);
-    border-color: rgba(46, 125, 50, 0.4);
-    color: #81c784;
-  }
-  .custom-btn:hover {
-    background: rgba(21, 101, 192, 0.15);
-    border-color: rgba(21, 101, 192, 0.4);
-    color: #64b5f6;
-  }
+.dropdown-item.accent-text:hover { 
+  color: #2563eb; 
 }
+/* ----------------------------------------------------------------- */
+
 .skipped-btn:hover {
-  background: #ffebee;
-  color: #c62828;
-  border-color: #ffcdd2;
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
 }
 
-/* התאמה למצב כהה (Dark Mode) */
-@media (prefers-color-scheme: dark) {
-  .skipped-btn:hover {
-    background: rgba(198, 40, 40, 0.15);
-    border-color: rgba(198, 40, 40, 0.4);
-    color: #ef5350;
-  }
-}
-/* -------------------- Adjustment Prompt Styling -------------------- */
-/* -------------------- Adjustment Prompt Styling -------------------- */
-.adjustment-prompt-container {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  animation: fadeIn 0.2s ease-in-out;
-}
-
-.adjust-plan-btn {
-  background-color: var(--accent-bg);
-  border: 1px dashed var(--accent-border);
-  color: var(--text-h);
-  padding: 8px 10px;
-  font-size: 12px;
-  line-height: 1.3;
-  border-radius: 8px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 500;
-  width: 100%;
-  white-space: normal; /* מאפשר לטקסט להישבר לכמה שורות */
-}
-
-.adjust-plan-btn:hover {
-  background-color: var(--accent);
-  color: #ffffff;
-  border-color: transparent;
-  box-shadow: var(--shadow);
-}
-
-.action-btn.skipped-btn.active-skipped {
-  background: #c62828;
+/* Active States */
+.action-btn.active-eaten {
+  background: #16a34a;
   color: #ffffff;
   border-color: transparent;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-/* הדגשת כפתור ה-Eaten כאשר הוא במצב פעיל */
-.action-btn.success-btn.active-eaten {
-  background: #2e7d32;
+.action-btn.active-skipped {
+  background: #dc2626;
   color: #ffffff;
   border-color: transparent;
 }
 
-/* התאמה צבע למצב כהה (Dark Mode) כדי שלא יסנוור */
-@media (prefers-color-scheme: dark) {
-  .action-btn.success-btn.active-eaten {
-    background: #388e3c;
-  }
-}
-/* עיצוב מיוחד להתרעה סטטית (כמו דילוג על ארוחת ערב) */
-.adjust-plan-btn.notice-only {
-  background-color: #ffebee;
-  border: 1px solid #ffcdd2;
-  color: #c62828;
-  cursor: default;
+.action-btn.active-replaced {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: transparent;
 }
 
-.adjust-plan-btn.notice-only:hover {
-  background-color: #ffebee;
-  color: #c62828;
-  border-color: #ffcdd2;
-  box-shadow: none;
-}
-
-/* התאמת מצב כהה להתראה הסטטית */
-@media (prefers-color-scheme: dark) {
-  .adjust-plan-btn.notice-only {
-    background-color: rgba(198, 40, 40, 0.15);
-    border-color: rgba(198, 40, 40, 0.3);
-    color: #ef5350;
-  }
-  .adjust-plan-btn.notice-only:hover {
-    background-color: rgba(198, 40, 40, 0.15);
-    color: #ef5350;
-    border-color: rgba(198, 40, 40, 0.3);
-  }
-}
+/* -------------------- Dropdown Menus -------------------- */
 .dropdown-wrapper {
   position: relative;
   display: inline-block;
   width: 145px;
 }
 
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text-h);
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.action-btn:hover {
-  background: var(--code-bg);
-}
-
-/* סגנונות כפתור ראשי כשהוא פעיל */
-.action-btn.active-eaten {
-  background: #2e7d32;
-  color: #ffffff;
-  border-color: transparent;
-}
-
-.action-btn.active-skipped {
-  background: #c62828;
-  color: #ffffff;
-  border-color: transparent;
-}
-
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 4px);
   right: 0;
   width: 100%;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 4px;
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
   z-index: 10;
   overflow: hidden;
-  animation: fadeIn 0.15s ease-out;
 }
 
 .dropdown-item {
   background: none;
   border: none;
   border-bottom: 1px solid var(--border);
-  padding: 10px 12px;
+  padding: 8px 12px;
   font-size: 13px;
   font-weight: 500;
   color: var(--text-h);
@@ -5286,7 +5622,7 @@ export default function Calendar() {
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: background 0.15s ease;
 }
 
 .dropdown-item:last-child {
@@ -5297,18 +5633,293 @@ export default function Calendar() {
   background: var(--code-bg);
 }
 
-/* צבעי טקסט להובר בתוך התפריט */
-.dropdown-item.success-text:hover { color: #2e7d32; }
-.dropdown-item.danger-text:hover { color: #c62828; }
-.dropdown-item.primary-text:hover { color: #1565c0; }
-.dropdown-item.accent-text:hover { color: var(--accent); }
+.dropdown-item.success-text:hover { color: #16a34a; }
+.dropdown-item.danger-text:hover { color: #dc2626; }
+.dropdown-item.primary-text:hover { color: #2563eb; }
 
-/* Dark mode adjustments */
+/* -------------------- Adjustment Prompt & AI Styling (כחול) -------------------- */
+.adjustment-prompt-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.adjust-plan-btn {
+  background-color: rgba(37, 99, 235, 0.06);
+  border: 1px dashed rgba(37, 99, 235, 0.3);
+  color: #2563eb;
+  padding: 6px 10px;
+  font-size: 11px;
+  line-height: 1.3;
+  border-radius: 4px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-weight: 500;
+  width: 100%;
+  white-space: normal;
+}
+
+.adjust-plan-btn:hover {
+  background-color: #2563eb;
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.adjust-plan-btn.notice-only {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  cursor: default;
+}
+/* ----------------------------------------------------------------------------- */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* -------------------- Custom Meal Modal Styles (נקי מסגול) -------------------- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.modal-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 24px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: var(--shadow);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-form .form-control:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.modal-actions-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.modal-actions-footer .btn-primary {
+  background-color: #2563eb;
+  color: #ffffff;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.modal-actions-footer .btn-primary:hover {
+  background-color: #1d4ed8;
+}
+
+.modal-actions-footer .btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-h);
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.modal-actions-footer .btn-secondary:hover {
+  background: var(--code-bg);
+}
+
+.custom-meal-display {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* Dark Mode Adjustments */
 @media (prefers-color-scheme: dark) {
-  .action-btn.active-eaten { background: #388e3c; }
-  .dropdown-item.success-text:hover { color: #81c784; }
-  .dropdown-item.danger-text:hover { color: #ef5350; }
-  .dropdown-item.primary-text:hover { color: #64b5f6; }
+  .success-btn:hover { background: rgba(22, 163, 74, 0.15); color: #4ade80; border-color: rgba(22, 163, 74, 0.3); }
+  .custom-btn:hover { background: rgba(37, 99, 235, 0.15); color: #60a5fa; border-color: rgba(37, 99, 235, 0.3); }
+  .skipped-btn:hover { background: rgba(220, 38, 38, 0.15); color: #f87171; border-color: rgba(220, 38, 38, 0.3); }
+  
+  .action-btn.active-eaten { background: #15803d; }
+  .action-btn.active-skipped { background: #b91c1c; }
+  .action-btn.active-replaced { background: #1d4ed8; }
+
+  .adjust-plan-btn {
+    background-color: rgba(59, 130, 246, 0.12);
+    border-color: rgba(59, 130, 246, 0.35);
+    color: #60a5fa;
+  }
+  .adjust-plan-btn:hover {
+    background-color: #3b82f6;
+    color: #ffffff;
+  }
+
+  .modal-form .form-control:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+  }
+  .modal-actions-footer .btn-primary {
+    background-color: #3b82f6;
+  }
+  .modal-actions-footer .btn-primary:hover {
+    background-color: #2563eb;
+  }
+}
+
+/* Additional Styles for WeekView Meals */
+.meal-cell.planned {
+  background-color: var(--code-bg);
+  border-left: 3px solid var(--accent);
+}
+.meal-cell.eaten {
+  background-color: rgba(46, 125, 50, 0.1);
+  border-left: 3px solid #2e7d32;
+}
+.meal-cell.skipped {
+  background-color: rgba(198, 40, 40, 0.1);
+  border-left: 3px solid #c62828;
+  opacity: 0.6;
+}
+.meal-cell.replaced {
+  background-color: rgba(21, 101, 192, 0.1);
+  border-left: 3px solid #1565c0;
+}
+
+.week-meal-info {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 8px;
+  font-size: 11px;
+  height: 100%;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.week-meal-name {
+  font-weight: 600;
+  color: var(--text-h);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.week-meal-calories {
+  color: var(--text);
+  font-size: 10px;
+}
+
+/* Meal Details Styles in DayView */
+.meal-content-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.meal-content-container.skipped-meal {
+  opacity: 0.5;
+}
+
+.meal-content-container.skipped-meal .meal-title,
+.meal-content-container.skipped-meal .meal-description {
+  text-decoration: line-through;
+}
+
+.meal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.meal-description {
+  font-size: 13px;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.meal-macros-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.macro-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.macro-badge.calories {
+  background-color: rgba(255, 149, 0, 0.1);
+  border-color: rgba(255, 149, 0, 0.2);
+  color: #ff9500;
+}
+
+.macro-badge.protein {
+  background-color: rgba(52, 199, 89, 0.1);
+  border-color: rgba(52, 199, 89, 0.2);
+  color: #34c759;
+}
+
+.macro-badge.carbs {
+  background-color: rgba(0, 122, 255, 0.1);
+  border-color: rgba(0, 122, 255, 0.2);
+  color: #007aff;
+}
+
+.macro-badge.fat {
+  background-color: rgba(175, 82, 222, 0.1);
+  border-color: rgba(175, 82, 222, 0.2);
+  color: #af52de;
 }```
 
 ### File: ./frontend/src/pages/NotFound/NotFound.jsx
@@ -5329,6 +5940,7 @@ import UserMetaCard from '../../components/Profile/UserMetaCard';
 import WeightCard from '../../components/Profile/WeightCard';
 import MacrosCard from '../../components/Profile/MacrosCard';
 import TagManagerCard from '../../components/Profile/TagManagerCard';
+import LoadingSpinner from '../../components/Common/LoadingSpinner';
 import './Profile.css';
 
 export default function Profile() {
@@ -5387,14 +5999,7 @@ export default function Profile() {
             />
 
             {isLoading ? (
-                <div className="loading-container" style={{
-                    textAlign: 'center',
-                    padding: '3rem',
-                    fontSize: '1.2rem',
-                    color: '#888'
-                }}>
-                    🔄 Loading profile details...
-                </div>
+                <LoadingSpinner message="Loading profile details..." />
             ) : (
                 <div className="profile-content-area">
                     <UserMetaCard
@@ -5431,14 +6036,15 @@ export default function Profile() {
 
                             <TagManagerCard
                                 title="Personal Goals"
-                                placeholder="Add goal (e.g. build muscle)..."
+                                placeholder="Select a goal..."
                                 tags={currentProfile.goals || []}
                                 inputValue={newGoal}
                                 setInputValue={setNewGoal}
-                                onAddTag={() => addTag('goals', newGoal, setNewGoal)}
+                                onAddTag={(val) => addTag('goals', val, setNewGoal)}
                                 onRemoveTag={(tag) => removeTag('goals', tag)}
                                 isEditing={isEditing}
                                 emptyMessage="No goals recorded"
+                                options={['lose weight', 'gain muscle', 'eat healthier']}
                             />
 
                             <TagManagerCard
@@ -5447,7 +6053,7 @@ export default function Profile() {
                                 tags={currentProfile.allergies || []}
                                 inputValue={newAllergy}
                                 setInputValue={setNewAllergy}
-                                onAddTag={() => addTag('allergies', newAllergy, setNewAllergy)}
+                                onAddTag={(val) => addTag('allergies', val, setNewAllergy)}
                                 onRemoveTag={(tag) => removeTag('allergies', tag)}
                                 isEditing={isEditing}
                                 emptyMessage="No allergies recorded"
@@ -5459,7 +6065,7 @@ export default function Profile() {
                                 tags={currentProfile.preferences || []}
                                 inputValue={newPref}
                                 setInputValue={setNewPref}
-                                onAddTag={() => addTag('preferences', newPref, setNewPref)}
+                                onAddTag={(val) => addTag('preferences', val, setNewPref)}
                                 onRemoveTag={(tag) => removeTag('preferences', tag)}
                                 isEditing={isEditing}
                                 emptyMessage="No preferences recorded"
@@ -6031,15 +6637,7 @@ async def update_meal_status(
 
     meal = day_plan.meals[meal_type]
     meal.status = payload.status
-    
-    if payload.status == MealStatus.REPLACED:
-        meal.replaced_with_meal_name = payload.replaced_with_meal_name
-        # For simple replacement, copy planned macros or let client override
-        # We assume planned macros remain active for simplicity or set to custom value.
-        meal.actual_macros = meal.planned_macros
-    else:
-        meal.replaced_with_meal_name = None
-        meal.update_actual_macros()
+    meal.update_actual_macros()
 
     plan.updated_at = datetime.utcnow()
     await plan.save()
@@ -6476,7 +7074,6 @@ class MealStatus(str, Enum):
     PLANNED = "planned"
     EATEN = "eaten"
     SKIPPED = "skipped"
-    REPLACED = "replaced"
 
 class MealPlan(BaseModel):
     name: str
@@ -6486,7 +7083,6 @@ class MealPlan(BaseModel):
     actual_macros: Macros = Field(default_factory=Macros)
     ai_explanation: Optional[str] = None
     is_completion: bool = False
-    replaced_with_meal_name: Optional[str] = None
 
     def update_actual_macros(self):
         """Helper to sync actual macros according to status."""
@@ -6494,8 +7090,6 @@ class MealPlan(BaseModel):
             self.actual_macros = self.planned_macros
         elif self.status == MealStatus.SKIPPED:
             self.actual_macros = Macros(calories=0, protein=0, carbs=0, fat=0)
-        # For "replaced", actual_macros can be set to different values than planned,
-        # but if not explicitly set, we could leave it.
 
 class DayPlan(BaseModel):
     meals: Dict[str, MealPlan]  # Keys: "breakfast", "lunch", "dinner"
@@ -6530,9 +7124,23 @@ class WeeklyPlan(Document):
 ### File: ./backend/app/models/user.py
 ```
 from beanie import Document
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from typing import List, Optional
+
+from enum import Enum
+
+class UserGoal(str, Enum):
+    LOSE_WEIGHT = "lose weight"
+    GAIN_MUSCLE = "gain muscle"
+    EAT_HEALTHIER = "eat healthier"
+
+class ActivityLevel(str, Enum):
+    SEDENTARY = "sedentary"
+    LIGHTLY_ACTIVE = "lightly_active"
+    MODERATELY_ACTIVE = "moderately_active"
+    VERY_ACTIVE = "very_active"
+    EXTREMELY_ACTIVE = "extremely_active"
 
 class Macros(BaseModel):
     calories: float = 0.0
@@ -6548,12 +7156,54 @@ class UserProfile(Document):
     weight: Optional[float] = None  # in kg
     height: Optional[float] = None  # in cm
     gender: Optional[str] = None    # "male", "female", "other"
-    activity_level: Optional[str] = None  # "sedentary", "lightly_active", "moderately_active", "very_active", "extremely_active"
-    goals: List[str] = Field(default_factory=list)  # e.g. ["lose weight", "gain muscle", "eat healthier"]
+    activity_level: Optional[ActivityLevel] = None
+    goals: List[UserGoal] = Field(default_factory=list)
     allergies: List[str] = Field(default_factory=list)      # e.g. ["nuts", "gluten", "dairy"]
     preferences: List[str] = Field(default_factory=list)    # e.g. ["vegetarian", "low-carb", "kosher"]
     daily_macros_target: Optional[Macros] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    @field_validator("activity_level", mode="before")
+    @classmethod
+    def validate_activity_level(cls, v):
+        if not v:
+            return v
+        mapping = {
+            "sedentary": ActivityLevel.SEDENTARY,
+            "lightly_active": ActivityLevel.LIGHTLY_ACTIVE,
+            "moderately_active": ActivityLevel.MODERATELY_ACTIVE,
+            "very_active": ActivityLevel.VERY_ACTIVE,
+            "extremely_active": ActivityLevel.EXTREMELY_ACTIVE,
+        }
+        val_str = v.value if hasattr(v, "value") else str(v)
+        val_lower = val_str.strip().lower()
+        if val_lower in mapping:
+            return mapping[val_lower]
+        return v
+
+    @field_validator("goals", mode="before")
+    @classmethod
+    def validate_goals(cls, v):
+        if not v:
+            return v
+        mapping = {
+            "lose weight": UserGoal.LOSE_WEIGHT,
+            "lose": UserGoal.LOSE_WEIGHT,
+            "gain weight": UserGoal.GAIN_MUSCLE,
+            "gain muscle": UserGoal.GAIN_MUSCLE,
+            "build muscle": UserGoal.GAIN_MUSCLE,
+            "build": UserGoal.GAIN_MUSCLE,
+            "eat healthier": UserGoal.EAT_HEALTHIER,
+        }
+        validated = []
+        for item in v:
+            item_str = item.value if hasattr(item, "value") else str(item)
+            item_lower = item_str.strip().lower()
+            if item_lower in mapping:
+                validated.append(mapping[item_lower])
+            else:
+                validated.append(item)
+        return validated
 
     class Settings:
         name = "users"
@@ -6616,7 +7266,6 @@ class GeneratePlanRequest(BaseModel):
 
 class UpdateMealStatusRequest(BaseModel):
     status: MealStatus
-    replaced_with_meal_name: Optional[str] = None
 
 class RegenerateMealRequest(BaseModel):
     user_id: str
@@ -6630,7 +7279,7 @@ class RegenerateMealRequest(BaseModel):
 ```
 from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional
-from app.models.user import Macros
+from app.models.user import Macros, UserGoal, ActivityLevel
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -6652,8 +7301,8 @@ class OnboardRequest(BaseModel):
     weight: float = Field(..., gt=10, lt=500)  # in kg
     height: float = Field(..., gt=50, lt=300)  # in cm
     gender: str = Field(..., description="male, female, or other")
-    activity_level: str = Field(..., description="sedentary, lightly_active, moderately_active, very_active, extremely_active")
-    goals: List[str] = Field(..., min_items=1)
+    activity_level: ActivityLevel = Field(..., description="Activity level of the user")
+    goals: List[UserGoal] = Field(..., min_items=1, description="List of user nutritional goals")
     allergies: List[str] = Field(default_factory=list)
     preferences: List[str] = Field(default_factory=list)
     daily_macros_target: Optional[Macros] = None
@@ -6691,16 +7340,16 @@ class CompletionRequest(BaseModel):
 
 ### File: ./backend/app/utils.py
 ```
-from typing import List
-from app.models.user import Macros
+from typing import List, Union
+from app.models.user import Macros, UserGoal, ActivityLevel
 
 def calculate_target_macros(
     age: int,
     weight: float,
     height: float,
     gender: str,
-    activity_level: str,
-    goals: List[str]
+    activity_level: Union[ActivityLevel, str],
+    goals: List[Union[UserGoal, str]]
 ) -> Macros:
     """
     Calculates target calories and macros using the Mifflin-St Jeor equation:
@@ -6718,15 +7367,26 @@ def calculate_target_macros(
         "very_active": 1.725,
         "extremely_active": 1.9
     }
-    multiplier = activity_multipliers.get(activity_level.lower(), 1.2)
+    act_str = activity_level.value if hasattr(activity_level, "value") else str(activity_level)
+    multiplier = activity_multipliers.get(act_str.strip().lower(), 1.2)
     tdee = bmr * multiplier
 
     # 3. Adjust calories for goals
     calories = tdee
-    goal_str = " ".join(goals).lower()
-    if "lose" in goal_str:
+    has_lose = False
+    has_gain = False
+    
+    for goal in goals:
+        goal_val = goal.value if hasattr(goal, "value") else str(goal)
+        goal_val = goal_val.lower()
+        if "lose" in goal_val:
+            has_lose = True
+        elif "gain" in goal_val or "build" in goal_val:
+            has_gain = True
+
+    if has_lose:
         calories -= 500  # calorie deficit
-    elif "gain" in goal_str or "build" in goal_str:
+    elif has_gain:
         calories += 300  # calorie surplus
 
     # Keep a safe floor
@@ -6952,7 +7612,11 @@ class AIService:
             return None
         try:
             from google import genai
-            return genai.Client(api_key=settings.GEMINI_API_KEY)
+            from google.genai import types
+            return genai.Client(
+                api_key=settings.GEMINI_API_KEY,
+                http_options=types.HttpOptions(timeout=15_000)  # 15 seconds timeout
+            )
         except ImportError:
             logger.warning("google-genai package is not available, falling back.")
             return None
@@ -6980,8 +7644,8 @@ class AIService:
         1. 90% of meals must follow the user's preferences and completely avoid all listed allergies.
         2. 10% of meals should introduce healthy variety or address the user's request: '{prompt_override or "None"}'.
         3. The sum of macros for breakfast, lunch, and dinner each day must match the daily target macros (within 10% tolerance).
-        4. Meals should be described in Hebrew to match the user's interface language.
-        5. Provide a short explanation (in Hebrew) for why this meal fits their goal in the 'ai_explanation' field.
+        4. Meals should be described in English to match the user's interface language.
+        5. Provide a short explanation (in English) for why this meal fits their goal in the 'ai_explanation' field.
         """
 
         user_prompt = "Generate the 7-day meal plan conforming to the requested schema."
@@ -7055,8 +7719,8 @@ class AIService:
         Strict Rules:
         1. Fully respect allergies and preferences.
         2. Address custom requests if specified: '{prompt_override or "None"}'.
-        3. Meal description and name must be in Hebrew.
-        4. Provide an explanation in Hebrew why it fits their goal in the 'ai_explanation' field.
+        3. Meal description and name must be in English.
+        4. Provide an explanation in English why it fits their goal in the 'ai_explanation' field.
         """
 
         # 1. Try Gemini
@@ -7107,10 +7771,10 @@ class AIService:
         Carbs: {missing_macros.carbs}g
         Fat: {missing_macros.fat}g
 
-        Generate a single meal or snack (called 'ארוחת השלמה' in Hebrew) that closely matches these missing macros.
+        Generate a single meal or snack (called a 'Completion Meal') that closely matches these missing macros.
         - Respect allergies: {", ".join(user.allergies) if user.allergies else 'None'}
         - Respect preferences: {", ".join(user.preferences) if user.preferences else 'None'}
-        - Language: Hebrew.
+        - Language: English.
         """
 
         # 1. Try Gemini
@@ -7162,7 +7826,7 @@ class AIService:
         Daily Target: {user.daily_macros_target.calories} kcal, Protein: {user.daily_macros_target.protein}g
 
         Help the user, answer questions, recommend healthy substitutions, and give friendly nutritional tips.
-        Speak in Hebrew. Keep responses concise, friendly, and supportive.
+        Speak in English. Keep responses concise, friendly, and supportive.
         """
 
         messages = [{"role": "system", "content": system_prompt}]
@@ -7203,7 +7867,7 @@ class AIService:
                 logger.error(f"OpenAI chat failed: {e}")
 
         # 3. Fallback mock
-        return "שלום! כרגע מפתח המערכת לא הגדיר מפתח API עבור ה-AI. אשמח לעזור לך ברגע שמפתחות ה-API יוגדרו! בינתיים, אוכל לומר לך שחשוב מאוד לשתות מים ולהקפיד על אכילת חלבון מספקת."
+        return "Hello! Currently, the system developer has not configured the AI API key. I will be happy to help you once the AI keys are configured! In the meantime, I can tell you that it is very important to drink water and ensure you consume enough protein."
 
     @classmethod
     def generate_meal_explanation(cls, user: UserProfile, meal_name: str, meal_description: str) -> str:
@@ -7211,7 +7875,7 @@ class AIService:
         Generates an explanation for why a specific meal is suitable for the user (info button logic).
         """
         system_prompt = f"""
-        Explain in Hebrew why the meal '{meal_name}' ({meal_description}) fits a user with goals: {', '.join(user.goals)} and target calories: {user.daily_macros_target.calories} kcal.
+        Explain in English why the meal '{meal_name}' ({meal_description}) fits a user with goals: {', '.join(user.goals)} and target calories: {user.daily_macros_target.calories} kcal.
         Keep the explanation positive, brief (2-3 sentences), and scientifically grounded but easy to read.
         """
 
@@ -7240,7 +7904,7 @@ class AIService:
                 logger.error(f"OpenAI explanation failed: {e}")
 
         # 3. Fallback mock
-        return f"מנה זו נבחרה עבורך מכיוון שהיא עשירה בחלבון וסיבים תזונתיים, אשר תורמים לתחושת שובע ממושכת ומסייעים להשגת המטרה שלך: {', '.join(user.goals)}. בנוסף, היא מתאימה בדיוק לערכי המטרה היומיים שלך."
+        return f"This meal was selected for you because it is rich in protein and dietary fiber, which contribute to a prolonged feeling of fullness and help achieve your goals: {', '.join(user.goals)}. Additionally, it perfectly fits your daily target macros."
 
     # --- Fallback Mock Data Generation ---
     @classmethod
@@ -7267,35 +7931,35 @@ class AIService:
 
         is_veg = "vegetarian" in [p.lower() for p in user.preferences] or "vegan" in [p.lower() for p in user.preferences]
 
-        # Delicious mock Hebrew meals
+        # Delicious mock English meals
         breakfast_meals = [
-            ("דייסת שיבולת שועל מפנקת", "דייסת קוואקר מבושלת במים/חלב שקדים עם פרוסות בננה, חמאת בוטנים וסילאן"),
-            ("יוגורט חלבון עם גרנולה", "גביע יוגורט חלבון 20 גרם עם גרנולה ללא תוספת סוכר, אוכמניות וכפית דבש"),
-            ("שקשוקה ביתית קלאסית", "שתי ביצים מבושלות ברוטב עגבניות עשיר, שום ופלפלים עם לחם כוסמין קל בצד")
+            ("Delicious Oatmeal Bowl", "Oatmeal cooked in water/almond milk with banana slices, peanut butter, and maple syrup"),
+            ("High-Protein Greek Yogurt", "Greek protein yogurt cup (20g) with sugar-free granola, blueberries, and a teaspoon of honey"),
+            ("Classic Homemade Shakshuka", "Two eggs poached in a rich tomato, garlic, and bell pepper sauce, served with whole wheat toast on the side")
         ]
         
         lunch_meals_meat = [
-            ("חזה עוף מוקפץ עם ירקות", "חזה עוף צלוי במחבת עם ברוקולי, פלפלים ובצל, מוגש על מצע אורז בסמטי"),
-            ("פילה סלמון בתנור", "פילה סלמון אפוי בעשבי תיבול, מוגש עם פירה בטטה רך ושעועית ירוקה מוקפצת"),
-            ("קציצות בשר ברוטב עגבניות", "קציצות בקר רזה מבושלות ברוטב עגבניות עשיר, מוגש לצד פסטה מקמח מלא")
+            ("Stir-Fried Chicken Breast with Veggies", "Grilled chicken breast stir-fried with broccoli, bell peppers, and onions, served on a bed of basmati rice"),
+            ("Oven-Baked Salmon Fillet", "Salmon fillet baked with herbs, served with sweet potato mash and sautéed green beans"),
+            ("Meatballs in Tomato Sauce", "Lean beef meatballs simmered in a rich tomato sauce, served alongside whole wheat pasta")
         ]
         
         lunch_meals_veg = [
-            ("קציצות עדשים אדומות וטחינה", "קציצות עדשים אדומות אפויות בתנור ברוטב עגבניות פיקנטי, מוגש עם קינואה"),
-            ("תבשיל קארי טופו וחומוס", "קוביות טופו מוקפצות עם גרגרי חומוס, גזר ודלעת ברוטב קארי ירוק וחלב קוקוס מעל אורז מלא"),
-            ("קערת בודהה טבעונית", "קערת בריאות המכילה קינואה, טופו צרוב, קוביות אבוקדו, גזר, מלפפון ורוטב טחינה ירוקה")
+            ("Red Lentil Patties with Tahini", "Baked red lentil patties in a zesty tomato sauce, served with quinoa"),
+            ("Tofu and Chickpea Curry", "Tofu cubes sautéed with chickpeas, carrots, and squash in green curry and coconut milk, over brown rice"),
+            ("Vegan Buddha Bowl", "Health bowl containing quinoa, seared tofu, avocado cubes, carrots, cucumbers, and a green tahini dressing")
         ]
 
         dinner_meals = [
-            ("חביתת ירק וגבינות", "חביתה משתי ביצים עם פטרוזיליה ובצל ירוק, מוגשת עם גבינת קוטג' 5%, סלט קצוץ ופרוסת לחם מלא"),
-            ("טוסט כוסמין עשיר", "שתי פרוסות לחם כוסמין עם גבינה צהובה 15%, פרוסות עגבנייה, זעתר וזיתי קלמטה"),
-            ("סלט טונה וביצה קשה", "סלט ירקות עשיר עם קופסת טונה במים, ביצה קשה, מלפפון חמוץ, מיונז קל ולימון")
+            ("Veggie Omelette with Cheese", "Two-egg omelette with parsley and green onions, served with 5% cottage cheese, chopped salad, and a slice of whole wheat bread"),
+            ("Spelt Cheese Toast", "Two slices of spelt bread toasted with 15% yellow cheese, tomato slices, hyssop (za'atar), and kalamata olives"),
+            ("Tuna and Hard-Boiled Egg Salad", "Rich vegetable salad with a can of water-packed tuna, a hard-boiled egg, pickles, light mayonnaise, and lemon")
         ]
 
         completion_meals = [
-            ("שייק חלבון עשיר", "שייק המורכב ממנת חלבון, בננה, חמאת בוטנים וחלב שקדים"),
-            ("פריכיות עם טונה ואבוקדו", "שלוש פריכיות אורז מלא עם רבע אבוקדו מעוך וטונה"),
-            ("תפוח עץ עם שקדים ויוגורט", "תפוח עץ פרוס לצד חופן שקדים טבעיים ויוגורט פרוביוטי")
+            ("Rich Protein Shake", "Shake blended with protein powder, banana, peanut butter, and almond milk"),
+            ("Rice Cakes with Tuna and Avocado", "Three brown rice cakes topped with a quarter mashed avocado and tuna"),
+            ("Apple Slices with Almonds and Yogurt", "Sliced apple served with a handful of raw almonds and probiotic yogurt")
         ]
 
         if meal_type == "breakfast":
@@ -7319,13 +7983,274 @@ class AIService:
             protein=round(target_protein * scale, 1),
             carbs=round(target_carbs * scale, 1),
             fat=round(target_fat * scale, 1),
-            ai_explanation="מנה זו מותאמת באופן מדויק ליעדים שלך, מספקת מקור איכותי לחלבון מן החי או הצומח ושומרת על מאזן קלורי מיטבי התומך במטרותיך."
+            ai_explanation="This meal is perfectly tailored to your targets, providing a high-quality source of protein and maintaining an optimal caloric balance that supports your goals."
         )
 ```
 
 ### File: ./backend/app/services/__init__.py
 ```
 # Services package
+```
+
+### File: ./backend/tests/test_backend.py
+```
+import asyncio
+import os
+import sys
+from dotenv import load_dotenv
+
+# Ensure we can import app modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Load environmental variables
+load_dotenv()
+
+from app.config import settings
+from app.database import init_db
+from app.models.user import UserProfile, Macros, UserGoal, ActivityLevel
+from app.models.plan import WeeklyPlan, DayPlan, MealPlan, MealStatus
+from app.models.completion import CompletionMeal
+from app.utils import calculate_target_macros
+from app.services.auth import AuthService
+from app.services.ai import AIService
+
+async def run_tests():
+    print("==================================================")
+    print("      FOODYAI SYSTEM INTEGRATION TEST SUITE       ")
+    print("==================================================")
+    
+    # 1. Verify environment loading
+    print("\n[1/8] Settings Loaded:")
+    print(f"  - Database Name: {settings.DATABASE_NAME}")
+    print(f"  - MongoDB URL: {settings.MONGODB_URL[:30]}...")
+    print(f"  - Gemini API Key: {'Configured' if settings.GEMINI_API_KEY else 'Missing!'}")
+    
+    # 2. Database Connection
+    print("\n[2/8] Connecting to MongoDB Atlas and initializing Beanie...")
+    try:
+        await init_db()
+        print("  -> Connected successfully!")
+    except Exception as e:
+        print(f"  -> ERROR: Database connection failed: {e}")
+        return
+
+    # 3. Clean up existing test data from previous runs (to avoid unique email collision)
+    print("\n[3/8] Cleaning up existing test user from previous runs...")
+    test_email = "test_suite_user@foodyai.com"
+    existing_user = await UserProfile.find_one(UserProfile.email == test_email)
+    if existing_user:
+        # Delete old plans
+        await WeeklyPlan.find(WeeklyPlan.user_id == str(existing_user.id)).delete()
+        # Delete old completions
+        await CompletionMeal.find(CompletionMeal.user_id == str(existing_user.id)).delete()
+        # Delete old user
+        await existing_user.delete()
+        print(f"  -> Cleaned up existing user {test_email} to prepare for fresh data.")
+    else:
+        print("  -> No existing test data found. Ready for fresh insertion.")
+
+    # 4. User Registration & Password Hashing
+    print("\n[4/8] Testing User Registration...")
+    plain_password = "SecretPassword123"
+    hashed_pwd = AuthService.hash_password(plain_password)
+    
+    test_user = UserProfile(
+        email=test_email,
+        username="TesterSuite",
+        hashed_password=hashed_pwd
+    )
+    await test_user.insert()
+    assert test_user.id is not None
+    print(f"  -> User registered successfully. MongoDB ID: {test_user.id}")
+    print(f"  -> Password verified successfully: {AuthService.verify_password(plain_password, test_user.hashed_password)}")
+
+    # 5. Onboarding & Target Macro Calculations
+    print("\n[5/8] Testing Onboarding & Macro Calculations...")
+    age = 28
+    weight = 80.0
+    height = 180.0
+    gender = "male"
+    
+    # Set English Enums
+    activity_level = ActivityLevel.MODERATELY_ACTIVE
+    goals = [UserGoal.LOSE_WEIGHT]
+    
+    allergies = ["nuts"]
+    preferences = ["high-protein", "vegetarian"]
+
+    # Calculate macros
+    target_macros = calculate_target_macros(
+        age=age, weight=weight, height=height, gender=gender,
+        activity_level=activity_level, goals=goals
+    )
+    print(f"  -> Calculated Targets:")
+    print(f"     Calories: {target_macros.calories} kcal")
+    print(f"     Protein: {target_macros.protein}g")
+    print(f"     Carbs: {target_macros.carbs}g")
+    print(f"     Fat: {target_macros.fat}g")
+
+    # Update User Profile
+    test_user.age = age
+    test_user.weight = weight
+    test_user.height = height
+    test_user.gender = gender
+    test_user.activity_level = activity_level
+    test_user.goals = goals
+    test_user.allergies = allergies
+    test_user.preferences = preferences
+    test_user.daily_macros_target = target_macros
+    await test_user.save()
+    print("  -> User profile updated with onboarding Enums.")
+
+    # 6. Weekly Plan Generation
+    print("\n[6/8] Testing Weekly Plan Generation via Gemini API (falling back to mock if needed)...")
+    try:
+        ai_plan_response = AIService.generate_weekly_plan(test_user, prompt_override="Include light fresh meals")
+        print("  -> AI generated plan successfully!")
+        
+        # Build WeeklyPlan Document
+        days_dict = {}
+        for day_name in ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]:
+            ai_day = getattr(ai_plan_response, day_name)
+            
+            meals = {
+                "breakfast": MealPlan(
+                    name=ai_day.breakfast.name,
+                    description=ai_day.breakfast.description,
+                    planned_macros=Macros(
+                        calories=ai_day.breakfast.calories,
+                        protein=ai_day.breakfast.protein,
+                        carbs=ai_day.breakfast.carbs,
+                        fat=ai_day.breakfast.fat
+                    ),
+                    ai_explanation=ai_day.breakfast.ai_explanation
+                ),
+                "lunch": MealPlan(
+                    name=ai_day.lunch.name,
+                    description=ai_day.lunch.description,
+                    planned_macros=Macros(
+                        calories=ai_day.lunch.calories,
+                        protein=ai_day.lunch.protein,
+                        carbs=ai_day.lunch.carbs,
+                        fat=ai_day.lunch.fat
+                    ),
+                    ai_explanation=ai_day.lunch.ai_explanation
+                ),
+                "dinner": MealPlan(
+                    name=ai_day.dinner.name,
+                    description=ai_day.dinner.description,
+                    planned_macros=Macros(
+                        calories=ai_day.dinner.calories,
+                        protein=ai_day.dinner.protein,
+                        carbs=ai_day.dinner.carbs,
+                        fat=ai_day.dinner.fat
+                    ),
+                    ai_explanation=ai_day.dinner.ai_explanation
+                )
+            }
+            for m in meals.values():
+                m.update_actual_macros()
+            days_dict[day_name] = DayPlan(meals=meals)
+
+        new_plan = WeeklyPlan(
+            user_id=str(test_user.id),
+            week_start_date="2026-07-19",
+            days=days_dict
+        )
+        await new_plan.insert()
+        print(f"  -> Saved WeeklyPlan to MongoDB. Plan ID: {new_plan.id}")
+        
+        # Check Sunday plan
+        sunday_meals = new_plan.days["Sunday"].meals
+        print(f"     Sunday Breakfast: {sunday_meals['breakfast'].name} ({sunday_meals['breakfast'].planned_macros.calories} kcal)")
+        print(f"     Sunday Lunch: {sunday_meals['lunch'].name} ({sunday_meals['lunch'].planned_macros.calories} kcal)")
+        print(f"     Sunday Dinner: {sunday_meals['dinner'].name} ({sunday_meals['dinner'].planned_macros.calories} kcal)")
+        print(f"     Sunday Total Planned Calories: {new_plan.days["Sunday"].summary_planned_macros.calories} kcal")
+
+    except Exception as e:
+        print(f"  -> ERROR: Plan generation failed: {e}")
+        return
+
+    # 7. Toggle Meal Status & Deficit Math
+    print("\n[7/8] Testing Meal Status Toggle and Macro Deficit...")
+    # Mark Sunday Breakfast as eaten, and Lunch as skipped
+    new_plan.days["Sunday"].meals["breakfast"].status = MealStatus.EATEN
+    new_plan.days["Sunday"].meals["breakfast"].update_actual_macros()
+    
+    new_plan.days["Sunday"].meals["lunch"].status = MealStatus.SKIPPED
+    new_plan.days["Sunday"].meals["lunch"].update_actual_macros()
+    
+    await new_plan.save()
+    
+    sunday_plan = new_plan.days["Sunday"]
+    print(f"  -> Sunday Target Calories: {sunday_plan.summary_planned_macros.calories} kcal")
+    print(f"  -> Sunday Actual (Eaten) Calories: {sunday_plan.summary_actual_macros.calories} kcal")
+    
+    deficit_calories = max(sunday_plan.summary_planned_macros.calories - sunday_plan.summary_actual_macros.calories, 0.0)
+    deficit_protein = max(sunday_plan.summary_planned_macros.protein - sunday_plan.summary_actual_macros.protein, 0.0)
+    print(f"  -> Sunday Calorie Deficit: {deficit_calories:.1f} kcal")
+    print(f"  -> Sunday Protein Deficit: {deficit_protein:.1f}g")
+
+    # 8. Smart Completion Meal Generation (Deficit Make-up)
+    print("\n[8/8] Testing Smart Completion Meal Generation...")
+    deficit_macros = Macros(
+        calories=deficit_calories,
+        protein=deficit_protein,
+        carbs=max(sunday_plan.summary_planned_macros.carbs - sunday_plan.summary_actual_macros.carbs, 0.0),
+        fat=max(sunday_plan.summary_planned_macros.fat - sunday_plan.summary_actual_macros.fat, 0.0)
+    )
+    try:
+        ai_completion = AIService.generate_completion_meal(
+            user=test_user,
+            date="2026-07-19",
+            skipped_meal_type="lunch",
+            missing_macros=deficit_macros
+        )
+        print("  -> AI generated completion meal successfully!")
+        print(f"     Suggested Snack/Meal: {ai_completion.name}")
+        print(f"     Macros: {ai_completion.calories} kcal, {ai_completion.protein}g Protein")
+        
+        # Save to DB
+        completion_doc = CompletionMeal(
+            user_id=str(test_user.id),
+            date="2026-07-19",
+            skipped_meal_type="lunch",
+            name=ai_completion.name,
+            description=ai_completion.description,
+            suggested_macros=Macros(
+                calories=ai_completion.calories,
+                protein=ai_completion.protein,
+                carbs=ai_completion.carbs,
+                fat=ai_completion.fat
+            )
+        )
+        await completion_doc.insert()
+        print(f"  -> Saved CompletionMeal to MongoDB. Completion ID: {completion_doc.id}")
+        
+    except Exception as e:
+        print(f"  -> ERROR: Smart completion failed: {e}")
+        return
+
+    # Chat Test
+    print("\n[Bonus] Testing AI Advisor Chat...")
+    try:
+        chat_reply = AIService.chat_advisor(
+            user=test_user,
+            message="Recommend a healthy high-protein post-workout snack.",
+            history=[]
+        )
+        print("  -> Chat replied successfully:")
+        print(f"     AI: {chat_reply}")
+    except Exception as e:
+        print(f"  -> ERROR: Chat failed: {e}")
+
+    print("\n==================================================")
+    print("          ALL TEST CASES PASSED SUCCESSFULLY      ")
+    print("      DATA RETAINED IN MONGODB FOR INSPECTION     ")
+    print("==================================================")
+
+if __name__ == "__main__":
+    asyncio.run(run_tests())
 ```
 
 ### File: ./backend/main.py
@@ -7346,6 +8271,288 @@ if __name__ == "__main__":
     main()
 ```
 
+### File: ./package-lock.json
+```
+{
+  "name": "Hackathon",
+  "version": "1.0.0",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "Hackathon",
+      "version": "1.0.0",
+      "license": "ISC",
+      "devDependencies": {
+        "concurrently": "^10.0.3"
+      }
+    },
+    "node_modules/ansi-regex": {
+      "version": "6.2.2",
+      "resolved": "https://registry.npmjs.org/ansi-regex/-/ansi-regex-6.2.2.tgz",
+      "integrity": "sha512-Bq3SmSpyFHaWjPk8If9yc6svM8c56dB5BAtW4Qbw5jHTwwXXcTLoRMkpDJp6VL0XzlWaCHTXrkFURMYmD0sLqg==",
+      "dev": true,
+      "license": "MIT",
+      "engines": {
+        "node": ">=12"
+      },
+      "funding": {
+        "url": "https://github.com/chalk/ansi-regex?sponsor=1"
+      }
+    },
+    "node_modules/ansi-styles": {
+      "version": "6.2.3",
+      "resolved": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.3.tgz",
+      "integrity": "sha512-4Dj6M28JB+oAH8kFkTLUo+a2jwOFkuqb3yucU0CANcRRUbxS0cP0nZYCGjcc3BNXwRIsUVmDGgzawme7zvJHvg==",
+      "dev": true,
+      "license": "MIT",
+      "engines": {
+        "node": ">=12"
+      },
+      "funding": {
+        "url": "https://github.com/chalk/ansi-styles?sponsor=1"
+      }
+    },
+    "node_modules/chalk": {
+      "version": "5.6.2",
+      "resolved": "https://registry.npmjs.org/chalk/-/chalk-5.6.2.tgz",
+      "integrity": "sha512-7NzBL0rN6fMUW+f7A6Io4h40qQlG+xGmtMxfbnH/K7TAtt8JQWVQK+6g0UXKMeVJoyV5EkkNsErQ8pVD3bLHbA==",
+      "dev": true,
+      "license": "MIT",
+      "engines": {
+        "node": "^12.17.0 || ^14.13 || >=16.0.0"
+      },
+      "funding": {
+        "url": "https://github.com/chalk/chalk?sponsor=1"
+      }
+    },
+    "node_modules/cliui": {
+      "version": "9.0.1",
+      "resolved": "https://registry.npmjs.org/cliui/-/cliui-9.0.1.tgz",
+      "integrity": "sha512-k7ndgKhwoQveBL+/1tqGJYNz097I7WOvwbmmU2AR5+magtbjPWQTS1C5vzGkBC8Ym8UWRzfKUzUUqFLypY4Q+w==",
+      "dev": true,
+      "license": "ISC",
+      "dependencies": {
+        "string-width": "^7.2.0",
+        "strip-ansi": "^7.1.0",
+        "wrap-ansi": "^9.0.0"
+      },
+      "engines": {
+        "node": ">=20"
+      }
+    },
+    "node_modules/concurrently": {
+      "version": "10.0.3",
+      "resolved": "https://registry.npmjs.org/concurrently/-/concurrently-10.0.3.tgz",
+      "integrity": "sha512-hc3LH4UaKWd/bbyDK/IGVa4RB6PtQ3CUYwtrkzqHn+wIG3Hr5fhpRlk0L/gCa8ZE1L/Ufj50Zho69cI5w8SQBA==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "chalk": "5.6.2",
+        "rxjs": "7.8.2",
+        "shell-quote": "1.8.4",
+        "supports-color": "10.2.2",
+        "tree-kill": "1.2.2",
+        "yargs": "18.0.0"
+      },
+      "bin": {
+        "conc": "dist/bin/index.js",
+        "concurrently": "dist/bin/index.js"
+      },
+      "engines": {
+        "node": ">=22"
+      },
+      "funding": {
+        "url": "https://github.com/open-cli-tools/concurrently?sponsor=1"
+      }
+    },
+    "node_modules/emoji-regex": {
+      "version": "10.6.0",
+      "resolved": "https://registry.npmjs.org/emoji-regex/-/emoji-regex-10.6.0.tgz",
+      "integrity": "sha512-toUI84YS5YmxW219erniWD0CIVOo46xGKColeNQRgOzDorgBi1v4D71/OFzgD9GO2UGKIv1C3Sp8DAn0+j5w7A==",
+      "dev": true,
+      "license": "MIT"
+    },
+    "node_modules/escalade": {
+      "version": "3.2.0",
+      "resolved": "https://registry.npmjs.org/escalade/-/escalade-3.2.0.tgz",
+      "integrity": "sha512-WUj2qlxaQtO4g6Pq5c29GTcWGDyd8itL8zTlipgECz3JesAiiOKotd8JU6otB3PACgG6xkJUyVhboMS+bje/jA==",
+      "dev": true,
+      "license": "MIT",
+      "engines": {
+        "node": ">=6"
+      }
+    },
+    "node_modules/get-caller-file": {
+      "version": "2.0.5",
+      "resolved": "https://registry.npmjs.org/get-caller-file/-/get-caller-file-2.0.5.tgz",
+      "integrity": "sha512-DyFP3BM/3YHTQOCUL/w0OZHR0lpKeGrxotcHWcqNEdnltqFwXVfhEBQ94eIo34AfQpo0rGki4cyIiftY06h2Fg==",
+      "dev": true,
+      "license": "ISC",
+      "engines": {
+        "node": "6.* || 8.* || >= 10.*"
+      }
+    },
+    "node_modules/get-east-asian-width": {
+      "version": "1.6.0",
+      "resolved": "https://registry.npmjs.org/get-east-asian-width/-/get-east-asian-width-1.6.0.tgz",
+      "integrity": "sha512-QRbvDIbx6YklUe6RxeTeleMR0yv3cYH6PsPZHcnVn7xv7zO1BHN8r0XETu8n6Ye3Q+ahtSarc3WgtNWmehIBfA==",
+      "dev": true,
+      "license": "MIT",
+      "engines": {
+        "node": ">=18"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/sindresorhus"
+      }
+    },
+    "node_modules/rxjs": {
+      "version": "7.8.2",
+      "resolved": "https://registry.npmjs.org/rxjs/-/rxjs-7.8.2.tgz",
+      "integrity": "sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==",
+      "dev": true,
+      "license": "Apache-2.0",
+      "dependencies": {
+        "tslib": "^2.1.0"
+      }
+    },
+    "node_modules/shell-quote": {
+      "version": "1.8.4",
+      "resolved": "https://registry.npmjs.org/shell-quote/-/shell-quote-1.8.4.tgz",
+      "integrity": "sha512-VsC6n6vz1ihYYyZZwX7YZSF5l5x36ca17OC+a69h94YqB7X6XLwf+5MOgynYir2SLFUbl8gIYvBo8K8RoNQ6bQ==",
+      "dev": true,
+      "license": "MIT",
+      "engines": {
+        "node": ">= 0.4"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+      }
+    },
+    "node_modules/string-width": {
+      "version": "7.2.0",
+      "resolved": "https://registry.npmjs.org/string-width/-/string-width-7.2.0.tgz",
+      "integrity": "sha512-tsaTIkKW9b4N+AEj+SVA+WhJzV7/zMhcSu78mLKWSk7cXMOSHsBKFWUs0fWwq8QyK3MgJBQRX6Gbi4kYbdvGkQ==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "emoji-regex": "^10.3.0",
+        "get-east-asian-width": "^1.0.0",
+        "strip-ansi": "^7.1.0"
+      },
+      "engines": {
+        "node": ">=18"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/sindresorhus"
+      }
+    },
+    "node_modules/strip-ansi": {
+      "version": "7.2.0",
+      "resolved": "https://registry.npmjs.org/strip-ansi/-/strip-ansi-7.2.0.tgz",
+      "integrity": "sha512-yDPMNjp4WyfYBkHnjIRLfca1i6KMyGCtsVgoKe/z1+6vukgaENdgGBZt+ZmKPc4gavvEZ5OgHfHdrazhgNyG7w==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "ansi-regex": "^6.2.2"
+      },
+      "engines": {
+        "node": ">=12"
+      },
+      "funding": {
+        "url": "https://github.com/chalk/strip-ansi?sponsor=1"
+      }
+    },
+    "node_modules/supports-color": {
+      "version": "10.2.2",
+      "resolved": "https://registry.npmjs.org/supports-color/-/supports-color-10.2.2.tgz",
+      "integrity": "sha512-SS+jx45GF1QjgEXQx4NJZV9ImqmO2NPz5FNsIHrsDjh2YsHnawpan7SNQ1o8NuhrbHZy9AZhIoCUiCeaW/C80g==",
+      "dev": true,
+      "license": "MIT",
+      "engines": {
+        "node": ">=18"
+      },
+      "funding": {
+        "url": "https://github.com/chalk/supports-color?sponsor=1"
+      }
+    },
+    "node_modules/tree-kill": {
+      "version": "1.2.2",
+      "resolved": "https://registry.npmjs.org/tree-kill/-/tree-kill-1.2.2.tgz",
+      "integrity": "sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==",
+      "dev": true,
+      "license": "MIT",
+      "bin": {
+        "tree-kill": "cli.js"
+      }
+    },
+    "node_modules/tslib": {
+      "version": "2.8.1",
+      "resolved": "https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz",
+      "integrity": "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==",
+      "dev": true,
+      "license": "0BSD"
+    },
+    "node_modules/wrap-ansi": {
+      "version": "9.0.2",
+      "resolved": "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-9.0.2.tgz",
+      "integrity": "sha512-42AtmgqjV+X1VpdOfyTGOYRi0/zsoLqtXQckTmqTeybT+BDIbM/Guxo7x3pE2vtpr1ok6xRqM9OpBe+Jyoqyww==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "ansi-styles": "^6.2.1",
+        "string-width": "^7.0.0",
+        "strip-ansi": "^7.1.0"
+      },
+      "engines": {
+        "node": ">=18"
+      },
+      "funding": {
+        "url": "https://github.com/chalk/wrap-ansi?sponsor=1"
+      }
+    },
+    "node_modules/y18n": {
+      "version": "5.0.8",
+      "resolved": "https://registry.npmjs.org/y18n/-/y18n-5.0.8.tgz",
+      "integrity": "sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==",
+      "dev": true,
+      "license": "ISC",
+      "engines": {
+        "node": ">=10"
+      }
+    },
+    "node_modules/yargs": {
+      "version": "18.0.0",
+      "resolved": "https://registry.npmjs.org/yargs/-/yargs-18.0.0.tgz",
+      "integrity": "sha512-4UEqdc2RYGHZc7Doyqkrqiln3p9X2DZVxaGbwhn2pi7MrRagKaOcIKe8L3OxYcbhXLgLFUS3zAYuQjKBQgmuNg==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "cliui": "^9.0.1",
+        "escalade": "^3.1.1",
+        "get-caller-file": "^2.0.5",
+        "string-width": "^7.2.0",
+        "y18n": "^5.0.5",
+        "yargs-parser": "^22.0.0"
+      },
+      "engines": {
+        "node": "^20.19.0 || ^22.12.0 || >=23"
+      }
+    },
+    "node_modules/yargs-parser": {
+      "version": "22.0.0",
+      "resolved": "https://registry.npmjs.org/yargs-parser/-/yargs-parser-22.0.0.tgz",
+      "integrity": "sha512-rwu/ClNdSMpkSrUb+d6BRsSkLUq1fmfsY6TOpYzTwvwkg1/NRG85KBy3kq++A8LKQwX6lsu+aWad+2khvuXrqw==",
+      "dev": true,
+      "license": "ISC",
+      "engines": {
+        "node": "^20.19.0 || ^22.12.0 || >=23"
+      }
+    }
+  }
+}
+```
+
 ### File: ./package.json
 ```
 {
@@ -7354,8 +8561,8 @@ if __name__ == "__main__":
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev:frontend": "npm --prefix Frontend run dev",
-    "dev:backend": "uv --directory Backend run uvicorn app.main:app --reload",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "uv --directory backend run uvicorn app.main:app --reload",
     "dev": "npx concurrently \"npm run dev:frontend\" \"npm run dev:backend\""
   },
   "keywords": [],
@@ -7364,7 +8571,7 @@ if __name__ == "__main__":
   "devEngines": {
     "packageManager": {
       "name": "npm",
-      "version": "^11.9.0",
+      "version": "^10.0.0 || ^11.0.0",
       "onFail": "download"
     }
   },

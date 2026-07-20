@@ -393,12 +393,291 @@
 .day-meal-row .time-label {
   flex: 0 0 25%; 
   display: flex;
+  flex-direction: column; /* חשוב! מסדר את האלמנטים מלמעלה למטה */
   align-items: center;
   justify-content: center;
+  gap: 12px; /* רווח בין שם הארוחה לכפתור */
+  padding: 16px;
   background-color: var(--code-bg);
   border-right: 1px solid var(--border);
   font-size: 14px;
   font-weight: 500;
   color: var(--text);
   box-sizing: border-box;
+}
+/* -------------------- Day View Actions & Cells -------------------- */
+.day-meal-row .meal-cell {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center; /* שונה מ-flex-start ל-center כדי למרכז אנכית את התוכן והכפתורים */
+  padding: 16px;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.meal-content-placeholder {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.meal-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-h);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 140px; /* מעניק רוחב אחיד לכל הכפתורים למראה סימטרי ונקי */
+  box-sizing: border-box;
+}
+
+.action-btn .icon {
+  font-size: 14px;
+}
+
+/* Hover States with distinct semantic colors */
+.action-btn:hover {
+  background: var(--code-bg);
+}
+
+.success-btn:hover {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-color: #a5d6a7;
+}
+
+.custom-btn:hover {
+  background: #e3f2fd;
+  color: #1565c0;
+  border-color: #90caf9;
+}
+
+.ai-btn:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-color: var(--accent-border);
+}
+
+/* Dark mode adjustments for the buttons */
+@media (prefers-color-scheme: dark) {
+  .success-btn:hover {
+    background: rgba(46, 125, 50, 0.15);
+    border-color: rgba(46, 125, 50, 0.4);
+    color: #81c784;
+  }
+  .custom-btn:hover {
+    background: rgba(21, 101, 192, 0.15);
+    border-color: rgba(21, 101, 192, 0.4);
+    color: #64b5f6;
+  }
+}
+.skipped-btn:hover {
+  background: #ffebee;
+  color: #c62828;
+  border-color: #ffcdd2;
+}
+
+/* התאמה למצב כהה (Dark Mode) */
+@media (prefers-color-scheme: dark) {
+  .skipped-btn:hover {
+    background: rgba(198, 40, 40, 0.15);
+    border-color: rgba(198, 40, 40, 0.4);
+    color: #ef5350;
+  }
+}
+/* -------------------- Adjustment Prompt Styling -------------------- */
+/* -------------------- Adjustment Prompt Styling -------------------- */
+.adjustment-prompt-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.adjust-plan-btn {
+  background-color: var(--accent-bg);
+  border: 1px dashed var(--accent-border);
+  color: var(--text-h);
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.3;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  width: 100%;
+  white-space: normal; /* מאפשר לטקסט להישבר לכמה שורות */
+}
+
+.adjust-plan-btn:hover {
+  background-color: var(--accent);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: var(--shadow);
+}
+
+.action-btn.skipped-btn.active-skipped {
+  background: #c62828;
+  color: #ffffff;
+  border-color: transparent;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* הדגשת כפתור ה-Eaten כאשר הוא במצב פעיל */
+.action-btn.success-btn.active-eaten {
+  background: #2e7d32;
+  color: #ffffff;
+  border-color: transparent;
+}
+
+/* התאמה צבע למצב כהה (Dark Mode) כדי שלא יסנוור */
+@media (prefers-color-scheme: dark) {
+  .action-btn.success-btn.active-eaten {
+    background: #388e3c;
+  }
+}
+/* עיצוב מיוחד להתרעה סטטית (כמו דילוג על ארוחת ערב) */
+.adjust-plan-btn.notice-only {
+  background-color: #ffebee;
+  border: 1px solid #ffcdd2;
+  color: #c62828;
+  cursor: default;
+}
+
+.adjust-plan-btn.notice-only:hover {
+  background-color: #ffebee;
+  color: #c62828;
+  border-color: #ffcdd2;
+  box-shadow: none;
+}
+
+/* התאמת מצב כהה להתראה הסטטית */
+@media (prefers-color-scheme: dark) {
+  .adjust-plan-btn.notice-only {
+    background-color: rgba(198, 40, 40, 0.15);
+    border-color: rgba(198, 40, 40, 0.3);
+    color: #ef5350;
+  }
+  .adjust-plan-btn.notice-only:hover {
+    background-color: rgba(198, 40, 40, 0.15);
+    color: #ef5350;
+    border-color: rgba(198, 40, 40, 0.3);
+  }
+}
+.dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 145px;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-h);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.action-btn:hover {
+  background: var(--code-bg);
+}
+
+/* סגנונות כפתור ראשי כשהוא פעיל */
+.action-btn.active-eaten {
+  background: #2e7d32;
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.action-btn.active-skipped {
+  background: #c62828;
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  overflow: hidden;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.dropdown-item {
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-h);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: var(--code-bg);
+}
+
+/* צבעי טקסט להובר בתוך התפריט */
+.dropdown-item.success-text:hover { color: #2e7d32; }
+.dropdown-item.danger-text:hover { color: #c62828; }
+.dropdown-item.primary-text:hover { color: #1565c0; }
+.dropdown-item.accent-text:hover { color: var(--accent); }
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .action-btn.active-eaten { background: #388e3c; }
+  .dropdown-item.success-text:hover { color: #81c784; }
+  .dropdown-item.danger-text:hover { color: #ef5350; }
+  .dropdown-item.primary-text:hover { color: #64b5f6; }
 }

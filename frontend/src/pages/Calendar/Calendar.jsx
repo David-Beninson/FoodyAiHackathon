@@ -18,6 +18,10 @@ export default function Calendar() {
   const currentDate = new Date(currentDateString);
   const today = new Date();
 
+  const currentMidnight = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const isFutureDay = currentMidnight > todayMidnight;
+
   // Structural arrays for English calendar layout
   const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const mealSections = ['Breakfast', 'Lunch', 'Dinner'];
@@ -55,7 +59,6 @@ export default function Calendar() {
     dispatch(setViewMode(mode));
   };
 
-  // Triggers when clicking any calendar cell to shift focus into a single day
   const handleDayClick = (targetDate) => {
     dispatch(setCurrentDate(targetDate.toISOString()));
     dispatch(setViewMode('day'));
@@ -63,7 +66,6 @@ export default function Calendar() {
 
   return (
     <div className="apple-calendar-container">
-      {/* Top Header Control Toolbar */}
       <CalendarToolbar
         viewMode={viewMode}
         currentDate={currentDate}
@@ -75,7 +77,6 @@ export default function Calendar() {
         handleViewModeChange={handleViewModeChange}
       />
 
-      {/* Main Container Dynamic Target Area */}
       <main className="calendar-content">
         {viewMode === 'week' && (
           <WeekView
@@ -103,6 +104,7 @@ export default function Calendar() {
         {viewMode === 'day' && (
           <DayView
             mealSections={mealSections}
+            isFutureDay={isFutureDay}
           />
         )}
       </main>

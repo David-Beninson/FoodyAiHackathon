@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getWeeklyPlan, updateMealStatus as apiUpdateMealStatus } from '../api/apiClient';
-
-const DEFAULT_USER_ID = import.meta.env.VITE_DEFAULT_USER_ID;
+import { useAuth } from '../context/AuthContext';
 
 // Formatting helper to get YYYY-MM-DD in local time
 const getLocalDateString = (date) => {
@@ -21,6 +20,9 @@ const getWeekStartLocalDate = (date) => {
 };
 
 export function useWeeklyPlan(currentDateString) {
+  const { user } = useAuth();
+  const userId = user?.id || user?._id;
+
   const [weeklyPlan, setWeeklyPlan] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -29,6 +31,8 @@ export function useWeeklyPlan(currentDateString) {
 
   // Fetch the weekly plan from database
   useEffect(() => {
+    if (!userId) return;
+
     let isCurrent = true;
 
     const fetchPlan = async () => {
@@ -36,7 +40,7 @@ export function useWeeklyPlan(currentDateString) {
       setError(null);
       try {
         const queryDate = getLocalDateString(new Date(currentDateString));
-        const planData = await getWeeklyPlan(DEFAULT_USER_ID, queryDate);
+        const planData = await getWeeklyPlan(userId, queryDate);
 
         if (isCurrent) {
           setWeeklyPlan(planData);

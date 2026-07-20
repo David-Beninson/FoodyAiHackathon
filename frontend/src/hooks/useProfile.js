@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getUserProfile, onboardUser } from '../api/apiClient';
-
-//!!delete afetr created login
-const DEFAULT_USER_ID = import.meta.env.VITE_DEFAULT_USER_ID;
+import { useAuth } from '../context/AuthContext';
 
 // Helper for percentage calculations
 const getMacroMetrics = (targetMacros) => {
@@ -70,13 +68,21 @@ const defaultProfileState = {
 };
 
 export function useProfile() {
+    const { user, refreshProfile } = useAuth();
+    const userId = user?.id || user?._id;
+
     const [profile, setProfile] = useState(() => {
         const saved = localStorage.getItem('foodyai_profile');
         return saved ? JSON.parse(saved) : defaultProfileState;
     });
 
     const [isEditing, setIsEditing] = useState(false);
-    const [tempProfile, setTempProfile] = useState(profile);
+    const [tempProfile, setTempProfile] = useState(() => {
+        const savedTemp = localStorage.getItem('foodyai_temp_profile');
+        if (savedTemp) return JSON.parse(savedTemp);
+        const saved = localStorage.getItem('foodyai_profile');
+        return saved ? JSON.parse(saved) : defaultProfileState;
+    });
     const [newAllergy, setNewAllergy] = useState('');
     const [newPref, setNewPref] = useState('');
     const [newGoal, setNewGoal] = useState('');
@@ -84,16 +90,27 @@ export function useProfile() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // Fetch profile from backend on mount
+    // Save temporary profile progress to localStorage
     useEffect(() => {
+        localStorage.setItem('foodyai_temp_profile', JSON.stringify(tempProfile));
+    }, [tempProfile]);
+
+    // Fetch profile from backend on mount or when user changes
+    useEffect(() => {
+        if (!userId) return;
+
         const fetchProfile = async () => {
             setIsLoading(true);
             setError(null);
             try {
-                const data = await getUserProfile(DEFAULT_USER_ID);
+                const data = await getUserProfile(userId);
                 const mapped = mapBackendToFrontend(data);
                 setProfile(mapped);
-                setTempProfile(mapped);
+                // Only overwrite temp profile if there is no unsaved progress
+                const savedTemp = localStorage.getItem('foodyai_temp_profile');
+                if (!savedTemp) {
+                    setTempProfile(mapped);
+                }
                 localStorage.setItem('foodyai_profile', JSON.stringify(mapped));
             } catch (err) {
                 console.error('Error fetching profile from API:', err);
@@ -111,7 +128,7 @@ export function useProfile() {
         };
 
         fetchProfile();
-    }, []);
+    }, [userId]);
 
     const handleStartEdit = () => {
         setTempProfile({ ...profile });
@@ -123,18 +140,26 @@ export function useProfile() {
         setNewAllergy('');
         setNewPref('');
         setNewGoal('');
+        localStorage.removeItem('foodyai_temp_profile');
+        setTempProfile({ ...profile });
     };
 
     const handleSave = async (e) => {
         if (e) e.preventDefault();
+        if (!userId) return;
         setIsLoading(true);
         setError(null);
         try {
             const backendData = mapFrontendToBackend(tempProfile);
-            const savedData = await onboardUser(DEFAULT_USER_ID, backendData);
+            const savedData = await onboardUser(userId, backendData);
             const mapped = mapBackendToFrontend(savedData);
             setProfile(mapped);
             localStorage.setItem('foodyai_profile', JSON.stringify(mapped));
+            localStorage.removeItem('foodyai_temp_profile');
+            
+            // Sync with global auth state (updates isOnboarded flag)
+            await refreshProfile();
+            
             setIsEditing(false);
             setShowSuccessToast(true);
             setTimeout(() => setShowSuccessToast(false), 3000);
@@ -189,6 +214,7 @@ export function useProfile() {
 
     return {
         currentProfile,
+        tempProfile,
         isEditing,
         showSuccessToast,
         newAllergy,

@@ -1,15 +1,19 @@
 import { useProfile } from '../../hooks/useProfile';
+import { useAuth } from '../../context/AuthContext';
 import ProfileHeader from '../../components/Profile/ProfileHeader';
 import UserMetaCard from '../../components/Profile/UserMetaCard';
 import WeightCard from '../../components/Profile/WeightCard';
 import MacrosCard from '../../components/Profile/MacrosCard';
 import TagManagerCard from '../../components/Profile/TagManagerCard';
 import LoadingSpinner from '../../components/Common/LoadingSpinner';
+import OnboardingQuestionnaire from '../../components/Profile/OnboardingQuestionnaire';
 import './Profile.css';
 
 export default function Profile() {
+    const { isOnboarded } = useAuth();
     const {
         currentProfile,
+        tempProfile,
         isEditing,
         showSuccessToast,
         newAllergy,
@@ -31,6 +35,38 @@ export default function Profile() {
         error
     } = useProfile();
 
+    const handleFormSubmit = (e) => {
+        e.preventDefault();
+        handleSave();
+    };
+
+    if (isLoading) {
+        return (
+            <div className="profile-container">
+                <LoadingSpinner message="Loading profile..." />
+            </div>
+        );
+    }
+
+    // 1. Render Questionnaire if user is NOT onboarded yet
+    if (!isOnboarded) {
+        return (
+            <OnboardingQuestionnaire
+                tempProfile={tempProfile}
+                error={error}
+                newAllergy={newAllergy}
+                setNewAllergy={setNewAllergy}
+                newPref={newPref}
+                setNewPref={setNewPref}
+                handleChange={handleChange}
+                addTag={addTag}
+                removeTag={removeTag}
+                onSubmit={handleFormSubmit}
+            />
+        );
+    }
+
+    // 2. Render standard beautiful Profile view if user is already onboarded
     return (
         <div className="profile-container">
             {showSuccessToast && (
@@ -40,17 +76,7 @@ export default function Profile() {
             )}
 
             {error && (
-                <div className="error-banner" style={{
-                    backgroundColor: '#ffebe9',
-                    color: '#d12420',
-                    border: '1px solid rgba(27,31,35,0.15)',
-                    borderRadius: '6px',
-                    padding: '1rem',
-                    marginBottom: '1rem',
-                    textAlign: 'center',
-                    fontWeight: 'bold',
-                    direction: 'ltr'
-                }}>
+                <div className="error-banner">
                     ⚠️ {error}
                 </div>
             )}
@@ -62,93 +88,89 @@ export default function Profile() {
                 onCancel={handleCancelEdit}
             />
 
-            {isLoading ? (
-                <LoadingSpinner message="Loading profile details..." />
-            ) : (
-                <div className="profile-content-area">
-                    <UserMetaCard
-                        userName={currentProfile.username || 'User'}
-                        email={currentProfile.email || 'No email registered'}
-                    />
+            <div className="profile-content-area">
+                <UserMetaCard
+                    userName={currentProfile.username || 'User'}
+                    email={currentProfile.email || 'No email registered'}
+                />
 
-                    <form onSubmit={handleSave}>
-                        <div className="profile-grid">
-                            <WeightCard
-                                weight={currentProfile.weight}
-                                goalWeight={currentProfile.goalWeight}
-                                height={currentProfile.height}
-                                age={currentProfile.age}
-                                gender={currentProfile.gender}
-                                activityLevel={currentProfile.activity_level}
-                                onChange={handleChange}
-                                isEditing={isEditing}
-                            />
+                <form onSubmit={handleSave}>
+                    <div className="profile-grid">
+                        <WeightCard
+                            weight={currentProfile.weight}
+                            goalWeight={currentProfile.goalWeight}
+                            height={currentProfile.height}
+                            age={currentProfile.age}
+                            gender={currentProfile.gender}
+                            activityLevel={currentProfile.activity_level}
+                            onChange={handleChange}
+                            isEditing={isEditing}
+                        />
 
-                            <MacrosCard
-                                targetMacros={currentProfile.targetMacros}
-                                onChange={handleChange}
-                                isEditing={isEditing}
-                                proteinPct={proteinPct}
-                                carbsPct={carbsPct}
-                                fatsPct={fatsPct}
-                                isLoading={isLoading}
-                            />
+                        <MacrosCard
+                            targetMacros={currentProfile.targetMacros}
+                            onChange={handleChange}
+                            isEditing={isEditing}
+                            proteinPct={proteinPct}
+                            carbsPct={carbsPct}
+                            fatsPct={fatsPct}
+                            isLoading={isLoading}
+                        />
+                    </div>
+
+                    <div className="card">
+                        <h2 className="card-title">Goals, Preferences & Dietary Constraints</h2>
+
+                        <TagManagerCard
+                            title="Personal Goals"
+                            placeholder="Select a goal..."
+                            tags={currentProfile.goals || []}
+                            inputValue={newGoal}
+                            setInputValue={setNewGoal}
+                            onAddTag={(val) => addTag('goals', val, setNewGoal)}
+                            onRemoveTag={(tag) => removeTag('goals', tag)}
+                            isEditing={isEditing}
+                            emptyMessage="No goals recorded"
+                            options={['lose weight', 'gain muscle', 'eat healthier']}
+                        />
+
+                        <TagManagerCard
+                            title="Allergies & Restrictions"
+                            placeholder="Add allergy (e.g. peanuts)..."
+                            tags={currentProfile.allergies || []}
+                            inputValue={newAllergy}
+                            setInputValue={setNewAllergy}
+                            onAddTag={(val) => addTag('allergies', val, setNewAllergy)}
+                            onRemoveTag={(tag) => removeTag('allergies', tag)}
+                            isEditing={isEditing}
+                            emptyMessage="No allergies recorded"
+                        />
+
+                        <TagManagerCard
+                            title="Dietary Preferences (e.g. vegetarian, gluten-free)"
+                            placeholder="Add preference..."
+                            tags={currentProfile.preferences || []}
+                            inputValue={newPref}
+                            setInputValue={setNewPref}
+                            onAddTag={(val) => addTag('preferences', val, setNewPref)}
+                            onRemoveTag={(tag) => removeTag('preferences', tag)}
+                            isEditing={isEditing}
+                            emptyMessage="No preferences recorded"
+                        />
+                    </div>
+
+                    {isEditing && (
+                        <div className="profile-form-actions">
+                            <button type="submit" className="btn btn-primary btn-large">
+                                Save Changes
+                            </button>
+                            <button type="button" className="btn btn-secondary btn-large" onClick={handleCancelEdit}>
+                                Cancel
+                            </button>
                         </div>
-
-                        <div className="card">
-                            <h2 className="card-title">Goals, Preferences & Dietary Constraints</h2>
-
-                            <TagManagerCard
-                                title="Personal Goals"
-                                placeholder="Select a goal..."
-                                tags={currentProfile.goals || []}
-                                inputValue={newGoal}
-                                setInputValue={setNewGoal}
-                                onAddTag={(val) => addTag('goals', val, setNewGoal)}
-                                onRemoveTag={(tag) => removeTag('goals', tag)}
-                                isEditing={isEditing}
-                                emptyMessage="No goals recorded"
-                                options={['lose weight', 'gain muscle', 'eat healthier']}
-                            />
-
-                            <TagManagerCard
-                                title="Allergies & Restrictions"
-                                placeholder="Add allergy (e.g. peanuts)..."
-                                tags={currentProfile.allergies || []}
-                                inputValue={newAllergy}
-                                setInputValue={setNewAllergy}
-                                onAddTag={(val) => addTag('allergies', val, setNewAllergy)}
-                                onRemoveTag={(tag) => removeTag('allergies', tag)}
-                                isEditing={isEditing}
-                                emptyMessage="No allergies recorded"
-                            />
-
-                            <TagManagerCard
-                                title="Dietary Preferences (e.g. vegetarian, gluten-free)"
-                                placeholder="Add preference..."
-                                tags={currentProfile.preferences || []}
-                                inputValue={newPref}
-                                setInputValue={setNewPref}
-                                onAddTag={(val) => addTag('preferences', val, setNewPref)}
-                                onRemoveTag={(tag) => removeTag('preferences', tag)}
-                                isEditing={isEditing}
-                                emptyMessage="No preferences recorded"
-                            />
-                        </div>
-
-                        {isEditing && (
-                            <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                                <button type="submit" className="btn btn-primary" style={{ padding: '0.8rem 2rem' }}>
-                                    Save Changes
-                                </button>
-                                <button type="button" className="btn btn-secondary" onClick={handleCancelEdit} style={{ padding: '0.8rem 2rem' }}>
-                                    Cancel
-                                </button>
-                            </div>
-                        )}
-                    </form>
-                </div>
-            )}
+                    )}
+                </form>
+            </div>
         </div>
     );
 }

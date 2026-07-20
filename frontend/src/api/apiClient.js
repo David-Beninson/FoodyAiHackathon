@@ -9,6 +9,27 @@ const apiClient = axios.create({
   },
 });
 
+// Interceptor to inject the JWT token
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('foodyai_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
+export const loginUser = async (email, password) => {
+  const response = await apiClient.post('/users/login', { email, password });
+  return response.data;
+};
+
+export const registerUser = async (username, email, password) => {
+  const response = await apiClient.post('/users/register', { username, email, password });
+  return response.data;
+};
+
 export const getUserProfile = async (userId) => {
   const response = await apiClient.get(`/users/${userId}`);
   return response.data;
@@ -38,5 +59,3 @@ export const updateMealStatus = async (planId, day, mealType, status, replacedWi
 };
 
 export default apiClient;
-
-

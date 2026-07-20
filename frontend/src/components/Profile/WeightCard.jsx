@@ -26,7 +26,7 @@ export default function WeightCard({
         <div className="card">
             <h2 className="card-title">Personal Metrics & Bio</h2>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="metrics-grid">
                 <div className="form-group">
                     <label htmlFor="weight">Current Weight (kg)</label>
                     <input
@@ -56,7 +56,7 @@ export default function WeightCard({
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="metrics-grid">
                 <div className="form-group">
                     <label htmlFor="height">Height (cm)</label>
                     <input
@@ -120,4 +120,3 @@ export default function WeightCard({
         </div>
     );
 }
-

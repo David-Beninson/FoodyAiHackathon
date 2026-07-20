@@ -46,13 +46,7 @@ const mapFrontendToBackend = (data) => {
         activity_level: data.activity_level || 'moderately_active',
         goals: data.goals || [],
         allergies: data.allergies || [],
-        preferences: data.preferences || [],
-        daily_macros_target: {
-            calories: Number(data.targetMacros?.calories) || 2000,
-            protein: Number(data.targetMacros?.protein) || 150,
-            carbs: Number(data.targetMacros?.carbs) || 180,
-            fat: Number(data.targetMacros?.fats) || 70
-        }
+        preferences: data.preferences || []
     };
 };
 

@@ -97,6 +97,7 @@ export default function Profile() {
                                 proteinPct={proteinPct}
                                 carbsPct={carbsPct}
                                 fatsPct={fatsPct}
+                                isLoading={isLoading}
                             />
                         </div>
 

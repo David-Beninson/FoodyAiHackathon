@@ -2,15 +2,17 @@ import MacroVisualizer from './MacroVisualizer';
 
 export default function MacrosCard({
     targetMacros,
-    onChange,
-    isEditing,
     proteinPct,
     carbsPct,
-    fatsPct
+    fatsPct,
+    isLoading
 }) {
     return (
-        <div className="card">
+        <div className="card" style={{ opacity: isLoading ? 0.6 : 1, transition: 'opacity 0.25s ease-in-out' }}>
             <h2 className="card-title">Daily Goals (Macros)</h2>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text)', margin: '0 0 0.5rem 0', lineHeight: '1.4' }}>
+                These goals are calculated automatically based on your physical metrics and goals.
+            </p>
             
             <div className="form-group">
                 <label htmlFor="calories">Calories (kcal)</label>
@@ -19,8 +21,7 @@ export default function MacrosCard({
                     type="number"
                     className="form-control"
                     value={targetMacros.calories}
-                    onChange={(e) => onChange('calories', e.target.value, true)}
-                    disabled={!isEditing}
+                    readOnly={true}
                     required
                 />
             </div>
@@ -34,8 +35,7 @@ export default function MacrosCard({
                             type="number"
                             className="form-control"
                             value={targetMacros.protein}
-                            onChange={(e) => onChange('protein', e.target.value, true)}
-                            disabled={!isEditing}
+                            readOnly={true}
                             required
                         />
                     </div>
@@ -46,8 +46,7 @@ export default function MacrosCard({
                             type="number"
                             className="form-control"
                             value={targetMacros.carbs}
-                            onChange={(e) => onChange('carbs', e.target.value, true)}
-                            disabled={!isEditing}
+                            readOnly={true}
                             required
                         />
                     </div>
@@ -58,8 +57,7 @@ export default function MacrosCard({
                             type="number"
                             className="form-control"
                             value={targetMacros.fats}
-                            onChange={(e) => onChange('fats', e.target.value, true)}
-                            disabled={!isEditing}
+                            readOnly={true}
                             required
                         />
                     </div>

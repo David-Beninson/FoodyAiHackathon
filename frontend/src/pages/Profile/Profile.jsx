@@ -4,6 +4,7 @@ import UserMetaCard from '../../components/Profile/UserMetaCard';
 import WeightCard from '../../components/Profile/WeightCard';
 import MacrosCard from '../../components/Profile/MacrosCard';
 import TagManagerCard from '../../components/Profile/TagManagerCard';
+import LoadingSpinner from '../../components/Common/LoadingSpinner';
 import './Profile.css';
 
 export default function Profile() {
@@ -62,14 +63,7 @@ export default function Profile() {
             />
 
             {isLoading ? (
-                <div className="loading-container" style={{
-                    textAlign: 'center',
-                    padding: '3rem',
-                    fontSize: '1.2rem',
-                    color: '#888'
-                }}>
-                    🔄 Loading profile details...
-                </div>
+                <LoadingSpinner message="Loading profile details..." />
             ) : (
                 <div className="profile-content-area">
                     <UserMetaCard

@@ -1,15 +1,14 @@
-import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setViewMode, setCurrentDate } from '../../store/calendarSlice';
 import './HomePage.css';
 
 export default function HomePage() {
   const dispatch = useDispatch();
-  
+
   // Fetch state from Redux store
   const viewMode = useSelector((state) => state.calendar.viewMode);
   const currentDateString = useSelector((state) => state.calendar.currentDate);
-  
+
   // Convert ISO string back to a Date object for local calculations
   const currentDate = new Date(currentDateString);
   const today = new Date();
@@ -18,7 +17,7 @@ export default function HomePage() {
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const mealSections = ['Breakfast', 'Lunch', 'Dinner'];
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June', 
+    'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
@@ -26,11 +25,11 @@ export default function HomePage() {
   const handlePrev = () => {
     // Example: dispatch(setCurrentDate(newDate.toISOString()))
   };
-  
+
   const handleNext = () => {
     // Example: dispatch(setCurrentDate(newDate.toISOString()))
   };
-  
+
   const handleToday = () => {
     dispatch(setCurrentDate(new Date().toISOString()));
   };
@@ -131,14 +130,14 @@ export default function HomePage() {
           return (
             <div key={monthIndex} className="year-month-card">
               <h3 className="year-month-title">{monthName}</h3>
-              
+
               {/* Weekday letters header */}
               <div className="mini-month-days-header">
                 {miniDaysOfWeek.map((d, i) => (
                   <span key={i} className="mini-day-name">{d}</span>
                 ))}
               </div>
-              
+
               {/* Mini grid combining blanks and days */}
               <div className="mini-month-grid">
                 {blanks}
@@ -154,18 +153,18 @@ export default function HomePage() {
   // 4. Day View (Single day with 3 meals)
   const renderDayView = () => (
     <div className="apple-day-view">
-       <div className="day-header-single">
-          <span className="day-name">{daysOfWeek[currentDate.getDay()]}</span>
-          <span className="active-day day-number">{currentDate.getDate()}</span>
-       </div>
-       <div className="day-sections">
-         {mealSections.map((section, idx) => (
-            <div key={idx} className="day-meal-row">
-              <div className="time-label">{section}</div>
-              <div className="meal-cell flex-1"></div>
-            </div>
-          ))}
-       </div>
+      <div className="day-header-single">
+        <span className="day-name">{daysOfWeek[currentDate.getDay()]}</span>
+        <span className="active-day day-number">{currentDate.getDate()}</span>
+      </div>
+      <div className="day-sections">
+        {mealSections.map((section, idx) => (
+          <div key={idx} className="day-meal-row">
+            <div className="time-label">{section}</div>
+            <div className="meal-cell flex-1"></div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 
@@ -180,7 +179,7 @@ export default function HomePage() {
             <button onClick={handleNext} className="icon-btn">›</button>
           </div>
         </div>
-        
+
         <div className="toolbar-center">
           <h2 className="current-date-title">
             {months[currentDate.getMonth()]} {currentDate.getFullYear()}
@@ -189,26 +188,26 @@ export default function HomePage() {
 
         <div className="toolbar-right">
           <div className="segment-control">
-            <button 
-              className={viewMode === 'day' ? 'active' : ''} 
+            <button
+              className={viewMode === 'day' ? 'active' : ''}
               onClick={() => handleViewModeChange('day')}
             >
               Day
             </button>
-            <button 
-              className={viewMode === 'week' ? 'active' : ''} 
+            <button
+              className={viewMode === 'week' ? 'active' : ''}
               onClick={() => handleViewModeChange('week')}
             >
               Week
             </button>
-            <button 
-              className={viewMode === 'month' ? 'active' : ''} 
+            <button
+              className={viewMode === 'month' ? 'active' : ''}
               onClick={() => handleViewModeChange('month')}
             >
               Month
             </button>
-            <button 
-              className={viewMode === 'year' ? 'active' : ''} 
+            <button
+              className={viewMode === 'year' ? 'active' : ''}
               onClick={() => handleViewModeChange('year')}
             >
               Year

@@ -122,7 +122,7 @@ export function useProfile() {
                 console.error('Error fetching profile from API:', err);
                 if (err.response && err.response.status === 404) {
                     // Profile not found - this is fine, we will let the user onboard
-                    console.log('Profile not found, using local default state.');
+                    console.error('Profile not found, using local default state.');
                 } else if (!err.response) {
                     setError('Connection error: Cannot connect to the server. Make sure the Backend is running.');
                 } else {
@@ -152,7 +152,6 @@ export function useProfile() {
 
     const handleSave = async (e) => {
         if (e) e.preventDefault();
-        console.log('handleSave entry. userId:', userId);
         if (!userId) {
             console.warn('Cannot save profile: userId is undefined or null');
             return;
@@ -161,16 +160,15 @@ export function useProfile() {
         setError(null);
         try {
             const backendData = mapFrontendToBackend(tempProfile);
-            console.log('Sending onboarding data to backend:', backendData);
             const savedData = await onboardUser(userId, backendData);
             const mapped = mapBackendToFrontend(savedData);
             setProfile(mapped);
             localStorage.setItem('foodyai_profile', JSON.stringify(mapped));
             localStorage.removeItem('foodyai_temp_profile');
-            
+
             // Sync with global auth state (updates isOnboarded flag)
             await refreshProfile();
-            
+
             setIsEditing(false);
             setShowSuccessToast(true);
             setTimeout(() => setShowSuccessToast(false), 3000);

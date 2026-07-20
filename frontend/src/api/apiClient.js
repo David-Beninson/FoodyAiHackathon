@@ -94,4 +94,34 @@ export const regenerateSingleMeal = async (userId, weekStartDate, day, mealType,
   return response.data;
 };
 
+export const getPantry = async (userId) => {
+  const response = await apiClient.get(`/users/${userId}/pantry`);
+  return response.data;
+};
+
+export const updatePantry = async (userId, pantry) => {
+  const response = await apiClient.post(`/users/${userId}/pantry`, { pantry });
+  return response.data;
+};
+
+export const addToPantry = async (userId, item) => {
+  const response = await apiClient.post(`/users/${userId}/pantry/add`, { item });
+  return response.data;
+};
+
+export const getShoppingList = async (userId, weekStartDate) => {
+  const response = await apiClient.get(`/ai/shopping-list/${userId}/${weekStartDate}`);
+  return response.data;
+};
+
+export const syncShoppingList = async (userId, weekStartDate) => {
+  const response = await apiClient.post(`/ai/shopping-list/${userId}/${weekStartDate}/sync`);
+  return response.data;
+};
+
+export const checkShoppingListItem = async (userId, weekStartDate, item, checked) => {
+  const response = await apiClient.post(`/plans/${userId}/${weekStartDate}/shopping-list/check`, { item, checked });
+  return response.data;
+};
+
 export default apiClient;

@@ -6,6 +6,8 @@ import NotFound from './pages/NotFound/NotFound.jsx'
 import Calendar from './pages/Calendar/Calendar.jsx'
 import Profile from './pages/Profile/Profile.jsx'
 import Planner from './pages/Planner/Planner.jsx'
+import Pantry from './pages/Pantry/Pantry.jsx'
+import ShoppingList from './pages/ShoppingList/ShoppingList.jsx'
 import Login from './pages/Auth/Login.jsx'
 import Register from './pages/Auth/Register.jsx'
 
@@ -31,6 +33,14 @@ export default function App() {
         {
           path: '/planner',
           element: <Planner />
+        },
+        {
+          path: '/pantry',
+          element: <Pantry />
+        },
+        {
+          path: '/shopping-list',
+          element: <ShoppingList />
         }
       ]
     },

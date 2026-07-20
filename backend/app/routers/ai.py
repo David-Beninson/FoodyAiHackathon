@@ -308,3 +308,60 @@ async def generate_auto_plan_draft(payload: AutoPlannerRequest):
 
     return {"days": days_dict}
 
+
+@router.get("/shopping-list/{user_id}/{week_start_date}")
+async def get_shopping_list(user_id: str, week_start_date: str):
+    """
+    Get the cached shopping list from the saved WeeklyPlan.
+    """
+    week_start = get_week_start_date(week_start_date)
+    plan = await WeeklyPlan.find_one(
+        WeeklyPlan.user_id == user_id,
+        WeeklyPlan.week_start_date == week_start
+    )
+    if not plan:
+        return {"shopping_list": [], "has_plan": False}
+    
+    shopping_list = getattr(plan, "shopping_list", [])
+    if shopping_list is None:
+        shopping_list = []
+    return {"shopping_list": shopping_list, "has_plan": True}
+
+
+@router.post("/shopping-list/{user_id}/{week_start_date}/sync")
+async def sync_shopping_list(user_id: str, week_start_date: str):
+    """
+    Force regenerate the shopping list by comparing the saved plan and the current pantry.
+    """
+    week_start = get_week_start_date(week_start_date)
+    plan = await WeeklyPlan.find_one(
+        WeeklyPlan.user_id == user_id,
+        WeeklyPlan.week_start_date == week_start
+    )
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Weekly plan not found. Generate a weekly plan first."
+        )
+
+    try:
+        user_obj_id = PydanticObjectId(user_id)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID format."
+        )
+    user = await UserProfile.get(user_obj_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found."
+        )
+
+    # Call AI to generate list
+    shopping_list = AIService.generate_shopping_list(user, plan.days)
+    plan.shopping_list = shopping_list
+    plan.updated_at = datetime.utcnow()
+    await plan.save()
+
+    return {"shopping_list": shopping_list}
+
+

@@ -2,12 +2,17 @@ import logging
 import json
 import random
 from typing import List, Optional, Dict
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from app.config import settings
 from app.models.user import UserProfile, Macros
 from app.models.plan import MealPlan, DayPlan
 
 logger = logging.getLogger("uvicorn")
+
+class ShoppingListResponse(BaseModel):
+    missing_ingredients: List[str] = Field(
+        description="List of ingredients needed for the menu that are NOT present in the pantry."
+    )
 
 # --- Pydantic models for structured AI output ---
 class AIMeal(BaseModel):
@@ -122,12 +127,16 @@ class AIService:
         Generates a 7-day weekly meal plan based on user profile and optional custom requests.
         """
         profile = cls._get_effective_profile(user)
+        pantry_list = getattr(user, "pantry", [])
+        pantry_str = ", ".join(pantry_list) if pantry_list else "None"
+
         system_prompt = f"""
         You are FoodyAI, an expert nutritionist. Generate a personalized 7-day weekly meal plan (Sunday to Saturday) based on:
         {profile['description']}
         Goals: {profile['goals']}
         Allergies: {profile['allergies']}
         Preferences: {profile['preferences']}
+        Available Ingredients in house (Pantry/Fridge): {pantry_str}
         Daily Target Macros: Calories: {profile['calories']} kcal, Protein: {profile['protein']}g, Carbs: {profile['carbs']}g, Fat: {profile['fat']}g
 
         Strict Rules:
@@ -136,6 +145,7 @@ class AIService:
         3. The sum of macros for breakfast, lunch, and dinner each day must match the daily target macros (within 10% tolerance).
         4. Meals should be described in English to match the user's interface language.
         5. Provide a short explanation (in English) for why this meal fits their goal in the 'ai_explanation' field.
+        6. Prioritize using the available ingredients in the house (Pantry/Fridge) as much as possible to minimize purchasing new items.
         """
 
         user_prompt = "Generate the 7-day meal plan conforming to the requested schema."
@@ -504,3 +514,77 @@ class AIService:
             fat=round(target_fat * scale, 1),
             ai_explanation="This meal is perfectly tailored to your targets, providing a high-quality source of protein and maintaining an optimal caloric balance that supports your goals."
         )
+
+    @classmethod
+    def generate_shopping_list(cls, user: UserProfile, days_dict: dict) -> List[str]:
+        """
+        Generates a list of missing ingredients that are required for the planned meals but not present in the user's pantry.
+        """
+        meal_summaries = []
+        for day, day_data in days_dict.items():
+            meals_dict = day_data.get("meals", {}) if isinstance(day_data, dict) else getattr(day_data, "meals", {})
+            if hasattr(meals_dict, "items"):
+                meals_items = meals_dict.items()
+            else:
+                meals_items = []
+                
+            for meal_type, meal in meals_items:
+                meal_name = meal.get("name", "") if isinstance(meal, dict) else getattr(meal, "name", "")
+                meal_desc = meal.get("description", "") if isinstance(meal, dict) else getattr(meal, "description", "")
+                meal_summaries.append(f"{day} {meal_type}: {meal_name} ({meal_desc})")
+        
+        meals_text = "\n".join(meal_summaries)
+        pantry_list = getattr(user, "pantry", [])
+        pantry_text = ", ".join(pantry_list) if pantry_list else "None"
+        
+        system_prompt = """You are FoodyAI Shopping List generator. Your task is to analyze the weekly meals plan and the ingredients currently in the user's pantry/fridge.
+Determine which ingredients are needed to cook/prepare the meals but are NOT already in the pantry.
+Generate a structured shopping list of missing ingredients.
+Be smart about matches: if the pantry has "eggs" and a meal has "omelette with 2 eggs", the user doesn't need to buy eggs unless you suspect they need more, but in general assume simple ingredient names map directly.
+Return a list of missing ingredients that need to be purchased."""
+
+        user_prompt = f"Weekly Meals Plan:\n{meals_text}\n\nUser Pantry/Fridge Inventory:\n{pantry_text}\n\nList the missing ingredients to buy."
+
+        # 1. Try Gemini
+        gemini_client = cls._get_gemini_client()
+        if gemini_client:
+            logger.info("Generating shopping list using Gemini API...")
+            try:
+                from google.genai import types
+                response = gemini_client.models.generate_content(
+                    model='gemini-3.5-flash',
+                    contents=f"{system_prompt}\n\n{user_prompt}",
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        response_schema=ShoppingListResponse,
+                        temperature=0.3,
+                    ),
+                )
+                data = json.loads(response.text)
+                return data.get("missing_ingredients", [])
+            except Exception as e:
+                logger.error(f"Gemini shopping list generation failed: {e}. Trying OpenAI...")
+
+        # 2. Try OpenAI
+        openai_client = cls._get_openai_client()
+        if openai_client:
+            logger.info("Generating shopping list using OpenAI API...")
+            try:
+                response = openai_client.beta.chat.completions.parse(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    response_format=ShoppingListResponse,
+                    temperature=0.3,
+                )
+                if response.choices[0].message.parsed:
+                    return response.choices[0].message.parsed.missing_ingredients
+            except Exception as e:
+                logger.error(f"OpenAI shopping list generation failed: {e}.")
+
+        # 3. Basic fallback (empty list or simple heuristic)
+        logger.warning("No API keys set or APIs failed. Using fallback empty list.")
+        return ["Eggs", "Milk", "Bread", "Chicken Breast", "Vegetables Mix"]
+

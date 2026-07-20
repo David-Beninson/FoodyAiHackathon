@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import TagManagerCard from './TagManagerCard';
 
 export default function AddFamilyMemberModal({ isOpen, onClose, onSave, memberData }) {
@@ -90,7 +90,7 @@ export default function AddFamilyMemberModal({ isOpen, onClose, onSave, memberDa
             alert('Please enter a name for the family member.');
             return;
         }
-        
+
         const finalMember = {
             ...newMember,
             age: newMember.age === '' ? 25 : Number(newMember.age),
@@ -107,9 +107,9 @@ export default function AddFamilyMemberModal({ isOpen, onClose, onSave, memberDa
             <div className="family-modal">
                 <div className="modal-header">
                     <h3 className="modal-title">Add Family Member</h3>
-                    <button 
-                        type="button" 
-                        className="tag-remove" 
+                    <button
+                        type="button"
+                        className="tag-remove"
                         onClick={onClose}
                         style={{ fontSize: '20px' }}
                     >
@@ -120,11 +120,11 @@ export default function AddFamilyMemberModal({ isOpen, onClose, onSave, memberDa
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div className="form-group">
                         <label>Name</label>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             className="form-control"
                             placeholder="Enter name (e.g. John)"
-                            value={newMember.name} 
+                            value={newMember.name}
                             onChange={(e) => handleModalInputChange('name', e.target.value)}
                         />
                     </div>
@@ -132,20 +132,20 @@ export default function AddFamilyMemberModal({ isOpen, onClose, onSave, memberDa
                     <div className="family-member-grid">
                         <div className="form-group">
                             <label>Age</label>
-                            <input 
-                                type="number" 
+                            <input
+                                type="number"
                                 className="form-control"
                                 placeholder="Age (e.g. 28)"
-                                value={newMember.age} 
+                                value={newMember.age}
                                 onChange={(e) => handleModalInputChange('age', e.target.value)}
                             />
                         </div>
 
                         <div className="form-group">
                             <label>Gender</label>
-                            <select 
+                            <select
                                 className="form-control"
-                                value={newMember.gender} 
+                                value={newMember.gender}
                                 onChange={(e) => handleModalInputChange('gender', e.target.value)}
                             >
                                 <option value="male">Male</option>
@@ -156,31 +156,31 @@ export default function AddFamilyMemberModal({ isOpen, onClose, onSave, memberDa
 
                         <div className="form-group">
                             <label>Weight (kg)</label>
-                            <input 
-                                type="number" 
+                            <input
+                                type="number"
                                 className="form-control"
                                 placeholder="Weight (e.g. 70)"
-                                value={newMember.weight} 
+                                value={newMember.weight}
                                 onChange={(e) => handleModalInputChange('weight', e.target.value)}
                             />
                         </div>
 
                         <div className="form-group">
                             <label>Height (cm)</label>
-                            <input 
-                                type="number" 
+                            <input
+                                type="number"
                                 className="form-control"
                                 placeholder="Height (e.g. 175)"
-                                value={newMember.height} 
+                                value={newMember.height}
                                 onChange={(e) => handleModalInputChange('height', e.target.value)}
                             />
                         </div>
 
                         <div className="form-group" style={{ gridColumn: 'span 2' }}>
                             <label>Activity Level</label>
-                            <select 
+                            <select
                                 className="form-control"
-                                value={newMember.activity_level} 
+                                value={newMember.activity_level}
                                 onChange={(e) => handleModalInputChange('activity_level', e.target.value)}
                             >
                                 <option value="sedentary">Sedentary</option>
@@ -233,16 +233,16 @@ export default function AddFamilyMemberModal({ isOpen, onClose, onSave, memberDa
                 </div>
 
                 <div className="modal-actions">
-                    <button 
-                        type="button" 
-                        className="btn btn-secondary" 
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
                         onClick={onClose}
                     >
                         Cancel
                     </button>
-                    <button 
-                        type="button" 
-                        className="btn btn-primary" 
+                    <button
+                        type="button"
+                        className="btn btn-primary"
                         onClick={handleSaveMember}
                     >
                         Save Member

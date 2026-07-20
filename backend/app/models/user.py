@@ -50,6 +50,7 @@ class UserProfile(Document):
     daily_macros_target: Optional[Macros] = None
     is_family_mode: bool = False
     family_members: List[FamilyMember] = Field(default_factory=list)
+    pantry: List[str] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     @field_validator("activity_level", mode="before")

@@ -253,14 +253,30 @@ async def save_draft_weekly_plan(payload: SaveDraftPlanRequest):
     """
     week_start = get_week_start_date(payload.week_start_date)
     
-    # Check if a plan already exists for this user and week
+    # 1. Fetch user to get pantry and generate shopping list
+    shopping_list = []
+    try:
+        user_obj_id = PydanticObjectId(payload.user_id)
+        user = await UserProfile.get(user_obj_id)
+        if user:
+            shopping_list = AIService.generate_shopping_list(user, payload.days)
+    except Exception as e:
+        print(f"Failed to generate shopping list on save: {e}")
+
+    # 2. Check if a plan already exists for this user and week
     existing = await WeeklyPlan.find_one(
+        WeeklyPlan.find_one(
+            WeeklyPlan.user_id == payload.user_id,
+            WeeklyPlan.week_start_date == week_start
+        )
+    ) if False else await WeeklyPlan.find_one(
         WeeklyPlan.user_id == payload.user_id,
         WeeklyPlan.week_start_date == week_start
     )
     
     if existing:
         existing.days = payload.days
+        existing.shopping_list = shopping_list
         existing.updated_at = datetime.utcnow()
         await existing.save()
         return existing
@@ -268,8 +284,83 @@ async def save_draft_weekly_plan(payload: SaveDraftPlanRequest):
         new_plan = WeeklyPlan(
             user_id=payload.user_id,
             week_start_date=week_start,
-            days=payload.days
+            days=payload.days,
+            shopping_list=shopping_list
         )
         await new_plan.insert()
         return new_plan
+
+
+from pydantic import BaseModel
+
+
+class CheckShoppingItemRequest(BaseModel):
+    item: str
+    checked: bool
+
+
+@router.post("/{user_id}/{week_start_date}/shopping-list/check")
+async def check_shopping_item(user_id: str, week_start_date: str, payload: CheckShoppingItemRequest):
+    """
+    Checks or unchecks an item on the shopping list.
+    If checked: removes from shopping list and adds to pantry.
+    If unchecked: adds back to shopping list and removes from pantry.
+    """
+    week_start = get_week_start_date(week_start_date)
+    
+    # Fetch weekly plan
+    plan = await WeeklyPlan.find_one(
+        WeeklyPlan.user_id == user_id,
+        WeeklyPlan.week_start_date == week_start
+    )
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Weekly plan not found."
+        )
+
+    # Fetch user profile
+    try:
+        user_obj_id = PydanticObjectId(user_id)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID format."
+        )
+    user = await UserProfile.get(user_obj_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found."
+        )
+
+    if not hasattr(plan, "shopping_list") or plan.shopping_list is None:
+        plan.shopping_list = []
+    if not hasattr(user, "pantry") or user.pantry is None:
+        user.pantry = []
+
+    item_name = payload.item.strip()
+
+    if payload.checked:
+        # Check off: remove from shopping list, add to pantry
+        if item_name in plan.shopping_list:
+            plan.shopping_list.remove(item_name)
+        # Find case-insensitive match in pantry or add
+        lower_pantry = [x.lower() for x in user.pantry]
+        if item_name.lower() not in lower_pantry:
+            user.pantry.append(item_name)
+    else:
+        # Uncheck: add back to shopping list, remove from pantry
+        if item_name not in plan.shopping_list:
+            plan.shopping_list.append(item_name)
+        # Remove from pantry
+        user.pantry = [x for x in user.pantry if x.lower() != item_name.lower()]
+
+    plan.updated_at = datetime.utcnow()
+    await plan.save()
+    await user.save()
+
+    return {
+        "shopping_list": plan.shopping_list,
+        "pantry": user.pantry
+    }
+
 

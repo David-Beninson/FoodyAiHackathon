@@ -8,7 +8,8 @@ class GeneratePlanRequest(BaseModel):
     prompt_override: Optional[str] = None
 
 class UpdateMealStatusRequest(BaseModel):
-    status: MealStatus
+    status: Optional[MealStatus] = None
+    is_favorite: Optional[bool] = None 
 
 class RegenerateMealRequest(BaseModel):
     user_id: str

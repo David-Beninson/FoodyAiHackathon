@@ -178,6 +178,9 @@ async def update_meal_status(
             detail=f"Invalid meal type: {meal_type}"
         )
 
+    if payload.is_favorite is not None:
+        meal.is_favorite = payload.is_favorite
+
     meal = day_plan.meals[meal_type]
     meal.status = payload.status
     meal.update_actual_macros()

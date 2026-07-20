@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import LoadingSpinner from '../Common/LoadingSpinner';
 
-export default function MealDetailsModal({ isOpen, meal, onClose, onRegenerate }) {
+export default function MealDetailsModal({ isOpen, meal, onClose, onToggleFavorite, onRegenerate }) {
   const [isEditingCustom, setIsEditingCustom] = useState(false);
   const [promptText, setPromptText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+
 
   if (!isOpen || !meal) return null;
 
@@ -182,6 +184,7 @@ export default function MealDetailsModal({ isOpen, meal, onClose, onRegenerate }
           </>
         )}
       </div>
+      <button onClick={()=>onToggleFavorite()}> test </button>
     </div>
   );
 }

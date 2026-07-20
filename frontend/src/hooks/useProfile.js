@@ -27,6 +27,7 @@ export function useProfile(mockUserPlan) {
     const [tempProfile, setTempProfile] = useState(profile);
     const [newAllergy, setNewAllergy] = useState('');
     const [newPref, setNewPref] = useState('');
+    const [newGoal, setNewGoal] = useState('');
     const [showSuccessToast, setShowSuccessToast] = useState(false);
 
     useEffect(() => {
@@ -42,6 +43,7 @@ export function useProfile(mockUserPlan) {
         setIsEditing(false);
         setNewAllergy('');
         setNewPref('');
+        setNewGoal('');
     };
 
     const handleSave = (e) => {
@@ -60,9 +62,10 @@ export function useProfile(mockUserPlan) {
                     targetMacros: { ...prev.targetMacros, [field]: Number(value) || 0 }
                 };
             }
+            const isNumeric = ['weight', 'goalWeight', 'height', 'age'].includes(field);
             return {
                 ...prev,
-                [field]: field === 'weight' || field === 'goalWeight' ? Number(value) || 0 : value
+                [field]: isNumeric ? Number(value) || 0 : value
             };
         });
     };
@@ -71,7 +74,7 @@ export function useProfile(mockUserPlan) {
         const trimmed = tagVal.trim();
         if (!trimmed) return;
         setTempProfile(prev => {
-            const list = prev[type];
+            const list = prev[type] || [];
             if (list.includes(trimmed)) return prev;
             return { ...prev, [type]: [...list, trimmed] };
         });
@@ -81,7 +84,7 @@ export function useProfile(mockUserPlan) {
     const removeTag = (type, tagToRemove) => {
         setTempProfile(prev => ({
             ...prev,
-            [type]: prev[type].filter(t => t !== tagToRemove)
+            [type]: (prev[type] || []).filter(t => t !== tagToRemove)
         }));
     };
 
@@ -96,6 +99,8 @@ export function useProfile(mockUserPlan) {
         setNewAllergy,
         newPref,
         setNewPref,
+        newGoal,
+        setNewGoal,
         proteinPct,
         carbsPct,
         fatsPct,
@@ -107,3 +112,4 @@ export function useProfile(mockUserPlan) {
         removeTag
     };
 }
+

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getNextSundayLocalDate } from '../../utils/calendarUtils';
 import { getShoppingList, syncShoppingList, checkShoppingListItem } from '../../api/apiClient';
@@ -16,8 +16,13 @@ export default function ShoppingList() {
   const [weekStartDate, setWeekStartDate] = useState(getNextSundayLocalDate());
   const [message, setMessage] = useState({ text: '', type: '' });
 
+  const showMessage = useCallback((text, type = 'success') => {
+    setMessage({ text, type });
+    setTimeout(() => setMessage({ text: '', type: '' }), 4000);
+  }, []);
+
   // Fetch the shopping list
-  const fetchShoppingListData = async (showLoading = true) => {
+  const fetchShoppingListData = useCallback(async (showLoading = true) => {
     if (!userId || !weekStartDate) return;
     if (showLoading) setLoading(true);
     try {
@@ -30,16 +35,13 @@ export default function ShoppingList() {
     } finally {
       if (showLoading) setLoading(false);
     }
-  };
+  }, [userId, weekStartDate, showMessage]);
 
   useEffect(() => {
-    fetchShoppingListData();
-  }, [userId, weekStartDate]);
-
-  const showMessage = (text, type = 'success') => {
-    setMessage({ text, type });
-    setTimeout(() => setMessage({ text: '', type: '' }), 4000);
-  };
+    Promise.resolve().then(() => {
+      fetchShoppingListData();
+    });
+  }, [fetchShoppingListData]);
 
 
 

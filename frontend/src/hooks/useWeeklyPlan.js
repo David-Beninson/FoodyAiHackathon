@@ -55,7 +55,7 @@ export function useWeeklyPlan(currentDateString) {
     return () => {
       isCurrent = false;
     };
-  }, [weekStartDate]);
+  }, [weekStartDate, userId, currentDateString]);
 
   // Update meal status with optimistic updates
   const handleUpdateMealStatus = async (dayName, mealType, status, replacedWithMealName = null, isFavorite = null) => {

@@ -22,6 +22,11 @@ export default function Pantry() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
 
+  const showMessage = (text, type = 'success') => {
+    setMessage({ text, type });
+    setTimeout(() => setMessage({ text: '', type: '' }), 4000);
+  };
+
   // Load pantry items
   useEffect(() => {
     if (!userId) return;
@@ -39,11 +44,6 @@ export default function Pantry() {
     };
     fetchPantryData();
   }, [userId]);
-
-  const showMessage = (text, type = 'success') => {
-    setMessage({ text, type });
-    setTimeout(() => setMessage({ text: '', type: '' }), 4000);
-  };
 
   const handleTogglePopular = (item) => {
     const exists = pantryItems.some(i => i.toLowerCase() === item.toLowerCase());

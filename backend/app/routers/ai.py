@@ -325,6 +325,17 @@ async def get_shopping_list(user_id: str, week_start_date: str):
     shopping_list = getattr(plan, "shopping_list", [])
     if shopping_list is None:
         shopping_list = []
+
+    try:
+        user_obj_id = PydanticObjectId(user_id)
+        user = await UserProfile.get(user_obj_id)
+    except Exception:
+        user = None
+
+    if user:
+        pantry_lower = {x.lower().strip() for x in getattr(user, "pantry", []) if x}
+        shopping_list = [item for item in shopping_list if item.lower().strip() not in pantry_lower]
+        
     return {"shopping_list": shopping_list, "has_plan": True}
 
 

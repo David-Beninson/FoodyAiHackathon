@@ -106,14 +106,15 @@ export default function Profile() {
 
                             <TagManagerCard
                                 title="Personal Goals"
-                                placeholder="Add goal (e.g. build muscle)..."
+                                placeholder="Select a goal..."
                                 tags={currentProfile.goals || []}
                                 inputValue={newGoal}
                                 setInputValue={setNewGoal}
-                                onAddTag={() => addTag('goals', newGoal, setNewGoal)}
+                                onAddTag={(val) => addTag('goals', val, setNewGoal)}
                                 onRemoveTag={(tag) => removeTag('goals', tag)}
                                 isEditing={isEditing}
                                 emptyMessage="No goals recorded"
+                                options={['lose weight', 'gain muscle', 'eat healthier']}
                             />
 
                             <TagManagerCard
@@ -122,7 +123,7 @@ export default function Profile() {
                                 tags={currentProfile.allergies || []}
                                 inputValue={newAllergy}
                                 setInputValue={setNewAllergy}
-                                onAddTag={() => addTag('allergies', newAllergy, setNewAllergy)}
+                                onAddTag={(val) => addTag('allergies', val, setNewAllergy)}
                                 onRemoveTag={(tag) => removeTag('allergies', tag)}
                                 isEditing={isEditing}
                                 emptyMessage="No allergies recorded"
@@ -134,7 +135,7 @@ export default function Profile() {
                                 tags={currentProfile.preferences || []}
                                 inputValue={newPref}
                                 setInputValue={setNewPref}
-                                onAddTag={() => addTag('preferences', newPref, setNewPref)}
+                                onAddTag={(val) => addTag('preferences', val, setNewPref)}
                                 onRemoveTag={(tag) => removeTag('preferences', tag)}
                                 isEditing={isEditing}
                                 emptyMessage="No preferences recorded"

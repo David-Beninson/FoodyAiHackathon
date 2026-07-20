@@ -4,7 +4,7 @@ import { getWeeklyPlan, updateMealStatus as apiUpdateMealStatus } from '../api/a
 const DEFAULT_USER_ID = import.meta.env.VITE_DEFAULT_USER_ID;
 
 // Formatting helper to get YYYY-MM-DD in local time
-export const getLocalDateString = (date) => {
+const getLocalDateString = (date) => {
   const d = new Date(date);
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -13,7 +13,7 @@ export const getLocalDateString = (date) => {
 };
 
 // Get start of the week (Sunday) in local time as YYYY-MM-DD
-export const getWeekStartLocalDate = (date) => {
+const getWeekStartLocalDate = (date) => {
   const d = new Date(date);
   const dayOfWeek = d.getDay(); // 0 is Sunday, 1 is Monday, etc.
   d.setDate(d.getDate() - dayOfWeek);
@@ -37,7 +37,7 @@ export function useWeeklyPlan(currentDateString) {
       try {
         const queryDate = getLocalDateString(new Date(currentDateString));
         const planData = await getWeeklyPlan(DEFAULT_USER_ID, queryDate);
-        
+
         if (isCurrent) {
           setWeeklyPlan(planData);
         }

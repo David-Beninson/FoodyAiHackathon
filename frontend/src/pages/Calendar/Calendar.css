@@ -19,7 +19,9 @@
   background: var(--code-bg);
 }
 
-.toolbar-left, .toolbar-right, .toolbar-center {
+.toolbar-left,
+.toolbar-right,
+.toolbar-center {
   flex: 1;
   display: flex;
   align-items: center;
@@ -67,7 +69,7 @@
 .segment-control button.active {
   background: var(--border);
   color: var(--text-h);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Toolbar Buttons */
@@ -391,12 +393,14 @@
 
 /* Strictly sets the meal labels column to exactly 25% (one quarter) of the table width */
 .day-meal-row .time-label {
-  flex: 0 0 25%; 
+  flex: 0 0 25%;
   display: flex;
-  flex-direction: column; /* חשוב! מסדר את האלמנטים מלמעלה למטה */
+  flex-direction: column;
+  /* חשוב! מסדר את האלמנטים מלמעלה למטה */
   align-items: center;
   justify-content: center;
-  gap: 12px; /* רווח בין שם הארוחה לכפתור */
+  gap: 12px;
+  /* רווח בין שם הארוחה לכפתור */
   padding: 16px;
   background-color: var(--code-bg);
   border-right: 1px solid var(--border);
@@ -405,12 +409,14 @@
   color: var(--text);
   box-sizing: border-box;
 }
+
 /* -------------------- Day View Actions & Cells -------------------- */
 .day-meal-row .meal-cell {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: center; /* שונה מ-flex-start ל-center כדי למרכז אנכית את התוכן והכפתורים */
+  align-items: center;
+  /* שונה מ-flex-start ל-center כדי למרכז אנכית את התוכן והכפתורים */
   padding: 16px;
   gap: 16px;
   box-sizing: border-box;
@@ -432,23 +438,6 @@
   flex-shrink: 0;
 }
 
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text-h);
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 6px 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  width: 140px; /* מעניק רוחב אחיד לכל הכפתורים למראה סימטרי ונקי */
-  box-sizing: border-box;
-}
 
 .action-btn .icon {
   font-size: 14px;
@@ -484,12 +473,14 @@
     border-color: rgba(46, 125, 50, 0.4);
     color: #81c784;
   }
+
   .custom-btn:hover {
     background: rgba(21, 101, 192, 0.15);
     border-color: rgba(21, 101, 192, 0.4);
     color: #64b5f6;
   }
 }
+
 .skipped-btn:hover {
   background: #ffebee;
   color: #c62828;
@@ -504,6 +495,7 @@
     color: #ef5350;
   }
 }
+
 /* -------------------- Adjustment Prompt Styling -------------------- */
 /* -------------------- Adjustment Prompt Styling -------------------- */
 .adjustment-prompt-container {
@@ -526,7 +518,8 @@
   transition: all 0.2s ease;
   font-weight: 500;
   width: 100%;
-  white-space: normal; /* מאפשר לטקסט להישבר לכמה שורות */
+  white-space: normal;
+  /* מאפשר לטקסט להישבר לכמה שורות */
 }
 
 .adjust-plan-btn:hover {
@@ -543,9 +536,17 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 /* הדגשת כפתור ה-Eaten כאשר הוא במצב פעיל */
 .action-btn.success-btn.active-eaten {
   background: #2e7d32;
@@ -559,6 +560,7 @@
     background: #388e3c;
   }
 }
+
 /* עיצוב מיוחד להתרעה סטטית (כמו דילוג על ארוחת ערב) */
 .adjust-plan-btn.notice-only {
   background-color: #ffebee;
@@ -581,12 +583,14 @@
     border-color: rgba(198, 40, 40, 0.3);
     color: #ef5350;
   }
+
   .adjust-plan-btn.notice-only:hover {
     background-color: rgba(198, 40, 40, 0.15);
     color: #ef5350;
     border-color: rgba(198, 40, 40, 0.3);
   }
 }
+
 .dropdown-wrapper {
   position: relative;
   display: inline-block;
@@ -669,17 +673,39 @@
 }
 
 /* צבעי טקסט להובר בתוך התפריט */
-.dropdown-item.success-text:hover { color: #2e7d32; }
-.dropdown-item.danger-text:hover { color: #c62828; }
-.dropdown-item.primary-text:hover { color: #1565c0; }
-.dropdown-item.accent-text:hover { color: var(--accent); }
+.dropdown-item.success-text:hover {
+  color: #2e7d32;
+}
+
+.dropdown-item.danger-text:hover {
+  color: #c62828;
+}
+
+.dropdown-item.primary-text:hover {
+  color: #1565c0;
+}
+
+.dropdown-item.accent-text:hover {
+  color: var(--accent);
+}
 
 /* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
-  .action-btn.active-eaten { background: #388e3c; }
-  .dropdown-item.success-text:hover { color: #81c784; }
-  .dropdown-item.danger-text:hover { color: #ef5350; }
-  .dropdown-item.primary-text:hover { color: #64b5f6; }
+  .action-btn.active-eaten {
+    background: #388e3c;
+  }
+
+  .dropdown-item.success-text:hover {
+    color: #81c784;
+  }
+
+  .dropdown-item.danger-text:hover {
+    color: #ef5350;
+  }
+
+  .dropdown-item.primary-text:hover {
+    color: #64b5f6;
+  }
 }
 
 /* Additional Styles for WeekView Meals */
@@ -687,15 +713,18 @@
   background-color: var(--code-bg);
   border-left: 3px solid var(--accent);
 }
+
 .meal-cell.eaten {
   background-color: rgba(46, 125, 50, 0.1);
   border-left: 3px solid #2e7d32;
 }
+
 .meal-cell.skipped {
   background-color: rgba(198, 40, 40, 0.1);
   border-left: 3px solid #c62828;
   opacity: 0.6;
 }
+
 .meal-cell.replaced {
   background-color: rgba(21, 101, 192, 0.1);
   border-left: 3px solid #1565c0;

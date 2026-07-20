@@ -1,27 +1,24 @@
 :root {
-  --text: #555555;
-  --text-h: #111111;
-  --bg: #ffffff;
-  --border: #e0e0e0;
-  --code-bg: #f9f9f9;
+  --text: #94a3b8;
+  --text-h: #f8fafc;
+  --bg: #07080a; /* שחור עמוק ומתאים יותר */
+  --surface: #0e1015;
+  --border: #1a1e2b;
+  --border-glow: rgba(56, 204, 224, 0.4);
+  --code-bg: #11141c;
   --accent: #38cce0;
-  --accent-hover: #2bb8cc;
-  --accent-bg: rgba(56, 204, 224, 0.1);
-  --radius: 6px;
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-
+  --accent-hover: #4dd5e8;
+  --accent-bg: rgba(56, 204, 224, 0.12);
+  --accent-glow: 0 0 20px rgba(56, 204, 224, 0.25);
+  --radius: 10px;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   --sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
-
   font: 16px/150% var(--sans);
-  color-scheme: light dark;
+  color-scheme: dark;
   color: var(--text);
   background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -16,8 +16,8 @@
   padding: 18px 36px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  margin-top: 12px; /* רווח נוסף מה-Navbar העליון */
-  margin-bottom: 24px; /* רווח נקי מהטבלה */
+  margin-top: 0px; /* תוקן: אין רווח מה-Navbar */
+  margin-bottom: 24px;
 }
 
 .toolbar-left, .toolbar-right, .toolbar-center {
@@ -27,8 +27,12 @@
 }
 
 .toolbar-center {
+  display: flex;
+  align-items: center;
   justify-content: center;
   gap: 20px;
+  flex: 1;
+  text-align: center;
 }
 
 .toolbar-right {
@@ -55,6 +59,8 @@
   font-size: 18px;
   font-weight: 600;
   color: var(--text-h);
+  min-width: 220px; /* מונע תזוזה של החצים בגלל אורך טקסט משתנה */
+  text-align: center;
 }
 
 .segment-control {
@@ -495,12 +501,16 @@
 }
 
 /* Month & Year Views Polish */
-.apple-month-view, .apple-year-view {
+.apple-month-view {
   padding: 24px 36px;
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
 }
 
 .month-grid, .apple-year-view {

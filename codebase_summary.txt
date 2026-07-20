@@ -3878,7 +3878,7 @@ export default function InteractiveChatTab({
 
       {hasExistingPlan && (
         <div className="error-banner">
-          ⚠️ This week is already planned in your calendar. Cannot run planner chat for this week.
+          This week is already planned in your calendar. Cannot run planner chat for this week.
         </div>
       )}
 
@@ -4023,7 +4023,7 @@ export default function AutoPlannerTab({
 
       {hasExistingPlan && (
         <div className="error-banner">
-          ⚠️ This week is already planned in your calendar. Cannot generate a new menu for this week.
+          This week is already planned in your calendar. Cannot generate a new menu for this week.
         </div>
       )}
 
@@ -4664,7 +4664,7 @@ export default function OnboardingQuestionnaire({
 
                 {error && (
                     <div className="auth-error-banner" style={{ marginBottom: '24px' }}>
-                        ⚠️ {error}
+                        {error}
                     </div>
                 )}
 
@@ -6909,7 +6909,7 @@ export default function Planner() {
 
       {error && (
         <div className="error-banner">
-          ⚠️ {error}
+          {error}
         </div>
       )}
 
@@ -7056,7 +7056,7 @@ export default function Profile() {
 
             {error && (
                 <div className="error-banner">
-                    ⚠️ {error}
+                    {error}
                 </div>
             )}
 

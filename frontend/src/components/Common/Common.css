@@ -8,10 +8,10 @@
 
 /* Navbar שחור מוחלט, ברוחב מקסימלי מלא */
 .navbar {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    padding: 16px 40px;
+    padding: 20px 48px; /* Bigger padding for a larger navbar */
     background: #000000;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -24,8 +24,12 @@
     z-index: 1000;
 }
 
+.logo {
+    justify-self: start;
+}
+
 .logo a {
-    font-size: 22px;
+    font-size: 25px; /* Larger logo */
     font-weight: 700;
     text-decoration: none;
     color: var(--text-h);
@@ -37,8 +41,10 @@
 }
 
 .linksContainer {
+    grid-column: 2;
+    justify-self: center;
     display: flex;
-    gap: 16px;
+    gap: 16px; /* Adjusted gap to keep spacing balanced with dividers */
     align-items: center;
 }
 
@@ -46,7 +52,7 @@
     text-decoration: none;
     color: var(--text);
     font-weight: 500;
-    font-size: 15px;
+    font-size: 16.5px; /* Larger font size for links */
     transition: all 0.25s ease;
     padding: 8px 4px; /* התאמת ריווח */
     border-radius: 0;
@@ -65,19 +71,31 @@
     font-weight: 600;
 }
 
+.nav-right-section {
+    grid-column: 3;
+    justify-self: end;
+}
+
 .nav-user-container {
     display: flex;
     align-items: center;
     gap: 16px;
-    margin-left: 12px;
-    padding-left: 16px;
-    border-left: 1px solid var(--border);
+}
+
+.nav-divider {
+    width: 1px;
+    height: 14px;
+    background-color: var(--border);
+    opacity: 0.6;
+    align-self: center;
 }
 
 .nav-welcome {
-    font-size: 14px;
+    font-size: 15px; /* Larger welcome font */
     color: var(--text-h);
-    font-weight: 500;
+    font-weight: 600;
+    text-transform: uppercase; /* Uppercase! */
+    letter-spacing: 0.5px;
 }
 
 .nav-logout-btn {
@@ -104,12 +122,11 @@
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    padding-top: 24px; /* רווח תמיד בין ה-Navbar לתוכן המשני */
 }
 
 /* Footer */
 .appFooter {
-    padding: 24px;
+    padding: 14px 24px;
     border-top: 1px solid var(--border);
     text-align: center;
     background: var(--surface);
@@ -118,13 +135,30 @@
 .appFooterContent {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 8px;
 }
 
+.footer-ai-note {
+    font-size: 11px;
+    color: var(--text);
+    opacity: 0.55;
+    font-style: italic;
+    margin: 0;
+}
+
+.footer-description {
+    font-size: 12px;
+    color: var(--text);
+    opacity: 0.8;
+    margin: 0;
+}
+
 .appFooterCopyright {
-    font-size: 13px;
+    font-size: 11px;
     color: var(--text);
     font-weight: 400;
+    opacity: 0.7;
 }
 
 .linksContainer a.active::after {
@@ -137,32 +171,25 @@
     background-color: var(--accent);
     box-shadow: var(--accent-glow);
 }
+
 .footer-logos-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 24px;
-    margin-bottom: 12px;
+    gap: 16px;
     flex-wrap: wrap;
+    margin-top: 4px;
 }
 
 .footer-logo {
-    height: 35px;
+    height: 24px;
     object-fit: contain;
-    opacity: 0.85;
+    opacity: 0.75;
     transition: opacity 0.2s;
+    filter: grayscale(20%);
 }
 
 .footer-logo:hover {
     opacity: 1;
-}
-
-.footer-description {
-    font-size: 13px;
-    color: var(--text);
-    margin-bottom: 8px;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    line-height: 1.4;
+    filter: grayscale(0%);
 }

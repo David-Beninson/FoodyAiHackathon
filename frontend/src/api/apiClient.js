@@ -61,6 +61,11 @@ export const getWeeklyPlan = async (userId, dateStr) => {
   return response.data;
 };
 
+export const getUserPlans = async (userId) => {
+  const response = await apiClient.get(`/plans/user/${userId}`);
+  return response.data;
+};
+
 export const updateMealStatus = async (
   planId,
   day,
@@ -85,6 +90,10 @@ export const updateMealStatus = async (
 export const getFavoriteMeals = async (userId) => {
   const response = await apiClient.get(`/plans/user/${userId}/favorites`);
   return response.data;
+};
+
+export const unfavoriteMeal = async (planId, day, mealType) => {
+  return updateMealStatus(planId, day, mealType, null, null, false);
 };
 
 export const getPlannerChatSession = async (userId) => {

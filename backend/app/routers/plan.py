@@ -5,7 +5,7 @@ from app.models.user import UserProfile, Macros
 from app.models.plan import WeeklyPlan, DayPlan, MealPlan, MealStatus
 from app.schemas.plan import GeneratePlanRequest, UpdateMealStatusRequest, RegenerateMealRequest, SaveDraftPlanRequest
 from app.services.ai import AIService
-from typing import Optional
+from typing import Optional, List
 
 router = APIRouter(prefix="/plans", tags=["Plans"])
 
@@ -61,6 +61,7 @@ async def get_user_favorite_meals(user_id: str):
                 if getattr(meal, 'is_favorite', False):
                     if meal.name.lower() not in seen_names:
                         favorites.append({
+                            "plan_id": str(plan.id),
                             "name": meal.name,
                             "description": meal.description,
                             "planned_macros": meal.planned_macros,
@@ -394,5 +395,14 @@ async def check_shopping_item(user_id: str, week_start_date: str, payload: Check
         "shopping_list": plan.shopping_list,
         "pantry": user.pantry
     }
+
+
+@router.get("/user/{user_id}", response_model=List[WeeklyPlan])
+async def get_user_weekly_plans(user_id: str):
+    """
+    Fetch all weekly plans for a specific user.
+    """
+    plans = await WeeklyPlan.find(WeeklyPlan.user_id == user_id).to_list()
+    return plans
 
 

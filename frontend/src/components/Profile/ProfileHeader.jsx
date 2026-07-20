@@ -1,16 +1,15 @@
-export default function ProfileHeader({ isEditing, onStartEdit, onSave, onCancel, onViewFavorites }) {
+export default function ProfileHeader({ isEditing, onStartEdit, onSave, onCancel, onViewFavorites, userName, onLogout }) {
     return (
         <header className="profile-header">
-            <h1 className="profile-title">User Profile</h1>
+            <h1 className="profile-title">{userName}</h1>
             {!isEditing ? (
-                <div style={{ display: 'flex', gap: '12px' }}>
+                <div className="profile-header-actions">
                     <button
                         type="button"
                         onClick={onViewFavorites}
-                        className="btn btn-secondary"
-                        style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                        className="btn btn-primary"
                     >
-                        ❤️ Favorites
+                        Favorites
                     </button>
                     <button
                         type="button"
@@ -19,6 +18,14 @@ export default function ProfileHeader({ isEditing, onStartEdit, onSave, onCancel
                         aria-label="Edit Profile"
                     >
                         Edit Profile
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onLogout}
+                        className="btn btn-logout"
+                        aria-label="Logout"
+                    >
+                        Logout
                     </button>
                 </div>
             ) : (

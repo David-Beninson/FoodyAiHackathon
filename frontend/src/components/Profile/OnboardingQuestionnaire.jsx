@@ -25,7 +25,7 @@ export default function OnboardingQuestionnaire({
 
                 {error && (
                     <div className="auth-error-banner" style={{ marginBottom: '24px' }}>
-                        ⚠️ {error}
+                        {error}
                     </div>
                 )}
 

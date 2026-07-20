@@ -98,6 +98,7 @@ export default function Pantry() {
     <div className="pantry-page-container">
       <div className="pantry-header-section">
         <h1>My Pantry & Fridge</h1>
+        <br/>
         <p>Keep track of ingredients you have at home. FoodyAI will prioritize these when generating your weekly meal plans.</p>
       </div>
 

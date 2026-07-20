@@ -1,11 +1,24 @@
 import { useState, useEffect } from 'react';
-import { getFavoriteMeals } from '../../api/apiClient';
+import { getFavoriteMeals, unfavoriteMeal } from '../../api/apiClient';
 import LoadingSpinner from '../Common/LoadingSpinner';
+import './FavoritesModal.css';
 
 export default function FavoritesModal({ isOpen, onClose, userId }) {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [removingId, setRemovingId] = useState(null); // tracks which card is being removed
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen && userId) {
@@ -17,7 +30,7 @@ export default function FavoritesModal({ isOpen, onClose, userId }) {
           setFavorites(data);
         } catch (err) {
           console.error(err);
-          setError(err.response?.data?.detail || "Failed to load favorite meals.");
+          setError(err.response?.data?.detail || 'Failed to load favorite meals.');
         } finally {
           setLoading(false);
         }
@@ -26,79 +39,144 @@ export default function FavoritesModal({ isOpen, onClose, userId }) {
     }
   }, [isOpen, userId]);
 
+  const handleUnfavorite = async (meal, index) => {
+    if (!meal.plan_id) return;
+    setRemovingId(index);
+    try {
+      await unfavoriteMeal(meal.plan_id, meal.day, meal.meal_type);
+      setFavorites((prev) => prev.filter((_, i) => i !== index));
+    } catch (err) {
+      console.error('Failed to unfavorite meal:', err);
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="family-modal-overlay" onClick={onClose}>
-      <div className="family-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px', width: '90%' }}>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-container modal-md fav-modal" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
         <div className="modal-header">
-          <h3 className="modal-title">❤️ My Favorite Meals</h3>
+          <div className="fav-header-content">
+            <span className="fav-header-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </span>
+            <h3 className="modal-title">My Favorite Meals</h3>
+          </div>
           <button
             type="button"
-            className="tag-remove"
+            className="modal-close-btn"
             onClick={onClose}
-            style={{ fontSize: '20px', background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}
+            aria-label="Close"
           >
-            &times;
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '450px', overflowY: 'auto', paddingRight: '4px' }}>
+        {/* Body */}
+        <div className="modal-body fav-body">
           {loading ? (
             <LoadingSpinner message="Loading favorites..." />
           ) : error ? (
-            <div style={{ color: 'var(--accent)', textAlign: 'center', padding: '20px' }}>
-              {error}
-            </div>
+            <div className="fav-state fav-error">{error}</div>
           ) : favorites.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#94a3b8', padding: '40px 20px' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '12px' }}>⭐</div>
-              <p style={{ margin: 0, fontWeight: '500' }}>No favorites saved yet!</p>
-              <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: '#64748b' }}>
-                Go to the Weekly Calendar and click the ❤️ icon on any meal card to add it here.
+            <div className="fav-state fav-empty">
+              <div className="fav-empty-icon" aria-hidden="true">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              </div>
+              <p className="fav-empty-title">No favorites yet</p>
+              <p className="fav-empty-sub">
+                Go to the Weekly Calendar and save a meal to see it here.
               </p>
             </div>
           ) : (
-            favorites.map((meal, index) => (
-              <div 
-                key={index} 
-                style={{ 
-                  background: 'rgba(255, 255, 255, 0.03)', 
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '12px',
-                  padding: '16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: 'var(--text-h)' }}>
-                    {meal.name}
-                  </h4>
-                  <span style={{ fontSize: '11px', color: '#818cf8', background: 'rgba(99, 102, 241, 0.1)', padding: '2px 8px', borderRadius: '12px', textTransform: 'capitalize' }}>
-                    {meal.meal_type}
-                  </span>
-                </div>
+            <ul className="fav-list">
+              {favorites.map((meal, index) => {
+                const isRemoving = removingId === index;
+                return (
+                  <li key={index} className={`fav-card${isRemoving ? ' fav-card--removing' : ''}`}>
+                    {/* Card top row */}
+                    <div className="fav-card-header">
+                      <h4 className="fav-card-name">{meal.name}</h4>
+                      <div className="fav-card-actions">
+                        {meal.meal_type && (
+                          <span className="fav-badge">{meal.meal_type}</span>
+                        )}
+                        {meal.plan_id && (
+                          <button
+                            className="fav-unlike-btn"
+                            title="Remove from favorites"
+                            aria-label={`Remove ${meal.name} from favorites`}
+                            disabled={isRemoving}
+                            onClick={() => handleUnfavorite(meal, index)}
+                          >
+                            {isRemoving ? (
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="fav-spin">
+                                <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="8" />
+                              </svg>
+                            ) : (
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                              </svg>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
 
-                <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8', lineHeight: '1.4' }}>
-                  {meal.description}
-                </p>
+                    {/* Description */}
+                    {meal.description && (
+                      <p className="fav-card-desc">{meal.description}</p>
+                    )}
 
-                {meal.planned_macros && (
-                  <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: '#64748b', borderTop: '1px dashed rgba(255, 255, 255, 0.06)', paddingTop: '8px', marginTop: '4px' }}>
-                    <span>🔥 {meal.planned_macros.calories} kcal</span>
-                    <span>🥩 P: {meal.planned_macros.protein}g</span>
-                    <span>🍞 C: {meal.planned_macros.carbs}g</span>
-                    <span>🥑 F: {meal.planned_macros.fat}g</span>
-                  </div>
-                )}
+                    {/* Macros */}
+                    {meal.planned_macros && (
+                      <div className="fav-macros">
+                        <span className="fav-macro-item">
+                          <span className="fav-macro-label">Cal</span>
+                          <span className="fav-macro-value">{meal.planned_macros.calories}</span>
+                        </span>
+                        <span className="fav-macro-sep" aria-hidden="true" />
+                        <span className="fav-macro-item">
+                          <span className="fav-macro-label">Protein</span>
+                          <span className="fav-macro-value">{meal.planned_macros.protein}g</span>
+                        </span>
+                        <span className="fav-macro-sep" aria-hidden="true" />
+                        <span className="fav-macro-item">
+                          <span className="fav-macro-label">Carbs</span>
+                          <span className="fav-macro-value">{meal.planned_macros.carbs}g</span>
+                        </span>
+                        <span className="fav-macro-sep" aria-hidden="true" />
+                        <span className="fav-macro-item">
+                          <span className="fav-macro-label">Fat</span>
+                          <span className="fav-macro-value">{meal.planned_macros.fat}g</span>
+                        </span>
+                      </div>
+                    )}
 
-                <div style={{ fontSize: '10px', color: '#64748b', textAlign: 'right' }}>
-                  Added from {meal.day}'s menu ({meal.week_start_date})
-                </div>
-              </div>
-            ))
+                    {/* Footer */}
+                    <div className="fav-card-footer">
+                      <span>{meal.day}</span>
+                      {meal.week_start_date && (
+                        <>
+                          <span className="fav-dot" aria-hidden="true" />
+                          <span>{meal.week_start_date}</span>
+                        </>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
       </div>

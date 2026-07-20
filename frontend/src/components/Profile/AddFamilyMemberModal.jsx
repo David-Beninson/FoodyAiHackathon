@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import TagManagerCard from './TagManagerCard';
 
 export default function AddFamilyMemberModal({ isOpen, onClose, onSave, memberData }) {
@@ -19,6 +19,17 @@ export default function AddFamilyMemberModal({ isOpen, onClose, onSave, memberDa
         allergies: '',
         preferences: ''
     });
+
+    useEffect(() => {
+        if (isOpen) {
+            document.body.classList.add('modal-open');
+        } else {
+            document.body.classList.remove('modal-open');
+        }
+        return () => {
+            document.body.classList.remove('modal-open');
+        };
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -72,21 +83,20 @@ export default function AddFamilyMemberModal({ isOpen, onClose, onSave, memberDa
     };
 
     return (
-        <div className="family-modal-overlay">
-            <div className="family-modal">
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-container modal-md" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
                     <h3 className="modal-title">Add Family Member</h3>
                     <button
                         type="button"
-                        className="tag-remove"
+                        className="modal-close-btn"
                         onClick={onClose}
-                        style={{ fontSize: '20px' }}
                     >
-                        &times;
+                        ✕
                     </button>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div className="form-group">
                         <label>Name</label>
                         <input

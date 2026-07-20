@@ -11,26 +11,39 @@
     align-items: center;
 }
 
-.profile-header, .profile-content-area {
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
     width: 100%;
-    max-width: 100% !important; /* רוחב מלא מקסימלי */
+    max-width: 100% !important;
+    padding-top: 24px;
+    padding-bottom: 16px;
     padding-left: 40px;
     padding-right: 40px;
+    border-bottom: 1px solid var(--border);
     box-sizing: border-box;
 }
 
 .profile-title {
     margin: 0;
-    font-size: 26px;
-    font-weight: 600;
+    font-size: 28px;
+    font-weight: 700;
     color: var(--text-h);
+}
+
+.profile-header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
 }
 
 .profile-content-area {
     width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 36px 24px;
+    max-width: 100% !important;
+    padding: 36px 40px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -47,10 +60,23 @@
 
 .profile-dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 1fr;
     gap: 32px; /* רווח מוגדל בין הכרטיסיות */
-    align-items: start;
+    align-items: stretch;
     width: 100%;
+}
+
+@media (max-width: 900px) {
+    .profile-dashboard-grid {
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+        gap: 24px;
+    }
+    .profile-header, .profile-content-area {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
 }
 
 .metrics-grid {
@@ -159,6 +185,18 @@
 .btn-secondary:hover {
     background: var(--surface);
     border-color: var(--accent);
+}
+
+.btn-logout {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text) !important;
+}
+
+.btn-logout:hover {
+    background: var(--code-bg);
+    border-color: var(--text);
+    color: var(--text-h) !important;
 }
 
 /* Tags & Macro Visualizer */
@@ -289,15 +327,24 @@ input:checked + .slider:before {
 }
 
 .family-member-card {
-    background: #141721;
+    background: var(--code-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 20px;
+    padding: 12px 20px;
     margin-top: 16px;
     display: flex;
     flex-direction: column;
     gap: 16px;
     text-align: left;
+    transition: all 0.2s ease-in-out;
+}
+
+.family-member-card.expanded {
+    padding: 20px;
+}
+
+.family-member-card:hover {
+    border-color: var(--accent);
 }
 
 .family-member-header {
@@ -305,6 +352,10 @@ input:checked + .slider:before {
     justify-content: space-between;
     align-items: center;
     font-weight: 600;
+    transition: padding-bottom 0.2s ease;
+}
+
+.family-member-card.expanded .family-member-header {
     border-bottom: 1px solid var(--border);
     padding-bottom: 10px;
 }
@@ -321,58 +372,4 @@ input:checked + .slider:before {
 }
 .btn-danger:hover {
     background: #dc2626;
-}
-
-/* Modal styling */
-.family-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(4px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.family-modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 30px;
-    width: 90%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: var(--shadow);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    position: relative;
-    text-align: left;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 12px;
-}
-
-.modal-title {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--text-h);
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 12px;
 }

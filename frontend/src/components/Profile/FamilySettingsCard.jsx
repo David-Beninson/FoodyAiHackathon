@@ -43,42 +43,59 @@ export default function FamilySettingsCard({
                         </p>
                     ) : (
                         currentProfile.family_members.map((member, idx) => (
-                            <div className="family-member-card" key={idx} style={{ textAlign: 'left' }}>
+                            <div className={`family-member-card ${expandedIndex === idx ? 'expanded' : ''}`} key={idx} style={{ textAlign: 'left' }}>
                                 <div
                                     className="family-member-header"
                                     onClick={() => setExpandedIndex(expandedIndex === idx ? null : idx)}
                                     style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                                 >
                                     <span style={{ fontWeight: 600, color: 'var(--text-h)' }}>
-                                        {member.name || `Member #${idx + 1}`} {expandedIndex === idx ? '▲' : '▼'}
+                                        {member.name || `Member #${idx + 1}`}
                                     </span>
-                                    {isEditing && (
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            <button
-                                                type="button"
-                                                className="btn btn-secondary"
-                                                style={{ padding: '4px 8px', fontSize: '12px' }}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setEditIndex(idx);
-                                                    setIsModalOpen(true);
-                                                }}
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="btn btn-danger"
-                                                style={{ padding: '4px 8px', fontSize: '12px' }}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleRemoveFamilyMember(idx);
-                                                }}
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                    )}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        {isEditing && (
+                                            <div style={{ display: 'flex', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-secondary"
+                                                    style={{ padding: '4px 8px', fontSize: '12px' }}
+                                                    onClick={() => {
+                                                        setEditIndex(idx);
+                                                        setIsModalOpen(true);
+                                                    }}
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-danger"
+                                                    style={{ padding: '4px 8px', fontSize: '12px' }}
+                                                    onClick={() => {
+                                                        handleRemoveFamilyMember(idx);
+                                                    }}
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        )}
+                                        <svg 
+                                            width="16" 
+                                            height="16" 
+                                            viewBox="0 0 24 24" 
+                                            fill="none" 
+                                            stroke="currentColor" 
+                                            strokeWidth="2.5" 
+                                            strokeLinecap="round" 
+                                            strokeLinejoin="round" 
+                                            style={{ 
+                                                transition: 'transform 0.2s ease', 
+                                                transform: expandedIndex === idx ? 'rotate(180deg)' : 'rotate(0deg)',
+                                                color: 'var(--text)'
+                                            }}
+                                        >
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </div>
                                 </div>
                                 {expandedIndex === idx && (
                                     <>

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useProfile } from '../../hooks/useProfile';
 import { useAuth } from '../../context/AuthContext';
 import ProfileHeader from '../../components/Profile/ProfileHeader';
-import UserMetaCard from '../../components/Profile/UserMetaCard';
 import WeightCard from '../../components/Profile/WeightCard';
 import MacrosCard from '../../components/Profile/MacrosCard';
 import TagManagerCard from '../../components/Profile/TagManagerCard';
@@ -13,7 +12,7 @@ import FavoritesModal from '../../components/Profile/FavoritesModal';
 import './Profile.css';
 
 export default function Profile() {
-    const { isOnboarded, user } = useAuth();
+    const { isOnboarded, user, logout } = useAuth();
     const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
     const {
         currentProfile,
@@ -84,7 +83,7 @@ export default function Profile() {
 
             {error && (
                 <div className="error-banner">
-                    ⚠️ {error}
+                    {error}
                 </div>
             )}
 
@@ -94,13 +93,11 @@ export default function Profile() {
                 onSave={handleSave}
                 onCancel={handleCancelEdit}
                 onViewFavorites={() => setIsFavoritesOpen(true)}
+                userName={currentProfile.username ? currentProfile.username.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ') : 'User'}
+                onLogout={logout}
             />
 
             <div className="profile-content-area">
-                <UserMetaCard
-                    userName={currentProfile.username || 'User'}
-                    email={currentProfile.email || 'No email registered'}
-                />
 
                 <form onSubmit={(e) => e.preventDefault()}>
                     {/* הפריסה המקבילה - רשת של כרטיסיות */}

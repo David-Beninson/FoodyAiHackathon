@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setViewMode, setCurrentDate } from '../../store/calendarSlice';
 import CalendarToolbar from '../../components/Calendar/CalendarToolbar';
@@ -7,10 +8,16 @@ import YearView from '../../components/Calendar/YearView';
 import DayView from '../../components/Calendar/DayView';
 import LoadingSpinner from '../../components/Common/LoadingSpinner';
 import { useWeeklyPlan } from '../../hooks/useWeeklyPlan';
+import { useAuth } from '../../context/AuthContext';
+import { getUserPlans } from '../../api/apiClient';
 import './Calendar.css';
 
 export default function Calendar() {
   const dispatch = useDispatch();
+  const { user } = useAuth();
+  const userId = user?.id || user?._id;
+
+  const [allPlans, setAllPlans] = useState([]);
 
   // Connect to Redux global state
   const viewMode = useSelector((state) => state.calendar.viewMode);
@@ -24,6 +31,19 @@ export default function Calendar() {
     updateMealStatus,
     regenerateMeal,
   } = useWeeklyPlan(currentDateString);
+
+  useEffect(() => {
+    if (!userId) return;
+    const fetchAllPlans = async () => {
+      try {
+        const data = await getUserPlans(userId);
+        setAllPlans(data);
+      } catch (err) {
+        console.error('Error fetching all plans:', err);
+      }
+    };
+    fetchAllPlans();
+  }, [userId, weeklyPlan]);
 
   // Parse string date to Date object for calculation logic
   const currentDate = new Date(currentDateString);
@@ -115,7 +135,7 @@ export default function Calendar() {
                 currentDate={currentDate}
                 daysOfWeek={daysOfWeek}
                 handleDayClick={handleDayClick}
-                weeklyPlan={weeklyPlan}
+                allPlans={allPlans}
               />
             )}
             {viewMode === 'year' && (
@@ -124,6 +144,7 @@ export default function Calendar() {
                 months={months}
                 today={today}
                 handleDayClick={handleDayClick}
+                allPlans={allPlans}
               />
             )}
             {viewMode === 'day' && (

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional
-from app.models.user import Macros, UserGoal, ActivityLevel
+from app.models.user import Macros, UserGoal, ActivityLevel, FamilyMember
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -27,3 +27,5 @@ class OnboardRequest(BaseModel):
     allergies: List[str] = Field(default_factory=list)
     preferences: List[str] = Field(default_factory=list)
     daily_macros_target: Optional[Macros] = None
+    is_family_mode: Optional[bool] = False
+    family_members: Optional[List[FamilyMember]] = Field(default_factory=list)

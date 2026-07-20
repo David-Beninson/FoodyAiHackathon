@@ -3,7 +3,7 @@ from beanie import PydanticObjectId
 from datetime import datetime, timedelta
 from app.models.user import UserProfile, Macros
 from app.models.plan import WeeklyPlan, DayPlan, MealPlan, MealStatus
-from app.schemas.plan import GeneratePlanRequest, UpdateMealStatusRequest, RegenerateMealRequest
+from app.schemas.plan import GeneratePlanRequest, UpdateMealStatusRequest, RegenerateMealRequest, SaveDraftPlanRequest
 from app.services.ai import AIService
 from typing import Optional
 
@@ -244,3 +244,32 @@ async def regenerate_single_meal(payload: RegenerateMealRequest):
     plan.updated_at = datetime.utcnow()
     await plan.save()
     return plan
+
+@router.post("/save-draft", response_model=WeeklyPlan)
+async def save_draft_weekly_plan(payload: SaveDraftPlanRequest):
+    """
+    Saves or updates a draft weekly plan as the official plan for that week.
+    Overwrites any existing plan for the targeted week.
+    """
+    week_start = get_week_start_date(payload.week_start_date)
+    
+    # Check if a plan already exists for this user and week
+    existing = await WeeklyPlan.find_one(
+        WeeklyPlan.user_id == payload.user_id,
+        WeeklyPlan.week_start_date == week_start
+    )
+    
+    if existing:
+        existing.days = payload.days
+        existing.updated_at = datetime.utcnow()
+        await existing.save()
+        return existing
+    else:
+        new_plan = WeeklyPlan(
+            user_id=payload.user_id,
+            week_start_date=week_start,
+            days=payload.days
+        )
+        await new_plan.insert()
+        return new_plan
+

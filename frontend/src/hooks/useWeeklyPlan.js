@@ -2,22 +2,7 @@ import { useState, useEffect } from 'react';
 import { getWeeklyPlan, updateMealStatus as apiUpdateMealStatus } from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
 
-// Formatting helper to get YYYY-MM-DD in local time
-const getLocalDateString = (date) => {
-  const d = new Date(date);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-// Get start of the week (Sunday) in local time as YYYY-MM-DD
-const getWeekStartLocalDate = (date) => {
-  const d = new Date(date);
-  const dayOfWeek = d.getDay(); // 0 is Sunday, 1 is Monday, etc.
-  d.setDate(d.getDate() - dayOfWeek);
-  return getLocalDateString(d);
-};
+import { getLocalDateString, getWeekStartLocalDate } from '../utils/calendarUtils';
 
 export function useWeeklyPlan(currentDateString) {
   const { user } = useAuth();

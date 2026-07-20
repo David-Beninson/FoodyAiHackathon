@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import LoadingSpinner from './LoadingSpinner';
 
 export default function ProtectedRoute({ children }) {
-  const { token, user, isLoading, isOnboarded } = useAuth();
+  const { token, user, isLoading } = useAuth();
   const location = useLocation();
 
   if (isLoading) {

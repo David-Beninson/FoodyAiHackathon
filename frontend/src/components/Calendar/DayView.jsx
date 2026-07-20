@@ -30,7 +30,7 @@ export default function DayView({
       ...prev,
       [activeModalSection]: mealData
     }));
-    onUpdateStatus(activeModalSection, 'replaced', mealData.name);
+    onUpdateStatus(activeModalSection, 'replaced', mealData.prompt);
   };
 
   const getAdjustmentPrompt = (section) => {
@@ -98,17 +98,17 @@ export default function DayView({
                   <div className={`meal-content-container ${isSkipped ? 'skipped-meal' : ''}`}>
                     <h3 className="meal-title" style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 4px 0', textAlign: 'left' }}>
                       {isReplaced && meal.replaced_with_meal_name
-                        ? meal.replaced_with_meal_name
+                        ? `AI Custom: ${meal.replaced_with_meal_name}`
                         : meal.name}
                     </h3>
                     <p className="meal-description" style={{ fontSize: '13px', color: 'var(--text)', margin: '0 0 8px 0', textAlign: 'left' }}>
-                      {currentCustomMeal ? `Custom meal added: ${currentCustomMeal.name}` : meal.description}
+                      {currentCustomMeal ? `AI tailored portions for your request: "${currentCustomMeal.prompt}"` : meal.description}
                     </p>
                     <div className="meal-macros-badges" style={{ display: 'flex', gap: '8px', fontSize: '12px' }}>
-                      <span className="macro-badge calories">🔥 {currentCustomMeal ? currentCustomMeal.calories : meal.planned_macros?.calories} kcal</span>
-                      <span className="macro-badge protein">🥩 {currentCustomMeal ? currentCustomMeal.protein : meal.planned_macros?.protein}g Pro</span>
-                      <span className="macro-badge carbs">🍞 {currentCustomMeal ? currentCustomMeal.carbs : meal.planned_macros?.carbs}g Carb</span>
-                      <span className="macro-badge fat">🥑 {currentCustomMeal ? currentCustomMeal.fats : meal.planned_macros?.fat}g Fat</span>
+                      <span className="macro-badge calories">🔥 {meal.planned_macros?.calories} kcal</span>
+                      <span className="macro-badge protein">🥩 {meal.planned_macros?.protein}g Pro</span>
+                      <span className="macro-badge carbs">🍞 {meal.planned_macros?.carbs}g Carb</span>
+                      <span className="macro-badge fat">🥑 {meal.planned_macros?.fat}g Fat</span>
                     </div>
                   </div>
                 ) : (
@@ -127,7 +127,7 @@ export default function DayView({
                         className={`action-btn dropdown-toggle ${isEaten ? 'active-eaten' : isSkipped ? 'active-skipped' : isReplaced ? 'active-replaced' : ''}`}
                         onClick={() => toggleDropdown(`${section}-planned`)}
                       >
-                        {isEaten ? '✓ Eaten' : isSkipped ? '✕ Skipped' : isReplaced ? '✏️ Replaced' : 'Planned ▾'}
+                        {isEaten ? '✓ Eaten' : isSkipped ? '✕ Skipped' : isReplaced ? '✨ AI Custom' : 'Planned ▾'}
                       </button>
 
                       {openDropdown === `${section}-planned` && (
@@ -171,14 +171,14 @@ export default function DayView({
                             setOpenDropdown(null);
                           }}
                         >
-                          <span className="icon">+</span> Custom
+                          <span className="icon">✨</span> Custom (AI)
                         </button>
                         <button 
                           type="button" 
                           className="dropdown-item accent-text"
                           onClick={() => setOpenDropdown(null)}
                         >
-                          <span className="icon">✨</span> AI Regenerate
+                          <span className="icon">🔄</span> AI Regenerate
                         </button>
                       </div>
                     )}

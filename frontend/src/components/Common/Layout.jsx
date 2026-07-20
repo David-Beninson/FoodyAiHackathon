@@ -6,6 +6,7 @@ import './Common.css';
 export default function Layout() {
     const location = useLocation();
     const isProfilePage = location.pathname.toLowerCase() === "/profile";
+    const isPlannerPage = location.pathname.toLowerCase() === "/planner";
     const { user, logout } = useAuth();
 
     return (
@@ -15,7 +16,8 @@ export default function Layout() {
                     <Link to="/">FoodyAI</Link>
                 </div>
                 <div className="linksContainer">
-                    <Link to="/" className={!isProfilePage ? "active" : ""}>Home</Link>
+                    <Link to="/" className={location.pathname === "/" ? "active" : ""}>Home</Link>
+                    <Link to="/planner" className={isPlannerPage ? "active" : ""}>Planner</Link>
                     <Link to="/Profile" className={isProfilePage ? "active" : ""}>Profile</Link>
                     {user && (
                         <div className="nav-user-container">

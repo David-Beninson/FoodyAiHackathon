@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
-from typing import Optional
-from app.models.plan import MealStatus
+from typing import Optional, Dict
+from app.models.plan import MealStatus, DayPlan
 
 class GeneratePlanRequest(BaseModel):
     user_id: str
@@ -16,3 +16,9 @@ class RegenerateMealRequest(BaseModel):
     day: str = Field(..., pattern="^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)$")
     meal_type: str = Field(..., pattern="^(breakfast|lunch|dinner)$")
     prompt_override: Optional[str] = None
+
+class SaveDraftPlanRequest(BaseModel):
+    user_id: str
+    week_start_date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$")
+    days: Dict[str, DayPlan]
+

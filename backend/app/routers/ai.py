@@ -4,8 +4,10 @@ from datetime import datetime
 from app.models.user import UserProfile, Macros
 from app.models.plan import WeeklyPlan
 from app.models.completion import CompletionMeal
-from app.schemas.ai import ChatRequest, ExplainMealRequest, CompletionRequest
+from app.schemas.ai import ChatRequest, ExplainMealRequest, CompletionRequest, PlannerChatRequest, AutoPlannerRequest
 from app.services.ai import AIService
+from app.services.chat_planner import ChatPlannerService
+from app.models.chat_session import ChatSession
 from app.routers.plan import get_week_start_date
 
 router = APIRouter(prefix="/ai", tags=["AI Assistant"])
@@ -174,3 +176,135 @@ async def get_completion_meals_history(user_id: str):
     Fetch history of smart completion meals for a user.
     """
     return await CompletionMeal.find(CompletionMeal.user_id == user_id).to_list()
+
+@router.get("/planner/chat/{user_id}", response_model=ChatSession)
+async def get_or_create_chat_session(user_id: str):
+    """
+    Fetches the active planner chat session for the user, or creates one if it doesn't exist.
+    """
+    session = await ChatSession.find_one(ChatSession.user_id == user_id)
+    if not session:
+        session = ChatSession(user_id=user_id)
+        await session.insert()
+    return session
+
+@router.post("/planner/chat", response_model=ChatSession)
+async def chat_planner(payload: PlannerChatRequest):
+    """
+    Sends a message to the LangGraph/LangChain planner advisor.
+    Updates the session with new message and potentially an updated weekly menu draft.
+    """
+    try:
+        user_obj_id = PydanticObjectId(payload.user_id)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user ID format"
+        )
+    user = await UserProfile.get(user_obj_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User profile not found."
+        )
+
+    session = await ChatSession.find_one(ChatSession.user_id == payload.user_id)
+    if not session:
+        session = ChatSession(user_id=payload.user_id)
+        await session.insert()
+
+    updated_session = await ChatPlannerService.process_chat_message(
+        session=session,
+        user=user,
+        user_message=payload.message
+    )
+    return updated_session
+
+@router.delete("/planner/chat/{user_id}")
+async def reset_chat_session(user_id: str):
+    """
+    Resets/clears the active planner chat session.
+    """
+    session = await ChatSession.find_one(ChatSession.user_id == user_id)
+    if session:
+        session.messages = []
+        session.ingredients = []
+        session.shopping_list = []
+        session.draft_plan = None
+        session.updated_at = session.updated_at.utcnow()
+        await session.save()
+    return {"status": "success", "message": "Chat session reset successfully."}
+
+@router.post("/planner/generate-auto")
+async def generate_auto_plan_draft(payload: AutoPlannerRequest):
+    """
+    Generates a weekly meal plan draft directly from profile settings.
+    Does NOT save to the calendar yet.
+    """
+    try:
+        user_obj_id = PydanticObjectId(payload.user_id)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user ID format"
+        )
+    user = await UserProfile.get(user_obj_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User profile not found."
+        )
+
+    # Generate plan via AI Service
+    ai_response = AIService.generate_weekly_plan(user)
+    
+    # Format to weekly plan days dictionary
+    days_dict = {}
+    for day_name in ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]:
+        ai_day = getattr(ai_response, day_name)
+        
+        meals = {
+            "breakfast": {
+                "name": ai_day.breakfast.name,
+                "description": ai_day.breakfast.description,
+                "planned_macros": {
+                    "calories": ai_day.breakfast.calories,
+                    "protein": ai_day.breakfast.protein,
+                    "carbs": ai_day.breakfast.carbs,
+                    "fat": ai_day.breakfast.fat
+                },
+                "actual_macros": {"calories": 0.0, "protein": 0.0, "carbs": 0.0, "fat": 0.0},
+                "status": "planned",
+                "ai_explanation": ai_day.breakfast.ai_explanation
+            },
+            "lunch": {
+                "name": ai_day.lunch.name,
+                "description": ai_day.lunch.description,
+                "planned_macros": {
+                    "calories": ai_day.lunch.calories,
+                    "protein": ai_day.lunch.protein,
+                    "carbs": ai_day.lunch.carbs,
+                    "fat": ai_day.lunch.fat
+                },
+                "actual_macros": {"calories": 0.0, "protein": 0.0, "carbs": 0.0, "fat": 0.0},
+                "status": "planned",
+                "ai_explanation": ai_day.lunch.ai_explanation
+            },
+            "dinner": {
+                "name": ai_day.dinner.name,
+                "description": ai_day.dinner.description,
+                "planned_macros": {
+                    "calories": ai_day.dinner.calories,
+                    "protein": ai_day.dinner.protein,
+                    "carbs": ai_day.dinner.carbs,
+                    "fat": ai_day.dinner.fat
+                },
+                "actual_macros": {"calories": 0.0, "protein": 0.0, "carbs": 0.0, "fat": 0.0},
+                "status": "planned",
+                "ai_explanation": ai_day.dinner.ai_explanation
+            }
+        }
+        days_dict[day_name] = {"meals": meals}
+
+    return {"days": days_dict}
+

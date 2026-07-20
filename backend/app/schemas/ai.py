@@ -19,3 +19,12 @@ class CompletionRequest(BaseModel):
     user_id: str
     date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$")
     skipped_meal_type: str = Field(..., pattern="^(breakfast|lunch|dinner)$")
+
+class PlannerChatRequest(BaseModel):
+    user_id: str
+    message: str
+
+class AutoPlannerRequest(BaseModel):
+    user_id: str
+    week_start_date: str
+

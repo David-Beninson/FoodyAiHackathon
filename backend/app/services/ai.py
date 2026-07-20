@@ -93,7 +93,7 @@ class AIService:
             try:
                 from google.genai import types
                 response = gemini_client.models.generate_content(
-                    model='gemini-2.5-flash',
+                    model='gemini-3.5-flash',
                     contents=f"{system_prompt}\n\n{user_prompt}",
                     config=types.GenerateContentConfig(
                         response_mime_type="application/json",
@@ -165,7 +165,7 @@ class AIService:
             try:
                 from google.genai import types
                 response = gemini_client.models.generate_content(
-                    model='gemini-2.5-flash',
+                    model='gemini-3.5-flash',
                     contents=system_prompt,
                     config=types.GenerateContentConfig(
                         response_mime_type="application/json",
@@ -219,7 +219,7 @@ class AIService:
             try:
                 from google.genai import types
                 response = gemini_client.models.generate_content(
-                    model='gemini-2.5-flash',
+                    model='gemini-3.5-flash',
                     contents=system_prompt,
                     config=types.GenerateContentConfig(
                         response_mime_type="application/json",
@@ -283,7 +283,7 @@ class AIService:
                 prompt = "\n\n".join(contents)
                 
                 response = gemini_client.models.generate_content(
-                    model='gemini-2.5-flash',
+                    model='gemini-3.5-flash',
                     contents=prompt,
                 )
                 return response.text
@@ -320,7 +320,7 @@ class AIService:
         if gemini_client:
             try:
                 response = gemini_client.models.generate_content(
-                    model='gemini-2.5-flash',
+                    model='gemini-3.5-flash',
                     contents=system_prompt,
                 )
                 return response.text.strip()

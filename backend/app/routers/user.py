@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from beanie import PydanticObjectId
-from app.models.user import UserProfile, calculate_target_macros
+from app.models.user import UserProfile
+from app.utils import calculate_target_macros
 from app.schemas.user import UserCreate, OnboardRequest, UserLogin, TokenResponse
 from app.services.auth import AuthService
 from typing import List

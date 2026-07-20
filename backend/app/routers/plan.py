@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Query
 from beanie import PydanticObjectId
 from datetime import datetime, timedelta
 from app.models.user import UserProfile, Macros
-from app.models.plan import WeeklyPlan, DayPlan, MealPlan
+from app.models.plan import WeeklyPlan, DayPlan, MealPlan, MealStatus
 from app.schemas.plan import GeneratePlanRequest, UpdateMealStatusRequest, RegenerateMealRequest
 from app.services.ai import AIService
 from typing import Optional
@@ -181,7 +181,7 @@ async def update_meal_status(
     meal = day_plan.meals[meal_type]
     meal.status = payload.status
     
-    if payload.status == "replaced":
+    if payload.status == MealStatus.REPLACED:
         meal.replaced_with_meal_name = payload.replaced_with_meal_name
         # For simple replacement, copy planned macros or let client override
         # We assume planned macros remain active for simplicity or set to custom value.
@@ -246,7 +246,7 @@ async def regenerate_single_meal(payload: RegenerateMealRequest):
         fat=new_meal_data.fat
     )
     meal_slot.ai_explanation = new_meal_data.ai_explanation
-    meal_slot.status = "planned"
+    meal_slot.status = MealStatus.PLANNED
     meal_slot.update_actual_macros()
 
     plan.updated_at = datetime.utcnow()

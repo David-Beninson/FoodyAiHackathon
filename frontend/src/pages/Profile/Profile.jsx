@@ -16,6 +16,8 @@ export default function Profile() {
         setNewAllergy,
         newPref,
         setNewPref,
+        newGoal,
+        setNewGoal,
         proteinPct,
         carbsPct,
         fatsPct,
@@ -44,7 +46,8 @@ export default function Profile() {
 
             <div className="profile-content-area">
                 <UserMetaCard
-                    userName={mockUserPlan.userName}
+                    userName={currentProfile.username || mockUserPlan.userName}
+                    email={currentProfile.email || currentProfile.email}
                     weekId={mockUserPlan.weekId}
                 />
 
@@ -53,6 +56,10 @@ export default function Profile() {
                         <WeightCard
                             weight={currentProfile.weight}
                             goalWeight={currentProfile.goalWeight}
+                            height={currentProfile.height}
+                            age={currentProfile.age}
+                            gender={currentProfile.gender}
+                            activityLevel={currentProfile.activity_level}
                             onChange={handleChange}
                             isEditing={isEditing}
                         />
@@ -68,12 +75,24 @@ export default function Profile() {
                     </div>
 
                     <div className="card">
-                        <h2 className="card-title">Preferences & Dietary Constraints</h2>
+                        <h2 className="card-title">Goals, Preferences & Dietary Constraints</h2>
+
+                        <TagManagerCard
+                            title="Personal Goals"
+                            placeholder="Add goal (e.g. build muscle)..."
+                            tags={currentProfile.goals || []}
+                            inputValue={newGoal}
+                            setInputValue={setNewGoal}
+                            onAddTag={() => addTag('goals', newGoal, setNewGoal)}
+                            onRemoveTag={(tag) => removeTag('goals', tag)}
+                            isEditing={isEditing}
+                            emptyMessage="No goals recorded"
+                        />
 
                         <TagManagerCard
                             title="Allergies & Restrictions"
                             placeholder="Add allergy (e.g. peanuts)..."
-                            tags={currentProfile.allergies}
+                            tags={currentProfile.allergies || []}
                             inputValue={newAllergy}
                             setInputValue={setNewAllergy}
                             onAddTag={() => addTag('allergies', newAllergy, setNewAllergy)}
@@ -85,7 +104,7 @@ export default function Profile() {
                         <TagManagerCard
                             title="Dietary Preferences (e.g. vegetarian, gluten-free)"
                             placeholder="Add preference..."
-                            tags={currentProfile.preferences}
+                            tags={currentProfile.preferences || []}
                             inputValue={newPref}
                             setInputValue={setNewPref}
                             onAddTag={() => addTag('preferences', newPref, setNewPref)}

@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Layout from './components/Common/Layout.jsx'
 import NotFound from './pages/NotFound/NotFound.jsx'
-import HomePage from './pages/Home/HomePage.jsx'
+import Calendar from './pages/Calendar/Calendar.jsx'
 import Profile from './pages/Profile/Profile.jsx'
 
 export default function App() {
@@ -13,7 +13,7 @@ export default function App() {
       children: [
         {
           index: true,
-          element: <HomePage />
+          element: <Calendar />
         },
         {
           path: '/Profile',

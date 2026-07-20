@@ -73,15 +73,15 @@ export function useProfile() {
 
     const [profile, setProfile] = useState(() => {
         const saved = localStorage.getItem('foodyai_profile');
-        return saved ? JSON.parse(saved) : defaultProfileState;
+        return saved ? { ...defaultProfileState, ...JSON.parse(saved) } : defaultProfileState;
     });
 
     const [isEditing, setIsEditing] = useState(false);
     const [tempProfile, setTempProfile] = useState(() => {
         const savedTemp = localStorage.getItem('foodyai_temp_profile');
-        if (savedTemp) return JSON.parse(savedTemp);
+        if (savedTemp) return { ...defaultProfileState, ...JSON.parse(savedTemp) };
         const saved = localStorage.getItem('foodyai_profile');
-        return saved ? JSON.parse(saved) : defaultProfileState;
+        return saved ? { ...defaultProfileState, ...JSON.parse(saved) } : defaultProfileState;
     });
     const [newAllergy, setNewAllergy] = useState('');
     const [newPref, setNewPref] = useState('');

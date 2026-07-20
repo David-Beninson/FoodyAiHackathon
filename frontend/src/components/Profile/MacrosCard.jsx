@@ -20,7 +20,7 @@ export default function MacrosCard({
                     id="calories"
                     type="number"
                     className="form-control"
-                    value={targetMacros.calories}
+                    value={targetMacros?.calories || 0}
                     readOnly={true}
                     required
                 />
@@ -34,7 +34,7 @@ export default function MacrosCard({
                             id="protein"
                             type="number"
                             className="form-control"
-                            value={targetMacros.protein}
+                            value={targetMacros?.protein || 0}
                             readOnly={true}
                             required
                         />
@@ -45,7 +45,7 @@ export default function MacrosCard({
                             id="carbs"
                             type="number"
                             className="form-control"
-                            value={targetMacros.carbs}
+                            value={targetMacros?.carbs || 0}
                             readOnly={true}
                             required
                         />
@@ -56,7 +56,7 @@ export default function MacrosCard({
                             id="fats"
                             type="number"
                             className="form-control"
-                            value={targetMacros.fats}
+                            value={targetMacros?.fats || 0}
                             readOnly={true}
                             required
                         />

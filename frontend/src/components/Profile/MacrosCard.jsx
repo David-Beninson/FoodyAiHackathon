@@ -8,9 +8,9 @@ export default function MacrosCard({
     isLoading
 }) {
     return (
-        <div className="card" style={{ opacity: isLoading ? 0.6 : 1, transition: 'opacity 0.25s ease-in-out' }}>
+        <div className={`card ${isLoading ? 'loading-card' : ''}`}>
             <h2 className="card-title">Daily Goals (Macros)</h2>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text)', margin: '0 0 0.5rem 0', lineHeight: '1.4' }}>
+            <p className="card-subtitle">
                 These goals are calculated automatically based on your physical metrics and goals.
             </p>
             
@@ -27,8 +27,8 @@ export default function MacrosCard({
             </div>
 
             <div className="macros-list">
-                <div className="info-row" style={{ marginTop: '0.5rem' }}>
-                    <div className="form-group" style={{ flex: 1, marginInlineEnd: '0.5rem', marginBottom: 0 }}>
+                <div className="info-row macros-row">
+                    <div className="form-group macro-field">
                         <label htmlFor="protein">Protein (g)</label>
                         <input
                             id="protein"
@@ -39,7 +39,7 @@ export default function MacrosCard({
                             required
                         />
                     </div>
-                    <div className="form-group" style={{ flex: 1, marginInlineEnd: '0.5rem', marginBottom: 0 }}>
+                    <div className="form-group macro-field">
                         <label htmlFor="carbs">Carbs (g)</label>
                         <input
                             id="carbs"
@@ -50,7 +50,7 @@ export default function MacrosCard({
                             required
                         />
                     </div>
-                    <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                    <div className="form-group macro-field last-macro-field">
                         <label htmlFor="fats">Fats (g)</label>
                         <input
                             id="fats"

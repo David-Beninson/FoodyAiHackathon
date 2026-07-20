@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getUserProfile, onboardUser } from '../api/apiClient';
-
-//!!delete afetr created login
-const DEFAULT_USER_ID = import.meta.env.VITE_DEFAULT_USER_ID;
+import { useAuth } from '../context/AuthContext';
 
 // Helper for percentage calculations
 const getMacroMetrics = (targetMacros) => {
@@ -70,6 +68,9 @@ const defaultProfileState = {
 };
 
 export function useProfile() {
+    const { user, refreshProfile } = useAuth();
+    const userId = user?.id || user?._id;
+
     const [profile, setProfile] = useState(() => {
         const saved = localStorage.getItem('foodyai_profile');
         return saved ? JSON.parse(saved) : defaultProfileState;
@@ -84,13 +85,15 @@ export function useProfile() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // Fetch profile from backend on mount
+    // Fetch profile from backend on mount or when user changes
     useEffect(() => {
+        if (!userId) return;
+
         const fetchProfile = async () => {
             setIsLoading(true);
             setError(null);
             try {
-                const data = await getUserProfile(DEFAULT_USER_ID);
+                const data = await getUserProfile(userId);
                 const mapped = mapBackendToFrontend(data);
                 setProfile(mapped);
                 setTempProfile(mapped);
@@ -111,7 +114,7 @@ export function useProfile() {
         };
 
         fetchProfile();
-    }, []);
+    }, [userId]);
 
     const handleStartEdit = () => {
         setTempProfile({ ...profile });
@@ -127,14 +130,19 @@ export function useProfile() {
 
     const handleSave = async (e) => {
         if (e) e.preventDefault();
+        if (!userId) return;
         setIsLoading(true);
         setError(null);
         try {
             const backendData = mapFrontendToBackend(tempProfile);
-            const savedData = await onboardUser(DEFAULT_USER_ID, backendData);
+            const savedData = await onboardUser(userId, backendData);
             const mapped = mapBackendToFrontend(savedData);
             setProfile(mapped);
             localStorage.setItem('foodyai_profile', JSON.stringify(mapped));
+            
+            // Sync with global auth state (updates isOnboarded flag)
+            await refreshProfile();
+            
             setIsEditing(false);
             setShowSuccessToast(true);
             setTimeout(() => setShowSuccessToast(false), 3000);

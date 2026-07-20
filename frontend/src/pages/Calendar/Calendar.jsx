@@ -88,22 +88,14 @@ export default function Calendar() {
       />
 
       {error && error.includes('Connection error') && (
-        <div style={{
-          backgroundColor: 'rgba(255, 59, 48, 0.1)',
-          borderBottom: '1px solid rgba(255, 59, 48, 0.2)',
-          color: '#ff3b30',
-          padding: '8px 16px',
-          fontSize: '12px',
-          textAlign: 'center',
-          fontWeight: 500
-        }}>
+        <div className="calendar-error-banner">
           Connection error: Cannot connect to the server. Meals will not load.
         </div>
       )}
 
       <main className="calendar-content">
         {isLoading ? (
-          <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
+          <div className="calendar-loading-container">
             <LoadingSpinner message="Loading meals..." />
           </div>
         ) : (

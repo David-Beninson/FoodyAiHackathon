@@ -1,6 +1,6 @@
 export default function UserMetaCard({ userName, email }) {
     return (
-        <div className="card" style={{ marginBottom: '2rem' }}>
+        <div className="card profile-meta-card">
             <div className="info-row">
                 <span className="info-label">User name:</span>
                 <span className="info-value">{userName?.toUpperCase() || "guest"}</span>

@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev:frontend": "npm --prefix Frontend run dev",
-    "dev:backend": "uv --directory Backend run uvicorn app.main:app --reload",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "uv --directory backend run uvicorn app.main:app --reload",
     "dev": "npx concurrently \"npm run dev:frontend\" \"npm run dev:backend\""
   },
   "keywords": [],
@@ -14,7 +14,7 @@
   "devEngines": {
     "packageManager": {
       "name": "npm",
-      "version": "^11.9.0",
+      "version": "^10.0.0",
       "onFail": "download"
     }
   },

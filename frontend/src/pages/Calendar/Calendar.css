@@ -688,32 +688,124 @@
 
 /* Dark Mode Adjustments */
 @media (prefers-color-scheme: dark) {
-  .success-btn:hover { background: rgba(22, 163, 74, 0.15); color: #4ade80; border-color: rgba(22, 163, 74, 0.3); }
-  .custom-btn:hover { background: rgba(37, 99, 235, 0.15); color: #60a5fa; border-color: rgba(37, 99, 235, 0.3); }
-  .skipped-btn:hover { background: rgba(220, 38, 38, 0.15); color: #f87171; border-color: rgba(220, 38, 38, 0.3); }
-  
-  .action-btn.active-eaten { background: #15803d; }
-  .action-btn.active-skipped { background: #b91c1c; }
-  .action-btn.active-replaced { background: #1d4ed8; }
+  .action-btn.active-eaten { background: #388e3c; }
+  .dropdown-item.success-text:hover { color: #81c784; }
+  .dropdown-item.danger-text:hover { color: #ef5350; }
+  .dropdown-item.primary-text:hover { color: #64b5f6; }
+}
 
-  .adjust-plan-btn {
-    background-color: rgba(59, 130, 246, 0.12);
-    border-color: rgba(59, 130, 246, 0.35);
-    color: #60a5fa;
-  }
-  .adjust-plan-btn:hover {
-    background-color: #3b82f6;
-    color: #ffffff;
-  }
+/* Additional Styles for WeekView Meals */
+.meal-cell.planned {
+  background-color: var(--code-bg);
+  border-left: 3px solid var(--accent);
+}
+.meal-cell.eaten {
+  background-color: rgba(46, 125, 50, 0.1);
+  border-left: 3px solid #2e7d32;
+}
+.meal-cell.skipped {
+  background-color: rgba(198, 40, 40, 0.1);
+  border-left: 3px solid #c62828;
+  opacity: 0.6;
+}
+.meal-cell.replaced {
+  background-color: rgba(21, 101, 192, 0.1);
+  border-left: 3px solid #1565c0;
+}
 
-  .modal-form .form-control:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
-  }
-  .modal-actions-footer .btn-primary {
-    background-color: #3b82f6;
-  }
-  .modal-actions-footer .btn-primary:hover {
-    background-color: #2563eb;
-  }
+.week-meal-info {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 8px;
+  font-size: 11px;
+  height: 100%;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.week-meal-name {
+  font-weight: 600;
+  color: var(--text-h);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.week-meal-calories {
+  color: var(--text);
+  font-size: 10px;
+}
+
+/* Meal Details Styles in DayView */
+.meal-content-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.meal-content-container.skipped-meal {
+  opacity: 0.5;
+}
+
+.meal-content-container.skipped-meal .meal-title,
+.meal-content-container.skipped-meal .meal-description {
+  text-decoration: line-through;
+}
+
+.meal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.meal-description {
+  font-size: 13px;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.meal-macros-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.macro-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.macro-badge.calories {
+  background-color: rgba(255, 149, 0, 0.1);
+  border-color: rgba(255, 149, 0, 0.2);
+  color: #ff9500;
+}
+
+.macro-badge.protein {
+  background-color: rgba(52, 199, 89, 0.1);
+  border-color: rgba(52, 199, 89, 0.2);
+  color: #34c759;
+}
+
+.macro-badge.carbs {
+  background-color: rgba(0, 122, 255, 0.1);
+  border-color: rgba(0, 122, 255, 0.2);
+  color: #007aff;
+}
+
+.macro-badge.fat {
+  background-color: rgba(175, 82, 222, 0.1);
+  border-color: rgba(175, 82, 222, 0.2);
+  color: #af52de;
 }

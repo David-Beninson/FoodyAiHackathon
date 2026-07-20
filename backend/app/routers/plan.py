@@ -180,15 +180,7 @@ async def update_meal_status(
 
     meal = day_plan.meals[meal_type]
     meal.status = payload.status
-    
-    if payload.status == MealStatus.REPLACED:
-        meal.replaced_with_meal_name = payload.replaced_with_meal_name
-        # For simple replacement, copy planned macros or let client override
-        # We assume planned macros remain active for simplicity or set to custom value.
-        meal.actual_macros = meal.planned_macros
-    else:
-        meal.replaced_with_meal_name = None
-        meal.update_actual_macros()
+    meal.update_actual_macros()
 
     plan.updated_at = datetime.utcnow()
     await plan.save()

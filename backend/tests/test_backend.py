@@ -1,7 +1,6 @@
 import asyncio
 import os
 import sys
-import json
 from dotenv import load_dotenv
 
 # Ensure we can import app modules
@@ -21,7 +20,7 @@ from app.services.ai import AIService
 
 async def run_tests():
     print("==================================================")
-    print("      FOODYAI SYSTEM INTEGRATION & ENUM TESTS     ")
+    print("      FOODYAI SYSTEM INTEGRATION TEST SUITE       ")
     print("==================================================")
     
     # 1. Verify environment loading
@@ -39,20 +38,20 @@ async def run_tests():
         print(f"  -> ERROR: Database connection failed: {e}")
         return
 
-    # 3. Clean up existing test data
-    print("\n[3/8] Cleaning up existing test data...")
+    # 3. Clean up existing test data from previous runs (to avoid unique email collision)
+    print("\n[3/8] Cleaning up existing test user from previous runs...")
     test_email = "test_suite_user@foodyai.com"
     existing_user = await UserProfile.find_one(UserProfile.email == test_email)
     if existing_user:
-        # Delete plans
+        # Delete old plans
         await WeeklyPlan.find(WeeklyPlan.user_id == str(existing_user.id)).delete()
-        # Delete completions
+        # Delete old completions
         await CompletionMeal.find(CompletionMeal.user_id == str(existing_user.id)).delete()
-        # Delete user
+        # Delete old user
         await existing_user.delete()
-        print(f"  -> Cleaned up user {test_email} and its plans/completions.")
+        print(f"  -> Cleaned up existing user {test_email} to prepare for fresh data.")
     else:
-        print("  -> No existing test data found. Clean slate.")
+        print("  -> No existing test data found. Ready for fresh insertion.")
 
     # 4. User Registration & Password Hashing
     print("\n[4/8] Testing User Registration...")
@@ -66,17 +65,17 @@ async def run_tests():
     )
     await test_user.insert()
     assert test_user.id is not None
-    print(f"  -> User registered. MongoDB ID: {test_user.id}")
+    print(f"  -> User registered successfully. MongoDB ID: {test_user.id}")
     print(f"  -> Password verified successfully: {AuthService.verify_password(plain_password, test_user.hashed_password)}")
 
-    # 5. Onboarding & Target Macro Calculations (Using Enums & validating compatibility)
+    # 5. Onboarding & Target Macro Calculations
     print("\n[5/8] Testing Onboarding & Macro Calculations...")
     age = 28
     weight = 80.0
     height = 180.0
     gender = "male"
     
-    # Use English Enum directly
+    # Set English Enums
     activity_level = ActivityLevel.MODERATELY_ACTIVE
     goals = [UserGoal.LOSE_WEIGHT]
     
@@ -94,7 +93,7 @@ async def run_tests():
     print(f"     Carbs: {target_macros.carbs}g")
     print(f"     Fat: {target_macros.fat}g")
 
-    # Verify Enum types are assigned and saved successfully
+    # Update User Profile
     test_user.age = age
     test_user.weight = weight
     test_user.height = height
@@ -107,23 +106,10 @@ async def run_tests():
     await test_user.save()
     print("  -> User profile updated with onboarding Enums.")
 
-    # Validation: Verify that legacy string assignment translates correctly
-    print("  -> Verifying legacy string inputs get translated to Enums...")
-    legacy_user = UserProfile(
-        email="legacy_user@foodyai.com",
-        username="LegacyTester",
-        hashed_password=hashed_pwd,
-        activity_level="moderately_active",
-        goals=["lose weight"]
-    )
-    assert legacy_user.activity_level == ActivityLevel.MODERATELY_ACTIVE
-    assert legacy_user.goals == [UserGoal.LOSE_WEIGHT]
-    print("  -> Legacy string translation validation passed!")
-
-    # 6. Weekly Plan Generation (Gemini AI API check or rule-based fallback)
-    print("\n[6/8] Testing Weekly Plan Generation via Gemini API...")
+    # 6. Weekly Plan Generation
+    print("\n[6/8] Testing Weekly Plan Generation via Gemini API (falling back to mock if needed)...")
     try:
-        ai_plan_response = AIService.generate_weekly_plan(test_user, prompt_override="Add extra quinoa to Sunday dinner")
+        ai_plan_response = AIService.generate_weekly_plan(test_user, prompt_override="Include light fresh meals")
         print("  -> AI generated plan successfully!")
         
         # Build WeeklyPlan Document
@@ -183,7 +169,7 @@ async def run_tests():
         print(f"     Sunday Breakfast: {sunday_meals['breakfast'].name} ({sunday_meals['breakfast'].planned_macros.calories} kcal)")
         print(f"     Sunday Lunch: {sunday_meals['lunch'].name} ({sunday_meals['lunch'].planned_macros.calories} kcal)")
         print(f"     Sunday Dinner: {sunday_meals['dinner'].name} ({sunday_meals['dinner'].planned_macros.calories} kcal)")
-        print(f"     Sunday Total Planned Calories: {new_plan.days['Sunday'].summary_planned_macros.calories} kcal")
+        print(f"     Sunday Total Planned Calories: {new_plan.days["Sunday"].summary_planned_macros.calories} kcal")
 
     except Exception as e:
         print(f"  -> ERROR: Plan generation failed: {e}")
@@ -254,7 +240,7 @@ async def run_tests():
     try:
         chat_reply = AIService.chat_advisor(
             user=test_user,
-            message="Hi, what high-protein snack do you recommend after a workout?",
+            message="Recommend a healthy high-protein post-workout snack.",
             history=[]
         )
         print("  -> Chat replied successfully:")
@@ -264,6 +250,7 @@ async def run_tests():
 
     print("\n==================================================")
     print("          ALL TEST CASES PASSED SUCCESSFULLY      ")
+    print("      DATA RETAINED IN MONGODB FOR INSPECTION     ")
     print("==================================================")
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import CustomMealModal from './CustomMealModal';
+import MealDetailsModal from './MealDetailsModal';
 
 export default function DayView({
   mealSections,
@@ -12,6 +13,9 @@ export default function DayView({
   
   // Open modal state: stores the current meal section (Breakfast/Lunch/Dinner)
   const [activeModalSection, setActiveModalSection] = useState(null);
+  
+  // New state: stores the meal data to show in the details modal
+  const [activeDetailsMeal, setActiveDetailsMeal] = useState(null);
 
   const handleStatusToggle = (section, status) => {
     const mealKey = section.toLowerCase();
@@ -96,20 +100,22 @@ export default function DayView({
               <div className="meal-cell flex-1">
                 {meal ? (
                   <div className={`meal-content-container ${isSkipped ? 'skipped-meal' : ''}`}>
-                    <h3 className="meal-title" style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 4px 0', textAlign: 'left' }}>
+                    <h3 
+                      className="meal-title" 
+                      style={{ fontSize: '15px', fontWeight: '600', margin: '0', textAlign: 'left', cursor: 'pointer', textDecoration: 'underline' }}
+                      onClick={() => setActiveDetailsMeal({
+                        title: isReplaced && meal.replaced_with_meal_name ? `AI Custom: ${meal.replaced_with_meal_name}` : meal.name,
+                        description: currentCustomMeal ? `Custom meal added: ${currentCustomMeal.name}` : meal.description,
+                        calories: currentCustomMeal ? currentCustomMeal.calories : meal.planned_macros?.calories,
+                        protein: currentCustomMeal ? currentCustomMeal.protein : meal.planned_macros?.protein,
+                        carbs: currentCustomMeal ? currentCustomMeal.carbs : meal.planned_macros?.carbs,
+                        fats: currentCustomMeal ? currentCustomMeal.fats : meal.planned_macros?.fat
+                      })}
+                    >
                       {isReplaced && meal.replaced_with_meal_name
                         ? `AI Custom: ${meal.replaced_with_meal_name}`
                         : meal.name}
                     </h3>
-                    <p className="meal-description" style={{ fontSize: '13px', color: 'var(--text)', margin: '0 0 8px 0', textAlign: 'left' }}>
-                      {currentCustomMeal ? `Custom meal added: ${currentCustomMeal.name}` : meal.description}
-                    </p>
-                    <div className="meal-macros-badges" style={{ display: 'flex', gap: '8px', fontSize: '12px' }}>
-                      <span className="macro-badge calories">🔥 {currentCustomMeal ? currentCustomMeal.calories : meal.planned_macros?.calories} kcal</span>
-                      <span className="macro-badge protein">🥩 {currentCustomMeal ? currentCustomMeal.protein : meal.planned_macros?.protein}g Pro</span>
-                      <span className="macro-badge carbs">🍞 {currentCustomMeal ? currentCustomMeal.carbs : meal.planned_macros?.carbs}g Carb</span>
-                      <span className="macro-badge fat">🥑 {currentCustomMeal ? currentCustomMeal.fats : meal.planned_macros?.fat}g Fat</span>
-                    </div>
                   </div>
                 ) : (
                   <div className="meal-content-placeholder">
@@ -197,6 +203,12 @@ export default function DayView({
         mealSection={activeModalSection}
         onClose={() => setActiveModalSection(null)}
         onSave={handleSaveCustomMeal}
+      />
+
+      <MealDetailsModal 
+        isOpen={Boolean(activeDetailsMeal)}
+        meal={activeDetailsMeal}
+        onClose={() => setActiveDetailsMeal(null)}
       />
     </div>
   );

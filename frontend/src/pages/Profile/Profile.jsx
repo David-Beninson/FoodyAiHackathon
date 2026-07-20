@@ -40,17 +40,7 @@ export default function Profile() {
             )}
 
             {error && (
-                <div className="error-banner" style={{
-                    backgroundColor: '#ffebe9',
-                    color: '#d12420',
-                    border: '1px solid rgba(27,31,35,0.15)',
-                    borderRadius: '6px',
-                    padding: '1rem',
-                    marginBottom: '1rem',
-                    textAlign: 'center',
-                    fontWeight: 'bold',
-                    direction: 'ltr'
-                }}>
+                <div className="error-banner">
                     ⚠️ {error}
                 </div>
             )}
@@ -137,11 +127,11 @@ export default function Profile() {
                         </div>
 
                         {isEditing && (
-                            <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                                <button type="submit" className="btn btn-primary" style={{ padding: '0.8rem 2rem' }}>
+                            <div className="profile-form-actions">
+                                <button type="submit" className="btn btn-primary btn-large">
                                     Save Changes
                                 </button>
-                                <button type="button" className="btn btn-secondary" onClick={handleCancelEdit} style={{ padding: '0.8rem 2rem' }}>
+                                <button type="button" className="btn btn-secondary btn-large" onClick={handleCancelEdit}>
                                     Cancel
                                 </button>
                             </div>

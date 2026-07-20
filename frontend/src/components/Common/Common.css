@@ -32,10 +32,12 @@
     letter-spacing: -0.5px;
     color: var(--text-h);
     text-decoration: none;
+    font-weight: bold;
 }
 
 .linksContainer {
     display: flex;
+    align-items: center;
     gap: 20px;
 }
 
@@ -56,6 +58,38 @@
 .linksContainer a.active {
     color: var(--accent);
     font-weight: 600;
+}
+
+.nav-user-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: 12px;
+    border-left: 1px solid var(--border);
+    padding-left: 12px;
+}
+
+.nav-welcome {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-h);
+}
+
+.nav-logout-btn {
+    background: none;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.nav-logout-btn:hover {
+    color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.05);
 }
 
 .main-content {

@@ -43,7 +43,7 @@
   text-align: center;
 }
 
-/* Segmented Control Selectors - פינות ישרות */
+/* Segmented Control Selectors - Flat corners */
 .segment-control {
   display: flex;
   background: var(--bg);
@@ -166,7 +166,7 @@
   border-radius: 50%;
 }
 
-/* האדום הקלאסי של Apple */
+/* Classic Apple red */
 .active-day {
   background-color: #ff3b30;
   color: white;
@@ -457,7 +457,7 @@
   border-color: #bfdbfe;
 }
 
-/* -------------------- AI Elements (בצבע כחול נקי) -------------------- */
+/* -------------------- AI Elements (Clean Blue Color) -------------------- */
 .ai-btn:hover {
   background: rgba(37, 99, 235, 0.08);
   color: #2563eb;
@@ -544,7 +544,7 @@
 .dropdown-item.danger-text:hover { color: #dc2626; }
 .dropdown-item.primary-text:hover { color: #2563eb; }
 
-/* -------------------- Adjustment Prompt & AI Styling (כחול) -------------------- */
+/* -------------------- Adjustment Prompt & AI Styling (Blue) -------------------- */
 .adjustment-prompt-container {
   display: flex;
   justify-content: center;
@@ -586,7 +586,7 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* -------------------- Custom Meal Modal Styles (נקי מסגול) -------------------- */
+/* -------------------- Custom Meal Modal Styles (Clean of Purple) -------------------- */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -755,16 +755,17 @@
 }
 
 .meal-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text-h);
-  margin: 0;
+  margin: 0 0 4px 0;
+  text-align: left;
 }
 
 .meal-description {
   font-size: 13px;
   color: var(--text);
-  margin: 0;
+  margin: 0 0 8px 0;
   line-height: 1.4;
   text-align: left;
 }
@@ -772,8 +773,9 @@
 .meal-macros-badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
   margin-top: 4px;
+  font-size: 12px;
 }
 
 .macro-badge {
@@ -808,4 +810,22 @@
   background-color: rgba(175, 82, 222, 0.1);
   border-color: rgba(175, 82, 222, 0.2);
   color: #af52de;
+}
+
+.calendar-error-banner {
+  background-color: rgba(255, 59, 48, 0.1);
+  border-bottom: 1px solid rgba(255, 59, 48, 0.2);
+  color: #ff3b30;
+  padding: 8px 16px;
+  font-size: 12px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.calendar-loading-container {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
 }

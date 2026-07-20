@@ -12,7 +12,7 @@ export default function ProfileHeader({ isEditing, onStartEdit, onSave, onCancel
                     Edit Profile
                 </button>
             ) : (
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="profile-header-actions">
                     <button
                         type="button"
                         onClick={onSave}

@@ -1,0 +1,333 @@
+/* Container & Toolbar */
+.apple-calendar-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background-color: var(--bg);
+  color: var(--text-h);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  direction: ltr; /* Ensure LTR for English */
+}
+
+.calendar-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--code-bg);
+}
+
+.toolbar-left, .toolbar-right, .toolbar-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.toolbar-center {
+  justify-content: center;
+}
+
+.toolbar-right {
+  justify-content: flex-end;
+}
+
+.current-date-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+}
+
+/* Apple-style Segment Control */
+.segment-control {
+  display: flex;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2px;
+  overflow: hidden;
+}
+
+.segment-control button {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 4px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.segment-control button.active {
+  background: var(--border);
+  color: var(--text-h);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Nav Buttons */
+.nav-arrows {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.icon-btn, .today-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-h);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.icon-btn {
+  font-size: 18px;
+  padding: 2px 10px;
+}
+
+.today-btn {
+  font-size: 13px;
+  padding: 4px 12px;
+}
+
+.calendar-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* -------------------- Week View -------------------- */
+.apple-week-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.week-header {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 0;
+}
+
+.time-axis-spacer {
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.day-header-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.day-name {
+  font-size: 11px;
+  color: var(--text);
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.day-number {
+  font-size: 20px;
+  font-weight: 400;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.active-day {
+  background-color: #ff3b30; /* Apple Red */
+  color: white;
+  font-weight: 600;
+}
+
+.week-grid {
+  display: flex;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.time-axis {
+  width: 60px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+}
+
+.time-label {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding-top: 10px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.days-columns {
+  display: flex;
+  flex: 1;
+}
+
+.day-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+}
+
+.day-column:last-child {
+  border-right: none;
+}
+
+.meal-cell {
+  flex: 1;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.meal-cell:last-child {
+  border-bottom: none;
+}
+
+/* -------------------- Month View Skeleton -------------------- */
+.apple-month-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.month-header {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 0;
+}
+
+.month-day-name {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text);
+  text-transform: uppercase;
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  flex: 1;
+}
+
+.month-cell {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 8px;
+}
+
+.month-date-number {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* -------------------- Year View (Apple Style) -------------------- */
+.apple-year-view {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px 24px;
+  padding: 32px;
+  overflow-y: auto;
+}
+
+.year-month-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.year-month-title {
+  font-size: 16px;
+  color: #ff3b30;
+  margin: 0 0 12px 8px;
+  font-weight: 500;
+}
+
+.mini-month-days-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 8px;
+}
+
+.mini-day-name {
+  font-size: 10px;
+  color: var(--text);
+  text-align: center;
+  font-weight: 500;
+}
+
+.mini-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px 0;
+}
+
+.mini-day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--text-h);
+  height: 24px;
+}
+
+.mini-active-day {
+  background-color: #ff3b30;
+  color: white;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 600;
+}
+
+/* -------------------- Day View Skeleton -------------------- */
+.apple-day-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 24px;
+}
+
+.day-header-single {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.day-sections {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.day-meal-row {
+  flex: 1;
+  display: flex;
+  border-top: 1px solid var(--border);
+}
+
+.day-meal-row .time-label {
+  width: 100px;
+  text-align: left;
+  padding: 16px;
+  border-right: 1px solid var(--border);
+}

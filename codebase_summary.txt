@@ -2991,193 +2991,148 @@ export default defineConfig([
 ])
 ```
 
+### File: ./frontend/src/context/AuthContext.jsx
+```
+import { createContext, useContext, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  loginUserThunk,
+  registerUserThunk,
+  restoreSessionThunk,
+  refreshProfileThunk,
+  logout as logoutAction
+} from '../store/authSlice';
+
+const AuthContext = createContext(null);
+
+export function AuthProvider({ children }) {
+  const dispatch = useDispatch();
+  const { token, user, isLoading, error } = useSelector((state) => state.auth);
+
+  // Restore session on mount
+  useEffect(() => {
+    dispatch(restoreSessionThunk());
+  }, [dispatch]);
+
+  const login = async (email, password) => {
+    // Unwraps the thunk's promise result to catch rejected action errors in components
+    return await dispatch(loginUserThunk({ email, password })).unwrap();
+  };
+
+  const register = async (username, email, password) => {
+    return await dispatch(registerUserThunk({ username, email, password })).unwrap();
+  };
+
+  const logout = () => {
+    dispatch(logoutAction());
+  };
+
+  const refreshProfile = async () => {
+    return await dispatch(refreshProfileThunk()).unwrap();
+  };
+
+  // Onboarded check: True if age, height, weight, gender are filled
+  const isOnboarded = !!(user && user.age && user.weight && user.height && user.gender);
+
+  return (
+    <AuthContext.Provider value={{ token, user, isLoading, error, login, register, logout, refreshProfile, isOnboarded }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+```
+
 ### File: ./frontend/src/App.css
 ```
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
+:root {
+  --text: #555555;
+  --text-h: #111111;
+  --bg: #ffffff;
+  --border: #e0e0e0;
+  --code-bg: #f9f9f9;
+  --accent: #38cce0;
+  --accent-hover: #2bb8cc;
+  --accent-bg: rgba(56, 204, 224, 0.1);
+  --radius: 6px;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
+  --sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 16px/150% var(--sans);
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #a0a0a0;
+    --text-h: #ffffff;
+    --bg: #121212;
+    --border: #2e2e2e;
+    --code-bg: #1e1e1e;
+    --accent: #38cce0;
+    --accent-hover: #4dd5e8;
+    --accent-bg: rgba(56, 204, 224, 0.15);
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 }
 
-.hero {
-  position: relative;
-
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
 }
 
-#center {
+#root {
+  width: 100%;
+  max-width: none; /* מאפשר לאתר להתפרס על כל המסך */
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
+  box-sizing: border-box;
 }
 
-#next-steps {
-  display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
+h1 {
+  font-family: var(--heading);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text-h);
+  letter-spacing: -0.01em;
+  margin: 24px 0;
 }
 
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
+h2 {
+  font-family: var(--heading);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-h);
+  line-height: 120%;
+  margin: 0 0 12px;
 }
 
-#next-steps ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
-}
-
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
-}
-
-.ticks {
-  position: relative;
-  width: 100%;
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
-
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
-  }
-}
-```
+p {
+  margin: 0;
+}```
 
 ### File: ./frontend/src/utils/calendarUtils.js
 ```
@@ -3209,117 +3164,74 @@ export const getMonthGridData = (year, monthIndex) => {
 ### File: ./frontend/src/index.css
 ```
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --text: #94a3b8;
+  --text-h: #f8fafc;
+  --bg: #0a0b0e;
+  --surface: #12141a;
+  --border: #1e2230;
+  --border-glow: rgba(56, 204, 224, 0.4);
+  --code-bg: #161922;
+  --accent: #38cce0;
+  --accent-hover: #4dd5e8;
+  --accent-bg: rgba(56, 204, 224, 0.12);
+  --accent-glow: 0 0 20px rgba(56, 204, 224, 0.25);
+  --radius: 10px;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
+  font: 16px/150% var(--sans);
+  color-scheme: dark;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
 }
 
 body {
   margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
 }
 
-h1,
+h1 {
+  font-family: var(--heading);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text-h);
+  letter-spacing: -0.01em;
+  margin: 24px 0;
+}
+
 h2 {
   font-family: var(--heading);
+  font-size: 20px;
   font-weight: 500;
   color: var(--text-h);
+  line-height: 120%;
+  margin: 0 0 12px;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
 p {
   margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
-```
+}```
 
 ### File: ./frontend/src/components/Calendar/YearView.jsx
 ```
@@ -3394,7 +3306,6 @@ export default function DayView({
   const [customMeals, setCustomMeals] = useState({});
   const [openDropdown, setOpenDropdown] = useState(null);
   
-  // ניהול המודאל הפתוח: שומר את סעיף הארוחה הנוכחי (Breakfast/Lunch/Dinner)
   const [activeModalSection, setActiveModalSection] = useState(null);
 
   const handleStatusToggle = (section, status) => {
@@ -3434,12 +3345,12 @@ export default function DayView({
     }
 
     if (section === 'Lunch' && breakfastSkipped) {
-      return "✨ Regenerating a new meal with AI to reach your goal.";
+      return "Regenerating a new meal with AI to reach your goal.";
     }
 
     if (section === 'Dinner') {
       if ((breakfastSkipped && lunchSkipped) || lunchSkipped || breakfastSkipped) {
-        return "✨ Regenerating a new meal with AI to reach your goal.";
+        return "Regenerating a new meal with AI to reach your goal.";
       }
     }
 
@@ -3464,15 +3375,12 @@ export default function DayView({
               <div className="time-label">
                 <span className="time-label-text">{section}</span>
 
+                {/* הבועה הצפה מחוץ לטבלה עם החץ */}
                 {promptMessage && (
-                  <div className="adjustment-prompt-container">
-                    <button
-                      type="button"
-                      className={`adjust-plan-btn ${promptMessage.startsWith('✕') ? 'notice-only' : ''}`}
-                      disabled={promptMessage.startsWith('✕')}
-                    >
+                  <div className="ai-tooltip-container">
+                    <div className={`ai-tooltip-bubble ${promptMessage.startsWith('✕') ? 'notice-only' : ''}`}>
                       {promptMessage}
-                    </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -3480,19 +3388,19 @@ export default function DayView({
               <div className="meal-cell flex-1">
                 {meal ? (
                   <div className={`meal-content-container ${isSkipped ? 'skipped-meal' : ''}`}>
-                    <h3 className="meal-title" style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 4px 0', textAlign: 'left' }}>
+                    <h3 className="meal-title">
                       {isReplaced && meal.replaced_with_meal_name
-                        ? `AI Custom: ${meal.replaced_with_meal_name}`
+                        ? `Custom: ${meal.replaced_with_meal_name}`
                         : meal.name}
                     </h3>
-                    <p className="meal-description" style={{ fontSize: '13px', color: 'var(--text)', margin: '0 0 8px 0', textAlign: 'left' }}>
-                      {currentCustomMeal ? `AI tailored portions for your request: "${currentCustomMeal.prompt}"` : meal.description}
+                    <p className="meal-description">
+                      {currentCustomMeal ? `Custom meal added: ${currentCustomMeal.name}` : meal.description}
                     </p>
-                    <div className="meal-macros-badges" style={{ display: 'flex', gap: '8px', fontSize: '12px' }}>
-                      <span className="macro-badge calories">🔥 {meal.planned_macros?.calories} kcal</span>
-                      <span className="macro-badge protein">🥩 {meal.planned_macros?.protein}g Pro</span>
-                      <span className="macro-badge carbs">🍞 {meal.planned_macros?.carbs}g Carb</span>
-                      <span className="macro-badge fat">🥑 {meal.planned_macros?.fat}g Fat</span>
+                    <div className="meal-macros-badges">
+                      <span className="macro-badge calories">🔥 {currentCustomMeal ? currentCustomMeal.calories : meal.planned_macros?.calories} kcal</span>
+                      <span className="macro-badge protein">🥩 {currentCustomMeal ? currentCustomMeal.protein : meal.planned_macros?.protein}g Pro</span>
+                      <span className="macro-badge carbs">🍞 {currentCustomMeal ? currentCustomMeal.carbs : meal.planned_macros?.carbs}g Carb</span>
+                      <span className="macro-badge fat">🥑 {currentCustomMeal ? currentCustomMeal.fats : meal.planned_macros?.fat}g Fat</span>
                     </div>
                   </div>
                 ) : (
@@ -3502,8 +3410,6 @@ export default function DayView({
                 )}
                 
                 <div className="meal-actions">
-
-                  {/* Dropdown 1: Planned / Eaten / Skipped */}
                   {!isFutureDay && (
                     <div className="dropdown-wrapper">
                       <button
@@ -3511,31 +3417,30 @@ export default function DayView({
                         className={`action-btn dropdown-toggle ${isEaten ? 'active-eaten' : isSkipped ? 'active-skipped' : isReplaced ? 'active-replaced' : ''}`}
                         onClick={() => toggleDropdown(`${section}-planned`)}
                       >
-                        {isEaten ? '✓ Eaten' : isSkipped ? '✕ Skipped' : isReplaced ? '✨ AI Custom' : 'Planned ▾'}
+                        {isEaten ? '✓ Eaten' : isSkipped ? '✕ Skipped' : isReplaced ? '✨ Custom' : 'Planned ▾'}
                       </button>
 
                       {openDropdown === `${section}-planned` && (
                         <div className="dropdown-menu">
                           <button
                             type="button"
-                            className="dropdown-item success-text"
+                            className="dropdown-item"
                             onClick={() => handleStatusToggle(section, 'eaten')}
                           >
-                            <span className="icon">✓</span> Eaten
+                            ✓ Eaten
                           </button>
                           <button
                             type="button"
-                            className="dropdown-item danger-text"
+                            className="dropdown-item"
                             onClick={() => handleStatusToggle(section, 'skipped')}
                           >
-                            <span className="icon">✕</span> Skipped
+                            ✕ Skipped
                           </button>
                         </div>
                       )}
                     </div>
                   )}
                   
-                  {/* Dropdown 2: Replace Meal (Custom / AI) */}
                   <div className="dropdown-wrapper">
                     <button 
                       type="button" 
@@ -3549,28 +3454,26 @@ export default function DayView({
                       <div className="dropdown-menu">
                         <button 
                           type="button" 
-                          className="dropdown-item primary-text"
+                          className="dropdown-item"
                           onClick={() => {
                             setActiveModalSection(section);
                             setOpenDropdown(null);
                           }}
                         >
-                          <span className="icon">✨</span> Custom (AI)
+                          ✨ Custom
                         </button>
                         <button 
                           type="button" 
-                          className="dropdown-item accent-text"
+                          className="dropdown-item"
                           onClick={() => setOpenDropdown(null)}
                         >
-                          <span className="icon">🔄</span> AI Regenerate
+                          🔄 Regenerate
                         </button>
                       </div>
                     )}
                   </div>
-
                 </div>
               </div>
-
             </div>
           );
         })}
@@ -3829,23 +3732,32 @@ export default function MonthView({
 ### File: ./frontend/src/components/Common/Layout.jsx
 ```
 import { Link, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext.jsx";
 import Footer from "./Footer.jsx";
 import './Common.css';
 
 export default function Layout() {
     const location = useLocation();
     const isProfilePage = location.pathname.toLowerCase() === "/profile";
+    const { user, logout } = useAuth();
 
     return (
         <div className="layout-container">
-            {/* סרגל ניווט עליון */}
             <nav className="navbar">
                 <div className="logo">
-                    <Link to="/" style={{ textDecoration: 'none', color: 'inherit', fontWeight: 'bold' }}>FoodyAI</Link>
+                    <Link to="/">FoodyAI</Link>
                 </div>
                 <div className="linksContainer">
                     <Link to="/" className={!isProfilePage ? "active" : ""}>Home</Link>
                     <Link to="/Profile" className={isProfilePage ? "active" : ""}>Profile</Link>
+                    {user && (
+                        <div className="nav-user-container">
+                            <span className="nav-welcome">Hi, {user.username}</span>
+                            <button onClick={logout} className="nav-logout-btn">
+                                Logout
+                            </button>
+                        </div>
+                    )}
                 </div>
             </nav>
 
@@ -3884,9 +3796,9 @@ export default function Footer() {
     return (
         <footer className="appFooter">
             <div className="appFooterContent">
-                <large className="appFooterCopyright">
+                <h6 className="appFooterCopyright">
                     Please note that using AI is at your own risk.
-                </large>
+                </h6>
             </div>
         </footer>
     );
@@ -3894,16 +3806,6 @@ export default function Footer() {
 
 ### File: ./frontend/src/components/Common/Common.css
 ```
-/* Main Layout Styles */
-#root {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    margin: 0 auto;
-    box-sizing: border-box;
-}
-
 .layout-container {
     display: flex;
     flex-direction: column;
@@ -3912,27 +3814,39 @@ export default function Footer() {
     background-color: var(--bg);
 }
 
-/* Navbar */
+/* Navbar with Glassmorphism */
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 24px;
+    padding: 16px 36px;
+    background: rgba(18, 20, 26, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
-    background: var(--code-bg);
+    width: 100%;
     box-sizing: border-box;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
 .logo a {
-    font-size: 20px;
-    letter-spacing: -0.5px;
-    color: var(--text-h);
+    font-size: 22px;
+    font-weight: 700;
     text-decoration: none;
+    color: var(--text-h);
+    letter-spacing: -0.5px;
+}
+
+.logo a span {
+    color: var(--accent);
 }
 
 .linksContainer {
     display: flex;
-    gap: 20px;
+    gap: 16px;
+    align-items: center;
 }
 
 .linksContainer a {
@@ -3940,18 +3854,54 @@ export default function Footer() {
     color: var(--text);
     font-weight: 500;
     font-size: 15px;
-    transition: color 0.2s ease;
-    padding: 4px 8px;
-    border-radius: 4px;
+    transition: all 0.25s ease;
+    padding: 8px 14px;
+    border-radius: var(--radius);
 }
 
 .linksContainer a:hover {
     color: var(--text-h);
+    background-color: var(--surface);
 }
 
 .linksContainer a.active {
     color: var(--accent);
+    background-color: var(--accent-bg);
+    box-shadow: var(--accent-glow);
     font-weight: 600;
+}
+
+.nav-user-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: 12px;
+    padding-left: 16px;
+    border-left: 1px solid var(--border);
+}
+
+.nav-welcome {
+    font-size: 14px;
+    color: var(--text-h);
+    font-weight: 500;
+}
+
+.nav-logout-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.nav-logout-btn:hover {
+    background: var(--surface);
+    color: var(--text-h);
+    border-color: var(--accent);
 }
 
 .main-content {
@@ -3967,7 +3917,7 @@ export default function Footer() {
     padding: 24px;
     border-top: 1px solid var(--border);
     text-align: center;
-    background: var(--code-bg);
+    background: var(--surface);
 }
 
 .appFooterContent {
@@ -3979,13 +3929,33 @@ export default function Footer() {
 .appFooterCopyright {
     font-size: 13px;
     color: var(--text);
-}
-
-.appFooterText {
-    font-size: 12px;
-    color: var(--text);
-    opacity: 0.8;
+    font-weight: 400;
 }```
+
+### File: ./frontend/src/components/Common/ProtectedRoute.jsx
+```
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import LoadingSpinner from './LoadingSpinner';
+
+export default function ProtectedRoute({ children }) {
+  const { token, user, isLoading, isOnboarded } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return <LoadingSpinner message="Checking authentication..." fullPage />;
+  }
+
+  if (!token || !user) {
+    // Redirect to login, saving the original location they tried to access
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+
+
+  return children;
+}
+```
 
 ### File: ./frontend/src/components/Common/LoadingSpinner.css
 ```
@@ -3996,31 +3966,19 @@ export default function Footer() {
   justify-content: center;
   padding: 2rem;
   width: 100%;
-  box-sizing: border-box;
 }
 
 .loading-spinner-container.full-page {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg);
   z-index: 9999;
-}
-
-@media (prefers-color-scheme: dark) {
-  .loading-spinner-container.full-page {
-    background: rgba(22, 23, 29, 0.75);
-  }
 }
 
 .spinner-wrapper {
   position: relative;
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4030,54 +3988,22 @@ export default function Footer() {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: conic-gradient(from 0deg, transparent 30%, var(--accent, #aa3bff));
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 0);
-  mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 0);
+  border: 4px solid var(--border);
+  border-top-color: var(--accent);
   animation: spin 1s linear infinite;
 }
 
-.spinner-core {
-  position: absolute;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background-color: var(--bg, #fff);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-@media (prefers-color-scheme: dark) {
-  .spinner-core {
-    background-color: var(--bg, #16171d);
-  }
-}
-
 .loading-message {
-  margin-top: 1.2rem;
-  font-size: 0.95rem;
+  margin-top: 1rem;
+  font-size: 15px;
   font-weight: 500;
-  color: var(--text-h, #08060d);
-  letter-spacing: 0.3px;
-  animation: pulse 1.5s ease-in-out infinite;
+  color: var(--text-h);
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-```
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}```
 
 ### File: ./frontend/src/components/Profile/ProfileHeader.jsx
 ```
@@ -4095,7 +4021,7 @@ export default function ProfileHeader({ isEditing, onStartEdit, onSave, onCancel
                     Edit Profile
                 </button>
             ) : (
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="profile-header-actions">
                     <button
                         type="button"
                         onClick={onSave}
@@ -4149,7 +4075,7 @@ export default function WeightCard({
         <div className="card">
             <h2 className="card-title">Personal Metrics & Bio</h2>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="metrics-grid">
                 <div className="form-group">
                     <label htmlFor="weight">Current Weight (kg)</label>
                     <input
@@ -4179,7 +4105,7 @@ export default function WeightCard({
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="metrics-grid">
                 <div className="form-group">
                     <label htmlFor="height">Height (cm)</label>
                     <input
@@ -4243,8 +4169,250 @@ export default function WeightCard({
         </div>
     );
 }
-
 ```
+
+### File: ./frontend/src/components/Profile/OnboardingQuestionnaire.jsx
+```
+import '../../pages/Profile/Profile.css';
+
+export default function OnboardingQuestionnaire({
+    tempProfile,
+    error,
+    newAllergy,
+    setNewAllergy,
+    newPref,
+    setNewPref,
+    handleChange,
+    addTag,
+    removeTag,
+    onSubmit
+}) {
+    return (
+        <div className="profile-container" style={{ padding: '40px 20px' }}>
+            <div className="profile-content-area" style={{ maxWidth: '640px' }}>
+                <header className="profile-header" style={{ marginBottom: '32px', padding: '0 0 16px 0', background: 'transparent' }}>
+                    <h1 className="profile-title" style={{ fontSize: '28px' }}>Welcome to FoodyAI</h1>
+                </header>
+                
+                <p style={{ color: 'var(--text)', marginBottom: '32px', fontSize: '15px' }}>
+                    Please fill out this quick questionnaire to personalize your nutrition targets. Your progress is saved automatically.
+                </p>
+
+                {error && (
+                    <div className="auth-error-banner" style={{ marginBottom: '24px' }}>
+                        ⚠️ {error}
+                    </div>
+                )}
+
+                <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    {/* Section 1: Basic Biometrics */}
+                    <div className="card">
+                        <h2 className="card-title">Biometric Information</h2>
+                        
+                        <div className="profile-grid">
+                            <div className="form-group">
+                                <label htmlFor="age">Age (years)</label>
+                                <input
+                                    type="number"
+                                    id="age"
+                                    className="form-control"
+                                    value={tempProfile.age || ''}
+                                    onChange={(e) => handleChange('age', e.target.value)}
+                                    min="1"
+                                    max="120"
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="height">Height (cm)</label>
+                                <input
+                                    type="number"
+                                    id="height"
+                                    className="form-control"
+                                    value={tempProfile.height || ''}
+                                    onChange={(e) => handleChange('height', e.target.value)}
+                                    min="50"
+                                    max="250"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="profile-grid">
+                            <div className="form-group">
+                                <label htmlFor="weight">Current Weight (kg)</label>
+                                <input
+                                    type="number"
+                                    id="weight"
+                                    className="form-control"
+                                    value={tempProfile.weight || ''}
+                                    onChange={(e) => handleChange('weight', e.target.value)}
+                                    min="20"
+                                    max="300"
+                                    step="0.1"
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="gender">Gender</label>
+                                <select
+                                    id="gender"
+                                    className="form-control"
+                                    value={tempProfile.gender || ''}
+                                    onChange={(e) => handleChange('gender', e.target.value)}
+                                    required
+                                >
+                                    <option value="">Select gender...</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Section 2: Lifestyle & Goals */}
+                    <div className="card">
+                        <h2 className="card-title">Lifestyle & Goals</h2>
+
+                        <div className="form-group">
+                            <label htmlFor="activity_level">Activity Level</label>
+                            <select
+                                id="activity_level"
+                                className="form-control"
+                                value={tempProfile.activity_level || ''}
+                                onChange={(e) => handleChange('activity_level', e.target.value)}
+                                required
+                            >
+                                <option value="sedentary">Sedentary (Little or no exercise)</option>
+                                <option value="lightly_active">Lightly Active (Light exercise 1-3 days/week)</option>
+                                <option value="moderately_active">Moderately Active (Moderate exercise 3-5 days/week)</option>
+                                <option value="very_active">Very Active (Hard exercise 6-7 days/week)</option>
+                            </select>
+                        </div>
+
+                        <div className="form-group" style={{ marginTop: '8px' }}>
+                            <label>Your Goals (Select at least one)</label>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
+                                {[
+                                    { id: 'lose weight', label: 'Lose Weight' },
+                                    { id: 'gain muscle', label: 'Gain Muscle' },
+                                    { id: 'eat healthier', label: 'Eat Healthier' }
+                                ].map((goal) => {
+                                    const isChecked = (tempProfile.goals || []).includes(goal.id);
+                                    return (
+                                        <label key={goal.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', cursor: 'pointer', color: 'var(--text-h)' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={isChecked}
+                                                onChange={(e) => {
+                                                    const currentGoals = tempProfile.goals || [];
+                                                    if (e.target.checked) {
+                                                        handleChange('goals', [...currentGoals, goal.id]);
+                                                    } else {
+                                                        handleChange('goals', currentGoals.filter(g => g !== goal.id));
+                                                    }
+                                                }}
+                                                style={{ width: '16px', height: '16px', accentColor: 'var(--text-h)', cursor: 'pointer' }}
+                                            />
+                                            {goal.label}
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                            {(!tempProfile.goals || tempProfile.goals.length === 0) && (
+                                <span style={{ color: '#ff3b30', fontSize: '12px', marginTop: '6px' }}>
+                                    * At least one goal is required.
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Section 3: Dietary Constraints & Preferences */}
+                    <div className="card">
+                        <h2 className="card-title">Dietary Constraints & Preferences</h2>
+
+                        <div className="form-group">
+                            <label>Allergies & Restrictions</label>
+                            <div className="tag-input-wrapper">
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Add allergy (e.g. peanuts)"
+                                    value={newAllergy}
+                                    onChange={(e) => setNewAllergy(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            addTag('allergies', newAllergy, setNewAllergy);
+                                        }
+                                    }}
+                                />
+                                <button type="button" className="btn btn-secondary" onClick={() => addTag('allergies', newAllergy, setNewAllergy)}>
+                                    Add
+                                </button>
+                            </div>
+                            <div className="tags-container">
+                                {(!tempProfile.allergies || tempProfile.allergies.length === 0) ? (
+                                    <span style={{ color: 'var(--text)', fontSize: '13px' }}>No allergies recorded</span>
+                                ) : (
+                                    tempProfile.allergies.map(allergy => (
+                                        <span key={allergy} className="tag">
+                                            {allergy}
+                                            <button type="button" className="tag-remove" onClick={() => removeTag('allergies', allergy)}>×</button>
+                                        </span>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="form-group" style={{ marginTop: '12px' }}>
+                            <label>Dietary Preferences</label>
+                            <div className="tag-input-wrapper">
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Add preference (e.g. vegetarian)"
+                                    value={newPref}
+                                    onChange={(e) => setNewPref(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            addTag('preferences', newPref, setNewPref);
+                                        }
+                                    }}
+                                />
+                                <button type="button" className="btn btn-secondary" onClick={() => addTag('preferences', newPref, setNewPref)}>
+                                    Add
+                                </button>
+                            </div>
+                            <div className="tags-container">
+                                {(!tempProfile.preferences || tempProfile.preferences.length === 0) ? (
+                                    <span style={{ color: 'var(--text)', fontSize: '13px' }}>No preferences recorded</span>
+                                ) : (
+                                    tempProfile.preferences.map(pref => (
+                                        <span key={pref} className="tag">
+                                            {pref}
+                                            <button type="button" className="tag-remove" onClick={() => removeTag('preferences', pref)}>×</button>
+                                        </span>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
+                        <button type="submit" className="btn btn-primary" style={{ padding: '12px 32px', fontSize: '15px', width: '100%' }}>
+                            Save and Complete Questionnaire
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}```
 
 ### File: ./frontend/src/components/Profile/TagManagerCard.jsx
 ```
@@ -4263,28 +4431,15 @@ export default function TagManagerCard({
     const showCheckboxes = isEditing && options;
 
     return (
-        <div className="form-group" style={{ marginTop: '1.5rem' }}>
+        <div className="form-group tag-manager-group">
             <label>{title}</label>
             
             {showCheckboxes ? (
-                <div className="checkboxes-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                <div className="checkboxes-wrapper">
                     {options.map(opt => {
                         const isChecked = tags.includes(opt);
                         return (
-                            <label 
-                                key={opt} 
-                                style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: '8px', 
-                                    cursor: 'pointer', 
-                                    fontSize: '14px', 
-                                    textTransform: 'none', 
-                                    fontWeight: 'normal', 
-                                    color: 'var(--text-h)',
-                                    padding: '4px 0'
-                                }}
-                            >
+                            <label key={opt} className="checkbox-label">
                                 <input
                                     type="checkbox"
                                     checked={isChecked}
@@ -4295,12 +4450,7 @@ export default function TagManagerCard({
                                             onRemoveTag(opt);
                                         }
                                     }}
-                                    style={{ 
-                                        width: '16px', 
-                                        height: '16px', 
-                                        cursor: 'pointer',
-                                        accentColor: 'var(--accent)'
-                                    }}
+                                    className="checkbox-input"
                                 />
                                 {opt}
                             </label>
@@ -4336,7 +4486,7 @@ export default function TagManagerCard({
                     
                     <div className="tags-container">
                         {tags.length === 0 ? (
-                            <span style={{ color: 'var(--text)', fontSize: '0.9rem' }}>{emptyMessage}</span>
+                            <span className="empty-tags-message">{emptyMessage}</span>
                         ) : (
                             tags.map(tag => (
                                 <span key={tag} className="tag">
@@ -4374,9 +4524,9 @@ export default function MacrosCard({
     isLoading
 }) {
     return (
-        <div className="card" style={{ opacity: isLoading ? 0.6 : 1, transition: 'opacity 0.25s ease-in-out' }}>
+        <div className={`card ${isLoading ? 'loading-card' : ''}`}>
             <h2 className="card-title">Daily Goals (Macros)</h2>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text)', margin: '0 0 0.5rem 0', lineHeight: '1.4' }}>
+            <p className="card-subtitle">
                 These goals are calculated automatically based on your physical metrics and goals.
             </p>
             
@@ -4386,43 +4536,43 @@ export default function MacrosCard({
                     id="calories"
                     type="number"
                     className="form-control"
-                    value={targetMacros.calories}
+                    value={targetMacros?.calories || 0}
                     readOnly={true}
                     required
                 />
             </div>
 
             <div className="macros-list">
-                <div className="info-row" style={{ marginTop: '0.5rem' }}>
-                    <div className="form-group" style={{ flex: 1, marginInlineEnd: '0.5rem', marginBottom: 0 }}>
+                <div className="info-row macros-row">
+                    <div className="form-group macro-field">
                         <label htmlFor="protein">Protein (g)</label>
                         <input
                             id="protein"
                             type="number"
                             className="form-control"
-                            value={targetMacros.protein}
+                            value={targetMacros?.protein || 0}
                             readOnly={true}
                             required
                         />
                     </div>
-                    <div className="form-group" style={{ flex: 1, marginInlineEnd: '0.5rem', marginBottom: 0 }}>
+                    <div className="form-group macro-field">
                         <label htmlFor="carbs">Carbs (g)</label>
                         <input
                             id="carbs"
                             type="number"
                             className="form-control"
-                            value={targetMacros.carbs}
+                            value={targetMacros?.carbs || 0}
                             readOnly={true}
                             required
                         />
                     </div>
-                    <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                    <div className="form-group macro-field last-macro-field">
                         <label htmlFor="fats">Fats (g)</label>
                         <input
                             id="fats"
                             type="number"
                             className="form-control"
-                            value={targetMacros.fats}
+                            value={targetMacros?.fats || 0}
                             readOnly={true}
                             required
                         />
@@ -4444,17 +4594,17 @@ export default function MacrosCard({
 ```
 export default function MacroVisualizer({ proteinPct, carbsPct, fatsPct }) {
     return (
-        <div style={{ marginTop: '1.5rem' }}>
-            <span className="info-label" style={{ fontSize: '0.9rem' }}>Estimated Energy Distribution:</span>
+        <div className="macro-visualizer-container">
+            <span className="info-label macro-visualizer-title">Estimated Energy Distribution:</span>
             <div className="macro-visualizer" aria-hidden="true">
-                <div className="vis-protein" style={{ width: `${proteinPct}%` }} title={`Protein: ${proteinPct.toFixed(0)}%`} />
-                <div className="vis-carbs" style={{ width: `${carbsPct}%` }} title={`Carbs: ${carbsPct.toFixed(0)}%`} />
-                <div className="vis-fats" style={{ width: `${fatsPct}%` }} title={`Fats: ${fatsPct.toFixed(0)}%`} />
+                <div className="vis-protein" style={{ '--width': `${proteinPct}%` }} title={`Protein: ${proteinPct.toFixed(0)}%`} />
+                <div className="vis-carbs" style={{ '--width': `${carbsPct}%` }} title={`Carbs: ${carbsPct.toFixed(0)}%`} />
+                <div className="vis-fats" style={{ '--width': `${fatsPct}%` }} title={`Fats: ${fatsPct.toFixed(0)}%`} />
             </div>
             <div className="vis-legend">
-                <span className="legend-item"><span className="dot" style={{ backgroundColor: '#4bc0c0' }} /> Protein: {proteinPct.toFixed(0)}%</span>
-                <span className="legend-item"><span className="dot" style={{ backgroundColor: '#36a2eb' }} /> Carbs: {carbsPct.toFixed(0)}%</span>
-                <span className="legend-item"><span className="dot" style={{ backgroundColor: '#ff6384' }} /> Fats: {fatsPct.toFixed(0)}%</span>
+                <span className="legend-item"><span className="dot dot-protein" /> Protein: {proteinPct.toFixed(0)}%</span>
+                <span className="legend-item"><span className="dot dot-carbs" /> Carbs: {carbsPct.toFixed(0)}%</span>
+                <span className="legend-item"><span className="dot dot-fats" /> Fats: {fatsPct.toFixed(0)}%</span>
             </div>
         </div>
     );
@@ -4465,7 +4615,7 @@ export default function MacroVisualizer({ proteinPct, carbsPct, fatsPct }) {
 ```
 export default function UserMetaCard({ userName, email }) {
     return (
-        <div className="card" style={{ marginBottom: '2rem' }}>
+        <div className="card profile-meta-card">
             <div className="info-row">
                 <span className="info-label">User name:</span>
                 <span className="info-value">{userName?.toUpperCase() || "guest"}</span>
@@ -4486,9 +4636,7 @@ export default function UserMetaCard({ userName, email }) {
 ```
 import { useState, useEffect } from 'react';
 import { getUserProfile, onboardUser } from '../api/apiClient';
-
-//!!delete afetr created login
-const DEFAULT_USER_ID = import.meta.env.VITE_DEFAULT_USER_ID;
+import { useAuth } from '../context/AuthContext';
 
 // Helper for percentage calculations
 const getMacroMetrics = (targetMacros) => {
@@ -4556,13 +4704,21 @@ const defaultProfileState = {
 };
 
 export function useProfile() {
+    const { user, refreshProfile } = useAuth();
+    const userId = user?.id || user?._id;
+
     const [profile, setProfile] = useState(() => {
         const saved = localStorage.getItem('foodyai_profile');
-        return saved ? JSON.parse(saved) : defaultProfileState;
+        return saved ? { ...defaultProfileState, ...JSON.parse(saved) } : defaultProfileState;
     });
 
     const [isEditing, setIsEditing] = useState(false);
-    const [tempProfile, setTempProfile] = useState(profile);
+    const [tempProfile, setTempProfile] = useState(() => {
+        const savedTemp = localStorage.getItem('foodyai_temp_profile');
+        if (savedTemp) return { ...defaultProfileState, ...JSON.parse(savedTemp) };
+        const saved = localStorage.getItem('foodyai_profile');
+        return saved ? { ...defaultProfileState, ...JSON.parse(saved) } : defaultProfileState;
+    });
     const [newAllergy, setNewAllergy] = useState('');
     const [newPref, setNewPref] = useState('');
     const [newGoal, setNewGoal] = useState('');
@@ -4570,16 +4726,27 @@ export function useProfile() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // Fetch profile from backend on mount
+    // Save temporary profile progress to localStorage
     useEffect(() => {
+        localStorage.setItem('foodyai_temp_profile', JSON.stringify(tempProfile));
+    }, [tempProfile]);
+
+    // Fetch profile from backend on mount or when user changes
+    useEffect(() => {
+        if (!userId) return;
+
         const fetchProfile = async () => {
             setIsLoading(true);
             setError(null);
             try {
-                const data = await getUserProfile(DEFAULT_USER_ID);
+                const data = await getUserProfile(userId);
                 const mapped = mapBackendToFrontend(data);
                 setProfile(mapped);
-                setTempProfile(mapped);
+                // Only overwrite temp profile if there is no unsaved progress
+                const savedTemp = localStorage.getItem('foodyai_temp_profile');
+                if (!savedTemp) {
+                    setTempProfile(mapped);
+                }
                 localStorage.setItem('foodyai_profile', JSON.stringify(mapped));
             } catch (err) {
                 console.error('Error fetching profile from API:', err);
@@ -4597,7 +4764,7 @@ export function useProfile() {
         };
 
         fetchProfile();
-    }, []);
+    }, [userId]);
 
     const handleStartEdit = () => {
         setTempProfile({ ...profile });
@@ -4609,18 +4776,26 @@ export function useProfile() {
         setNewAllergy('');
         setNewPref('');
         setNewGoal('');
+        localStorage.removeItem('foodyai_temp_profile');
+        setTempProfile({ ...profile });
     };
 
     const handleSave = async (e) => {
         if (e) e.preventDefault();
+        if (!userId) return;
         setIsLoading(true);
         setError(null);
         try {
             const backendData = mapFrontendToBackend(tempProfile);
-            const savedData = await onboardUser(DEFAULT_USER_ID, backendData);
+            const savedData = await onboardUser(userId, backendData);
             const mapped = mapBackendToFrontend(savedData);
             setProfile(mapped);
             localStorage.setItem('foodyai_profile', JSON.stringify(mapped));
+            localStorage.removeItem('foodyai_temp_profile');
+            
+            // Sync with global auth state (updates isOnboarded flag)
+            await refreshProfile();
+            
             setIsEditing(false);
             setShowSuccessToast(true);
             setTimeout(() => setShowSuccessToast(false), 3000);
@@ -4675,6 +4850,7 @@ export function useProfile() {
 
     return {
         currentProfile,
+        tempProfile,
         isEditing,
         showSuccessToast,
         newAllergy,
@@ -4702,8 +4878,7 @@ export function useProfile() {
 ```
 import { useState, useEffect } from 'react';
 import { getWeeklyPlan, updateMealStatus as apiUpdateMealStatus } from '../api/apiClient';
-
-const DEFAULT_USER_ID = import.meta.env.VITE_DEFAULT_USER_ID;
+import { useAuth } from '../context/AuthContext';
 
 // Formatting helper to get YYYY-MM-DD in local time
 const getLocalDateString = (date) => {
@@ -4723,6 +4898,9 @@ const getWeekStartLocalDate = (date) => {
 };
 
 export function useWeeklyPlan(currentDateString) {
+  const { user } = useAuth();
+  const userId = user?.id || user?._id;
+
   const [weeklyPlan, setWeeklyPlan] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -4731,6 +4909,8 @@ export function useWeeklyPlan(currentDateString) {
 
   // Fetch the weekly plan from database
   useEffect(() => {
+    if (!userId) return;
+
     let isCurrent = true;
 
     const fetchPlan = async () => {
@@ -4738,7 +4918,7 @@ export function useWeeklyPlan(currentDateString) {
       setError(null);
       try {
         const queryDate = getLocalDateString(new Date(currentDateString));
-        const planData = await getWeeklyPlan(DEFAULT_USER_ID, queryDate);
+        const planData = await getWeeklyPlan(userId, queryDate);
 
         if (isCurrent) {
           setWeeklyPlan(planData);
@@ -4858,16 +5038,24 @@ createRoot(document.getElementById('root')).render(
 ### File: ./frontend/src/App.jsx
 ```
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext.jsx'
+import ProtectedRoute from './components/Common/ProtectedRoute.jsx'
 import Layout from './components/Common/Layout.jsx'
 import NotFound from './pages/NotFound/NotFound.jsx'
 import Calendar from './pages/Calendar/Calendar.jsx'
 import Profile from './pages/Profile/Profile.jsx'
+import Login from './pages/Auth/Login.jsx'
+import Register from './pages/Auth/Register.jsx'
 
 export default function App() {
   const router = createBrowserRouter([
     {
       path: '/',
-      element: <Layout />,
+      element: (
+        <ProtectedRoute>
+          <Layout />
+        </ProtectedRoute>
+      ),
       errorElement: <NotFound />,
       children: [
         {
@@ -4877,15 +5065,28 @@ export default function App() {
         {
           path: '/Profile',
           element: <Profile />
-        },
-        {
-          path: '*',
-          element: <NotFound />
         }
       ]
+    },
+    {
+      path: '/login',
+      element: <Login />
+    },
+    {
+      path: '/register',
+      element: <Register />
+    },
+    {
+      path: '*',
+      element: <NotFound />
     }
   ])
-  return <RouterProvider router={router} />
+
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  )
 }```
 
 ### File: ./frontend/src/api/apiClient.js
@@ -4900,6 +5101,27 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Interceptor to inject the JWT token
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('foodyai_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
+export const loginUser = async (email, password) => {
+  const response = await apiClient.post('/users/login', { email, password });
+  return response.data;
+};
+
+export const registerUser = async (username, email, password) => {
+  const response = await apiClient.post('/users/register', { username, email, password });
+  return response.data;
+};
 
 export const getUserProfile = async (userId) => {
   const response = await apiClient.get(`/users/${userId}`);
@@ -4930,8 +5152,6 @@ export const updateMealStatus = async (planId, day, mealType, status, replacedWi
 };
 
 export default apiClient;
-
-
 ```
 
 ### File: ./frontend/src/pages/Calendar/Calendar.jsx
@@ -5026,22 +5246,14 @@ export default function Calendar() {
       />
 
       {error && error.includes('Connection error') && (
-        <div style={{
-          backgroundColor: 'rgba(255, 59, 48, 0.1)',
-          borderBottom: '1px solid rgba(255, 59, 48, 0.2)',
-          color: '#ff3b30',
-          padding: '8px 16px',
-          fontSize: '12px',
-          textAlign: 'center',
-          fontWeight: 500
-        }}>
+        <div className="calendar-error-banner">
           Connection error: Cannot connect to the server. Meals will not load.
         </div>
       )}
 
       <main className="calendar-content">
         {isLoading ? (
-          <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
+          <div className="calendar-loading-container">
             <LoadingSpinner message="Loading meals..." />
           </div>
         ) : (
@@ -5091,15 +5303,13 @@ export default function Calendar() {
 
 ### File: ./frontend/src/pages/Calendar/Calendar.css
 ```
-/* Container & Toolbar Master Styles */
 .apple-calendar-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: calc(100vh - 73px);
   width: 100%;
   background-color: var(--bg);
   color: var(--text-h);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   direction: ltr;
 }
 
@@ -5107,9 +5317,9 @@ export default function Calendar() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 24px;
+  padding: 18px 36px;
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
-  background: var(--code-bg);
 }
 
 .toolbar-left, .toolbar-right, .toolbar-center {
@@ -5120,92 +5330,66 @@ export default function Calendar() {
 
 .toolbar-center {
   justify-content: center;
-  gap: 16px;
+  gap: 20px;
 }
 
 .toolbar-right {
   justify-content: flex-end;
 }
 
-.current-date-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 500;
-  letter-spacing: -0.3px;
-  min-width: 220px;
-  text-align: center;
+.today-btn, .arrow-btn {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--text-h);
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
-/* Segmented Control Selectors - פינות ישרות */
+.today-btn:hover, .arrow-btn:hover {
+  border-color: var(--accent);
+  box-shadow: var(--accent-glow);
+}
+
+.current-date-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
 .segment-control {
   display: flex;
-  background: var(--bg);
+  background: var(--code-bg);
   border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 2px;
-  overflow: hidden;
+  border-radius: var(--radius);
+  padding: 4px;
+  gap: 4px;
 }
 
 .segment-control button {
   background: transparent;
   border: none;
   color: var(--text);
-  padding: 4px 16px;
-  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 6px;
   cursor: pointer;
-  border-radius: 2px;
+  font-weight: 500;
+  font-size: 14px;
   transition: all 0.2s ease;
 }
 
 .segment-control button.active {
-  background: var(--border);
+  background: var(--accent);
+  color: #000;
+  font-weight: 700;
+  box-shadow: var(--accent-glow);
+}
+
+.segment-control button:hover:not(.active) {
   color: var(--text-h);
-}
-
-/* Toolbar Buttons */
-.today-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-h);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  padding: 4px 12px;
-  transition: background-color 0.2s ease;
-}
-
-.today-btn:hover {
-  background-color: var(--code-bg);
-}
-
-.arrow-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-h);
-  font-size: 24px;
-  font-weight: 300;
-  cursor: pointer;
-  padding: 0 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.arrow-btn:hover {
-  background-color: var(--border);
-}
-
-.calendar-content {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.clickable {
-  cursor: pointer;
+  background: var(--surface);
 }
 
 /* -------------------- Week View -------------------- */
@@ -5213,17 +5397,21 @@ export default function Calendar() {
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
 }
 
 .week-header {
   display: flex;
   border-bottom: 1px solid var(--border);
-  padding: 10px 0;
+  padding: 14px 0;
+  background: var(--surface);
+  width: 100%;
 }
 
 .time-axis-spacer {
-  width: 80px;
+  width: 130px;
   flex-shrink: 0;
+  border-right: 1px solid var(--border);
 }
 
 .day-header-cell {
@@ -5231,26 +5419,28 @@ export default function Calendar() {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  padding: 4px 0;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
+  cursor: pointer;
+  transition: color 0.2s;
 }
 
-.day-header-cell:hover {
-  background-color: var(--code-bg);
+.day-header-cell:hover .day-name {
+  color: var(--accent);
 }
 
 .day-name {
-  font-size: 11px;
-  color: var(--text);
-  font-weight: 500;
+  font-size: 12px;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text);
+  font-weight: 600;
 }
 
 .day-number {
-  font-size: 20px;
-  font-weight: 400;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-h);
   width: 32px;
   height: 32px;
   display: flex;
@@ -5259,30 +5449,26 @@ export default function Calendar() {
   border-radius: 50%;
 }
 
-/* האדום הקלאסי של Apple */
-.active-day {
-  background-color: #ff3b30;
-  color: white;
-  font-weight: 600;
+.day-number.active-day {
+  background: var(--accent);
+  color: #000;
+  box-shadow: var(--accent-glow);
 }
 
 .week-grid {
   display: flex;
   flex: 1;
   overflow-y: auto;
+  width: 100%;
 }
 
 .time-axis {
-  width: 80px;
+  width: 130px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--border);
-  background-color: var(--code-bg);
-}
-
-.time-axis .time-label {
-  border-bottom: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .time-label {
@@ -5290,9 +5476,11 @@ export default function Calendar() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
-  color: var(--text);
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+  border-bottom: 1px solid var(--border);
+  min-height: 120px;
 }
 
 .days-columns {
@@ -5313,136 +5501,64 @@ export default function Calendar() {
 
 .meal-cell {
   flex: 1;
+  min-height: 120px;
   border-bottom: 1px solid var(--border);
   position: relative;
+  transition: all 0.25s ease;
+  padding: 12px;
+  box-sizing: border-box;
 }
 
-/* -------------------- Month View -------------------- */
-.apple-month-view {
+.meal-cell.clickable:hover {
+  transform: translateY(-2px);
+  background-color: rgba(56, 204, 224, 0.04);
+  box-shadow: inset 0 0 12px rgba(56, 204, 224, 0.08);
+  z-index: 10;
+}
+
+.meal-cell.planned {
+  background-color: var(--surface);
+  border-left: 4px solid var(--border);
+}
+
+.meal-cell.eaten {
+  background-color: rgba(34, 197, 94, 0.08);
+  border-left: 4px solid #22c55e;
+}
+
+.meal-cell.skipped {
+  background-color: rgba(239, 68, 68, 0.08);
+  border-left: 4px solid #ef4444;
+}
+
+.meal-cell.replaced {
+  background-color: var(--accent-bg);
+  border-left: 4px solid var(--accent);
+  box-shadow: inset 0 0 15px rgba(56, 204, 224, 0.1);
+}
+
+.week-meal-info {
   display: flex;
   flex-direction: column;
   height: 100%;
-}
-
-.month-header {
-  display: flex;
-  border-bottom: 1px solid var(--border);
-  padding: 8px 0;
-  background-color: var(--code-bg);
-}
-
-.month-day-name {
-  flex: 1;
-  text-align: center;
-  font-size: 12px;
-  color: var(--text);
-  text-transform: uppercase;
-  font-weight: 500;
-}
-
-.month-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(5, 1fr);
-  flex: 1;
-}
-
-.month-cell {
-  border-right: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  padding: 12px;
-  transition: background-color 0.2s ease;
-}
-
-.month-cell.clickable:hover {
-  background-color: var(--code-bg);
-}
-
-.month-cell:nth-child(7n) {
-  border-right: none;
-}
-
-.month-date-number {
-  font-size: 14px;
-  font-weight: 500;
-  display: inline-flex;
-  width: 24px;
-  height: 24px;
-  align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  gap: 6px;
 }
 
-.active-day-inline {
-  background-color: #ff3b30;
-  color: white;
+.week-meal-name {
   font-weight: 600;
-}
-
-/* -------------------- Year View -------------------- */
-.apple-year-view {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 32px 24px;
-  padding: 32px;
-  overflow-y: auto;
-}
-
-.year-month-card {
-  display: flex;
-  flex-direction: column;
-}
-
-.year-month-title {
-  font-size: 16px;
-  color: #ff3b30;
-  margin: 0 0 12px 4px;
-  font-weight: 500;
-}
-
-.mini-month-days-header {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  margin-bottom: 8px;
-}
-
-.mini-day-name {
-  font-size: 10px;
-  color: var(--text);
-  text-align: center;
-  font-weight: 500;
-}
-
-.mini-month-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px 0;
-}
-
-.mini-day {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-h);
-  height: 24px;
-  border-radius: 2px;
-  transition: background-color 0.2s ease;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.mini-day.clickable:hover {
-  background-color: var(--border);
-}
-
-.mini-active-day {
-  background-color: #ff3b30;
-  color: white;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
+.week-meal-calories {
+  color: var(--accent);
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -5451,39 +5567,46 @@ export default function Calendar() {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 32px 32px 0 32px;
+  padding: 36px 36px 36px 300px; 
+  width: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 
 .day-sections {
-  flex: 1;
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
-  border-bottom: none;
-  border-radius: 4px 4px 0 0;
-  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: visible;
+  box-shadow: var(--shadow);
 }
 
 .day-meal-row {
   display: flex;
-  flex: 1;
+  min-height: 150px;
   border-bottom: 1px solid var(--border);
+  overflow: visible;
+}
+
+.day-meal-row:last-child {
+  border-bottom: none;
 }
 
 .day-meal-row .time-label {
-  flex: 0 0 25%; 
+  flex: 0 0 160px; 
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 16px;
   background-color: var(--code-bg);
   border-right: 1px solid var(--border);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text);
-  box-sizing: border-box;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-h);
+  position: relative;
+  overflow: visible;
 }
 
 .day-meal-row .meal-cell {
@@ -5491,435 +5614,235 @@ export default function Calendar() {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  gap: 16px;
-  box-sizing: border-box;
-}
-
-.meal-content-placeholder {
+  padding: 24px;
+  gap: 24px;
   flex: 1;
-  display: flex;
-  align-items: flex-start;
-  color: var(--text);
-  font-size: 14px;
-}
-
-.meal-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text-h);
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: 500;
-  padding: 6px 12px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  width: 145px;
-  box-sizing: border-box;
-}
-
-.action-btn .icon {
-  font-size: 13px;
-}
-
-.action-btn:hover {
-  background: var(--code-bg);
-}
-
-.success-btn:hover {
-  background: #f0fdf4;
-  color: #15803d;
-  border-color: #bbf7d0;
-}
-
-.custom-btn:hover {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border-color: #bfdbfe;
-}
-
-/* -------------------- AI Elements (בצבע כחול נקי) -------------------- */
-.ai-btn:hover {
-  background: rgba(37, 99, 235, 0.08);
-  color: #2563eb;
-  border-color: rgba(37, 99, 235, 0.3);
-}
-
-.dropdown-item.accent-text:hover { 
-  color: #2563eb; 
-}
-/* ----------------------------------------------------------------- */
-
-.skipped-btn:hover {
-  background: #fef2f2;
-  color: #b91c1c;
-  border-color: #fecaca;
-}
-
-/* Active States */
-.action-btn.active-eaten {
-  background: #16a34a;
-  color: #ffffff;
-  border-color: transparent;
-}
-
-.action-btn.active-skipped {
-  background: #dc2626;
-  color: #ffffff;
-  border-color: transparent;
-}
-
-.action-btn.active-replaced {
-  background: #2563eb;
-  color: #ffffff;
-  border-color: transparent;
-}
-
-/* -------------------- Dropdown Menus -------------------- */
-.dropdown-wrapper {
-  position: relative;
-  display: inline-block;
-  width: 145px;
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  width: 100%;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  box-shadow: var(--shadow);
-  display: flex;
-  flex-direction: column;
-  z-index: 10;
-  overflow: hidden;
-}
-
-.dropdown-item {
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--border);
-  padding: 8px 12px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-h);
-  text-align: left;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: background 0.15s ease;
-}
-
-.dropdown-item:last-child {
+  background: transparent;
   border-bottom: none;
 }
 
-.dropdown-item:hover {
-  background: var(--code-bg);
-}
-
-.dropdown-item.success-text:hover { color: #16a34a; }
-.dropdown-item.danger-text:hover { color: #dc2626; }
-.dropdown-item.primary-text:hover { color: #2563eb; }
-
-/* -------------------- Adjustment Prompt & AI Styling (כחול) -------------------- */
-.adjustment-prompt-container {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-.adjust-plan-btn {
-  background-color: rgba(37, 99, 235, 0.06);
-  border: 1px dashed rgba(37, 99, 235, 0.3);
-  color: #2563eb;
-  padding: 6px 10px;
-  font-size: 11px;
-  line-height: 1.3;
-  border-radius: 4px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-weight: 500;
-  width: 100%;
-  white-space: normal;
-}
-
-.adjust-plan-btn:hover {
-  background-color: #2563eb;
-  color: #ffffff;
-  border-color: transparent;
-}
-
-.adjust-plan-btn.notice-only {
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-  cursor: default;
-}
-/* ----------------------------------------------------------------------------- */
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* -------------------- Custom Meal Modal Styles (נקי מסגול) -------------------- */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(2px);
-}
-
-.modal-card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 24px;
-  width: 100%;
-  max-width: 380px;
-  box-shadow: var(--shadow);
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.modal-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-h);
-  margin: 0;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
-}
-
-.modal-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.modal-form .form-control:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-}
-
-.modal-actions-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.modal-actions-footer .btn-primary {
-  background-color: #2563eb;
-  color: #ffffff;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.modal-actions-footer .btn-primary:hover {
-  background-color: #1d4ed8;
-}
-
-.modal-actions-footer .btn-secondary {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-h);
-  border-radius: 4px;
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.modal-actions-footer .btn-secondary:hover {
-  background: var(--code-bg);
-}
-
-.custom-meal-display {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-}
-
-/* Dark Mode Adjustments */
-@media (prefers-color-scheme: dark) {
-  .success-btn:hover { background: rgba(22, 163, 74, 0.15); color: #4ade80; border-color: rgba(22, 163, 74, 0.3); }
-  .custom-btn:hover { background: rgba(37, 99, 235, 0.15); color: #60a5fa; border-color: rgba(37, 99, 235, 0.3); }
-  .skipped-btn:hover { background: rgba(220, 38, 38, 0.15); color: #f87171; border-color: rgba(220, 38, 38, 0.3); }
-  
-  .action-btn.active-eaten { background: #15803d; }
-  .action-btn.active-skipped { background: #b91c1c; }
-  .action-btn.active-replaced { background: #1d4ed8; }
-
-  .adjust-plan-btn {
-    background-color: rgba(59, 130, 246, 0.12);
-    border-color: rgba(59, 130, 246, 0.35);
-    color: #60a5fa;
-  }
-  .adjust-plan-btn:hover {
-    background-color: #3b82f6;
-    color: #ffffff;
-  }
-
-  .modal-form .form-control:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
-  }
-  .modal-actions-footer .btn-primary {
-    background-color: #3b82f6;
-  }
-  .modal-actions-footer .btn-primary:hover {
-    background-color: #2563eb;
-  }
-}
-
-/* Additional Styles for WeekView Meals */
-.meal-cell.planned {
-  background-color: var(--code-bg);
-  border-left: 3px solid var(--accent);
-}
-.meal-cell.eaten {
-  background-color: rgba(46, 125, 50, 0.1);
-  border-left: 3px solid #2e7d32;
-}
-.meal-cell.skipped {
-  background-color: rgba(198, 40, 40, 0.1);
-  border-left: 3px solid #c62828;
-  opacity: 0.6;
-}
-.meal-cell.replaced {
-  background-color: rgba(21, 101, 192, 0.1);
-  border-left: 3px solid #1565c0;
-}
-
-.week-meal-info {
-  display: flex;
-  flex-direction: column;
-  padding: 6px 8px;
-  font-size: 11px;
-  height: 100%;
-  justify-content: space-between;
-  box-sizing: border-box;
-}
-
-.week-meal-name {
-  font-weight: 600;
-  color: var(--text-h);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.week-meal-calories {
-  color: var(--text);
-  font-size: 10px;
-}
-
-/* Meal Details Styles in DayView */
 .meal-content-container {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  align-items: flex-start;
-}
-
-.meal-content-container.skipped-meal {
-  opacity: 0.5;
-}
-
-.meal-content-container.skipped-meal .meal-title,
-.meal-content-container.skipped-meal .meal-description {
-  text-decoration: line-through;
+  gap: 8px;
+  flex: 1;
 }
 
 .meal-title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--text-h);
   margin: 0;
 }
 
 .meal-description {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text);
   margin: 0;
   line-height: 1.4;
-  text-align: left;
 }
 
 .meal-macros-badges {
   display: flex;
+  gap: 10px;
+  margin-top: 6px;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 4px;
 }
 
 .macro-badge {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 12px;
-  background-color: var(--code-bg);
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--code-bg);
   border: 1px solid var(--border);
-  color: var(--text);
+  color: var(--text-h);
 }
 
-.macro-badge.calories {
-  background-color: rgba(255, 149, 0, 0.1);
-  border-color: rgba(255, 149, 0, 0.2);
-  color: #ff9500;
+.macro-badge.calories { border-color: rgba(56, 204, 224, 0.3); color: var(--accent); }
+
+/* -------------------- AI Tooltip Message (בועת ה-AI הזוהרת) -------------------- */
+.ai-tooltip-container {
+  position: absolute;
+  right: 100%; 
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 28px; 
+  width: 240px;
+  z-index: 100;
 }
 
-.macro-badge.protein {
-  background-color: rgba(52, 199, 89, 0.1);
-  border-color: rgba(52, 199, 89, 0.2);
-  color: #34c759;
+.ai-tooltip-bubble {
+  background-color: var(--surface);
+  border: 2px solid var(--accent);
+  color: var(--text-h);
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  box-shadow: var(--accent-glow);
+  position: relative;
+  text-align: left;
 }
 
-.macro-badge.carbs {
-  background-color: rgba(0, 122, 255, 0.1);
-  border-color: rgba(0, 122, 255, 0.2);
-  color: #007aff;
+.ai-tooltip-bubble::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -12px;
+  transform: translateY(-50%);
+  border-width: 10px 0 10px 10px;
+  border-style: solid;
+  border-color: transparent transparent transparent var(--accent);
 }
 
-.macro-badge.fat {
-  background-color: rgba(175, 82, 222, 0.1);
-  border-color: rgba(175, 82, 222, 0.2);
-  color: #af52de;
+.ai-tooltip-bubble.notice-only {
+  border-color: #ef4444;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
+}
+.ai-tooltip-bubble.notice-only::after {
+  border-color: transparent transparent transparent #ef4444;
+}
+
+/* -------------------- Actions & Dropdowns -------------------- */
+.meal-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  position: relative;
+}
+
+.dropdown-wrapper {
+  position: relative;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--text-h);
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 160px;
+}
+
+.action-btn:hover {
+  background: var(--surface);
+  border-color: var(--accent);
+}
+
+.action-btn.active-eaten {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border-color: #22c55e;
+}
+
+.action-btn.active-skipped {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.action-btn.active-replaced {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--accent-glow);
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  background: transparent;
+  border: none;
+  color: var(--text-h);
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background: var(--code-bg);
+  color: var(--accent);
+}
+
+/* Month & Year Views Polish */
+.apple-month-view, .apple-year-view {
+  padding: 36px;
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.month-grid, .apple-year-view {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+}
+
+.apple-year-view {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.year-month-card, .month-cell {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.mini-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.mini-day {
+  padding: 6px;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mini-day.clickable:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.mini-active-day {
+  background: var(--accent);
+  color: #000;
+  padding: 2px 6px;
+  border-radius: 50%;
+  font-weight: 700;
 }```
 
 ### File: ./frontend/src/pages/NotFound/NotFound.jsx
@@ -5932,20 +5855,384 @@ export default function NotFound() {
     );
 }```
 
+### File: ./frontend/src/pages/Auth/Auth.css
+```
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: var(--bg);
+  z-index: 1000;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.auth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: var(--shadow);
+  text-align: left;
+  direction: ltr;
+}
+
+.auth-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.auth-subtitle {
+  font-size: 15px;
+  color: var(--text);
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+  color: var(--text-h);
+  font-size: 15px;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus {
+  border-color: var(--accent);
+  box-shadow: var(--accent-glow);
+  outline: none;
+}
+
+.auth-error-banner {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  padding: 12px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.auth-button {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  padding: 14px;
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.auth-button:hover {
+  background: var(--accent-hover);
+  box-shadow: var(--accent-glow);
+}
+
+.auth-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.auth-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 6px;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}```
+
+### File: ./frontend/src/pages/Auth/Login.jsx
+```
+import { useState } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import './Auth.css';
+
+export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
+  const { login, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || '/';
+
+  const validate = () => {
+    const newErrors = {};
+    if (!email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = 'Email address is invalid';
+    }
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setApiError('');
+
+    if (!validate()) return;
+
+    try {
+      await login(email, password);
+      navigate(from, { replace: true });
+    } catch (err) {
+      console.error(err);
+      if (err.response && err.response.data && err.response.data.detail) {
+        setApiError(err.response.data.detail);
+      } else {
+        setApiError('Connection error. Make sure the server is running and try again.');
+      }
+    }
+  };
+
+  return (
+    <div className="auth-container">
+      <div className="auth-card">
+        <h1 className="auth-title">Welcome to FoodyAI</h1>
+        <p className="auth-subtitle">Log in to your account to manage your weekly meal plan</p>
+
+        {apiError && <div className="auth-error-banner">{apiError}</div>}
+
+        <form onSubmit={handleSubmit} className="auth-form" noValidate>
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              className="form-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+              disabled={isLoading}
+            />
+            {errors.email && <span className="error-message">{errors.email}</span>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              className="form-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              disabled={isLoading}
+            />
+            {errors.password && <span className="error-message">{errors.password}</span>}
+          </div>
+
+          <button type="submit" className="auth-button" disabled={isLoading}>
+            {isLoading ? 'Connecting...' : 'Login'}
+          </button>
+        </form>
+
+        <p className="auth-footer">
+          Don't have an account?{' '}
+          <Link to="/register" className="auth-link">Register here</Link>
+        </p>
+      </div>
+    </div>
+  );
+}
+```
+
+### File: ./frontend/src/pages/Auth/Register.jsx
+```
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import './Auth.css';
+
+export default function Register() {
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
+  const { register, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  const validate = () => {
+    const newErrors = {};
+    if (!username.trim()) {
+      newErrors.username = 'Username is required';
+    }
+    if (!email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = 'Email address is invalid';
+    }
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    if (password !== confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setApiError('');
+
+    if (!validate()) return;
+
+    try {
+      await register(username, email, password);
+      // After registration & auto-login, redirect to profile for onboarding
+      navigate('/Profile', { replace: true, state: { alertOnboarding: true } });
+    } catch (err) {
+      console.error(err);
+      if (err.response && err.response.data && err.response.data.detail) {
+        setApiError(err.response.data.detail);
+      } else {
+        setApiError('An error occurred during registration. Make sure the server is running and try again.');
+      }
+    }
+  };
+
+  return (
+    <div className="auth-container">
+      <div className="auth-card">
+        <h1 className="auth-title">Create Account</h1>
+        <p className="auth-subtitle">Join FoodyAI and start planning smart meals</p>
+
+        {apiError && <div className="auth-error-banner">{apiError}</div>}
+
+        <form onSubmit={handleSubmit} className="auth-form" noValidate>
+          <div className="form-group">
+            <label htmlFor="username">Username</label>
+            <input
+              id="username"
+              type="text"
+              className="form-input"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              disabled={isLoading}
+            />
+            {errors.username && <span className="error-message">{errors.username}</span>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              className="form-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+              disabled={isLoading}
+            />
+            {errors.email && <span className="error-message">{errors.email}</span>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              className="form-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              disabled={isLoading}
+            />
+            {errors.password && <span className="error-message">{errors.password}</span>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <input
+              id="confirmPassword"
+              type="password"
+              className="form-input"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
+              disabled={isLoading}
+            />
+            {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+          </div>
+
+          <button type="submit" className="auth-button" disabled={isLoading}>
+            {isLoading ? 'Creating Account...' : 'Register'}
+          </button>
+        </form>
+
+        <p className="auth-footer">
+          Already have an account?{' '}
+          <Link to="/login" className="auth-link">Login here</Link>
+        </p>
+      </div>
+    </div>
+  );
+}
+```
+
 ### File: ./frontend/src/pages/Profile/Profile.jsx
 ```
 import { useProfile } from '../../hooks/useProfile';
+import { useAuth } from '../../context/AuthContext';
 import ProfileHeader from '../../components/Profile/ProfileHeader';
 import UserMetaCard from '../../components/Profile/UserMetaCard';
 import WeightCard from '../../components/Profile/WeightCard';
 import MacrosCard from '../../components/Profile/MacrosCard';
 import TagManagerCard from '../../components/Profile/TagManagerCard';
 import LoadingSpinner from '../../components/Common/LoadingSpinner';
+import OnboardingQuestionnaire from '../../components/Profile/OnboardingQuestionnaire';
 import './Profile.css';
 
 export default function Profile() {
+    const { isOnboarded } = useAuth();
     const {
         currentProfile,
+        tempProfile,
         isEditing,
         showSuccessToast,
         newAllergy,
@@ -5967,6 +6254,36 @@ export default function Profile() {
         error
     } = useProfile();
 
+    const handleFormSubmit = (e) => {
+        e.preventDefault();
+        handleSave();
+    };
+
+    if (isLoading) {
+        return (
+            <div className="profile-container">
+                <LoadingSpinner message="Loading profile..." />
+            </div>
+        );
+    }
+
+    if (!isOnboarded) {
+        return (
+            <OnboardingQuestionnaire
+                tempProfile={tempProfile}
+                error={error}
+                newAllergy={newAllergy}
+                setNewAllergy={setNewAllergy}
+                newPref={newPref}
+                setNewPref={setNewPref}
+                handleChange={handleChange}
+                addTag={addTag}
+                removeTag={removeTag}
+                onSubmit={handleFormSubmit}
+            />
+        );
+    }
+
     return (
         <div className="profile-container">
             {showSuccessToast && (
@@ -5976,17 +6293,7 @@ export default function Profile() {
             )}
 
             {error && (
-                <div className="error-banner" style={{
-                    backgroundColor: '#ffebe9',
-                    color: '#d12420',
-                    border: '1px solid rgba(27,31,35,0.15)',
-                    borderRadius: '6px',
-                    padding: '1rem',
-                    marginBottom: '1rem',
-                    textAlign: 'center',
-                    fontWeight: 'bold',
-                    direction: 'ltr'
-                }}>
+                <div className="error-banner">
                     ⚠️ {error}
                 </div>
             )}
@@ -5998,38 +6305,35 @@ export default function Profile() {
                 onCancel={handleCancelEdit}
             />
 
-            {isLoading ? (
-                <LoadingSpinner message="Loading profile details..." />
-            ) : (
-                <div className="profile-content-area">
-                    <UserMetaCard
-                        userName={currentProfile.username || 'User'}
-                        email={currentProfile.email || 'No email registered'}
-                    />
+            <div className="profile-content-area">
+                <UserMetaCard
+                    userName={currentProfile.username || 'User'}
+                    email={currentProfile.email || 'No email registered'}
+                />
 
-                    <form onSubmit={handleSave}>
-                        <div className="profile-grid">
-                            <WeightCard
-                                weight={currentProfile.weight}
-                                goalWeight={currentProfile.goalWeight}
-                                height={currentProfile.height}
-                                age={currentProfile.age}
-                                gender={currentProfile.gender}
-                                activityLevel={currentProfile.activity_level}
-                                onChange={handleChange}
-                                isEditing={isEditing}
-                            />
+                <form onSubmit={handleSave}>
+                    {/* הפריסה המקבילה - רשת של כרטיסיות */}
+                    <div className="profile-dashboard-grid">
+                        <WeightCard
+                            weight={currentProfile.weight}
+                            goalWeight={currentProfile.goalWeight}
+                            height={currentProfile.height}
+                            age={currentProfile.age}
+                            gender={currentProfile.gender}
+                            activityLevel={currentProfile.activity_level}
+                            onChange={handleChange}
+                            isEditing={isEditing}
+                        />
 
-                            <MacrosCard
-                                targetMacros={currentProfile.targetMacros}
-                                onChange={handleChange}
-                                isEditing={isEditing}
-                                proteinPct={proteinPct}
-                                carbsPct={carbsPct}
-                                fatsPct={fatsPct}
-                                isLoading={isLoading}
-                            />
-                        </div>
+                        <MacrosCard
+                            targetMacros={currentProfile.targetMacros}
+                            onChange={handleChange}
+                            isEditing={isEditing}
+                            proteinPct={proteinPct}
+                            carbsPct={carbsPct}
+                            fatsPct={fatsPct}
+                            isLoading={isLoading}
+                        />
 
                         <div className="card">
                             <h2 className="card-title">Goals, Preferences & Dietary Constraints</h2>
@@ -6060,7 +6364,7 @@ export default function Profile() {
                             />
 
                             <TagManagerCard
-                                title="Dietary Preferences (e.g. vegetarian, gluten-free)"
+                                title="Dietary Preferences (e.g. vegetarian)"
                                 placeholder="Add preference..."
                                 tags={currentProfile.preferences || []}
                                 inputValue={newPref}
@@ -6071,28 +6375,26 @@ export default function Profile() {
                                 emptyMessage="No preferences recorded"
                             />
                         </div>
+                    </div>
 
-                        {isEditing && (
-                            <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                                <button type="submit" className="btn btn-primary" style={{ padding: '0.8rem 2rem' }}>
-                                    Save Changes
-                                </button>
-                                <button type="button" className="btn btn-secondary" onClick={handleCancelEdit} style={{ padding: '0.8rem 2rem' }}>
-                                    Cancel
-                                </button>
-                            </div>
-                        )}
-                    </form>
-                </div>
-            )}
+                    {isEditing && (
+                        <div className="profile-form-actions">
+                            <button type="submit" className="btn btn-primary btn-large">
+                                Save Changes
+                            </button>
+                            <button type="button" className="btn btn-secondary btn-large" onClick={handleCancelEdit}>
+                                Cancel
+                            </button>
+                        </div>
+                    )}
+                </form>
+            </div>
         </div>
     );
 }```
 
 ### File: ./frontend/src/pages/Profile/Profile.css
 ```
-/* Profile.css - Apple-style layout matching Home calendar */
-
 .profile-container {
     display: flex;
     flex-direction: column;
@@ -6100,108 +6402,64 @@ export default function Profile() {
     min-height: 100%;
     background-color: var(--bg);
     color: var(--text-h);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    direction: ltr; /* Align with global English UI */
+    direction: ltr;
 }
 
-/* Apple-style Profile Header Toolbar */
 .profile-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 24px;
+    padding: 24px 36px;
     border-bottom: 1px solid var(--border);
-    background: var(--code-bg);
+    background: var(--surface);
 }
 
 .profile-title {
     margin: 0;
-    font-size: 24px;
-    font-weight: 500;
-    letter-spacing: -0.5px;
-}
-
-/* Button styles matching Apple Toolbar */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text-h);
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 6px 14px;
-    cursor: pointer;
-    transition: all 0.15s ease-in-out;
-}
-
-.btn:hover {
-    background: var(--border);
-}
-
-.btn-primary {
-    background: var(--accent);
-    color: #fff;
-    border-color: transparent;
-}
-
-.btn-primary:hover {
-    background: var(--accent);
-    opacity: 0.9;
-    color: #fff;
-}
-
-.btn-secondary {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text);
-}
-
-.btn-secondary:hover {
-    background: var(--border);
+    font-size: 26px;
+    font-weight: 600;
     color: var(--text-h);
 }
 
-/* Form Container Page Content */
 .profile-content-area {
-    max-width: 800px;
     width: 100%;
-    margin: 0 auto;
-    padding: 24px;
+    margin: 0;
+    padding: 36px;
     box-sizing: border-box;
 }
 
-/* Profile Grid */
-.profile-grid {
+.profile-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 24px;
+    align-items: start;
+    margin-bottom: 24px;
+}
+
+.metrics-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 20px;
+    gap: 16px;
 }
 
-@media (max-width: 768px) {
-    .profile-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Cards styled like Calendar items */
 .card {
-    background: var(--bg);
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border-radius: var(--radius);
+    padding: 28px;
+    box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    text-align: left;
+    gap: 20px;
+}
+
+.profile-meta-card {
+    margin-bottom: 24px;
+    max-width: 600px;
 }
 
 .card-title {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
     color: var(--text-h);
     margin: 0;
@@ -6209,7 +6467,6 @@ export default function Profile() {
     border-bottom: 1px solid var(--border);
 }
 
-/* Metadata lists */
 .info-row {
     display: flex;
     justify-content: space-between;
@@ -6217,214 +6474,142 @@ export default function Profile() {
     font-size: 14px;
 }
 
-.info-label {
-    font-weight: 500;
-    color: var(--text);
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.info-value {
+.form-group label {
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-h);
 }
 
-/* Form fields */
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    width: 100%;
-    text-align: left;
-}
-
-.form-group label {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
 .form-control {
-    background-color: var(--bg);
+    background-color: var(--code-bg);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 12px;
+    border-radius: var(--radius);
+    padding: 12px 14px;
     font-size: 14px;
     color: var(--text-h);
-    transition: all 0.2s ease;
-    box-sizing: border-box;
-    width: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-control:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 2px var(--accent-bg);
+    box-shadow: var(--accent-glow);
 }
 
-.form-control:disabled {
-    background-color: var(--code-bg);
+.form-control:disabled, .form-control[readonly] {
+    background-color: #1a1e29;
     color: var(--text);
-    cursor: not-allowed;
-}
-
-.form-control[readonly] {
-    background-color: var(--code-bg);
-    color: var(--text-h);
-    border-color: var(--border);
     cursor: default;
 }
 
-.form-control[readonly]:focus {
-    border-color: var(--border);
-    box-shadow: none;
+.btn {
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
 }
 
-/* Tags styles */
-.tag-input-wrapper {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
+.btn-primary {
+    background: var(--accent);
+    color: #000;
 }
 
-.tag-input-wrapper input {
-    flex: 1;
+.btn-primary:hover {
+    background: var(--accent-hover);
+    box-shadow: var(--accent-glow);
 }
 
+.btn-secondary {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    color: var(--text-h);
+}
+
+.btn-secondary:hover {
+    background: var(--surface);
+    border-color: var(--accent);
+}
+
+/* Tags & Macro Visualizer */
 .tags-container {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    padding: 12px;
-    background-color: var(--code-bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    min-height: 48px;
-    box-sizing: border-box;
-    align-items: center;
-}
-
-.tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background-color: var(--accent-bg);
-    color: var(--accent);
-    border: 1px solid var(--accent-border);
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.tag-remove {
-    background: none;
-    border: none;
-    color: var(--accent);
-    cursor: pointer;
-    font-size: 14px;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    transition: background 0.15s ease;
-}
-
-.tag-remove:hover {
-    background-color: var(--accent);
-    color: #fff;
-}
-
-/* Macro Nutrition Visualizer */
-.macro-visualizer {
-    display: flex;
-    height: 8px;
-    border-radius: 4px;
-    overflow: hidden;
-    background-color: var(--border);
     margin-top: 8px;
 }
 
-.vis-protein {
-    background-color: #4bc0c0;
-    height: 100%;
-}
-
-.vis-carbs {
-    background-color: #36a2eb;
-    height: 100%;
-}
-
-.vis-fats {
-    background-color: #ff6384;
-    height: 100%;
-}
-
-.vis-legend {
-    display: flex;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    gap: 16px;
-    margin-top: 10px;
-    font-size: 12px;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--text);
-}
-
-.dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-}
-
-/* Success Toast */
-.toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background-color: var(--text-h);
-    color: var(--bg);
-    padding: 12px 20px;
-    border-radius: 8px;
-    box-shadow: var(--shadow);
-    z-index: 1000;
-    font-size: 14px;
-    font-weight: 500;
+.tag {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    color: var(--text-h);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
     display: flex;
     align-items: center;
     gap: 8px;
-    animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes slideIn {
-    from {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+.tag-remove {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 14px;
 }
-```
+.tag-remove:hover { color: #ef4444; }
+
+.macro-visualizer-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.macro-visualizer {
+    display: flex;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    background: var(--code-bg);
+    gap: 2px;
+}
+
+.vis-protein { background: #3b82f6; width: var(--width); }
+.vis-carbs { background: var(--accent); width: var(--width); }
+.vis-fats { background: #eab308; width: var(--width); }
+
+.vis-legend {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text);
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot-protein { background: #3b82f6; }
+.dot-carbs { background: var(--accent); }
+.dot-fats { background: #eab308; }```
 
 ### File: ./frontend/src/store/store.js
 ```
 import { configureStore } from '@reduxjs/toolkit';
 import calendarReducer from './calendarSlice';
+import authReducer from './authSlice';
 
 export const store = configureStore({
   reducer: {
     calendar: calendarReducer,
+    auth: authReducer,
   },
 });```
 
@@ -6452,6 +6637,161 @@ const calendarSlice = createSlice({
 
 export const { setViewMode, setCurrentDate } = calendarSlice.actions;
 export default calendarSlice.reducer;```
+
+### File: ./frontend/src/store/authSlice.js
+```
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { loginUser, registerUser, getUserProfile } from '../api/apiClient';
+
+export const loginUserThunk = createAsyncThunk(
+  'auth/login',
+  async ({ email, password }, { rejectWithValue }) => {
+    try {
+      const data = await loginUser(email, password);
+      localStorage.setItem('foodyai_token', data.access_token);
+      localStorage.setItem('foodyai_user_id', data.user_id);
+
+      // Fetch full profile
+      const profile = await getUserProfile(data.user_id);
+      return { token: data.access_token, user: profile };
+    } catch (err) {
+      const errMsg = err.response?.data?.detail || 'Login failed. Please try again.';
+      return rejectWithValue(errMsg);
+    }
+  }
+);
+
+export const registerUserThunk = createAsyncThunk(
+  'auth/register',
+  async ({ username, email, password }, { dispatch, rejectWithValue }) => {
+    try {
+      await registerUser(username, email, password);
+      // Automatically log in after registration
+      const result = await dispatch(loginUserThunk({ email, password })).unwrap();
+      return result;
+    } catch (err) {
+      const errMsg = err.response?.data?.detail || 'Registration failed. Please try again.';
+      return rejectWithValue(errMsg);
+    }
+  }
+);
+
+export const restoreSessionThunk = createAsyncThunk(
+  'auth/restoreSession',
+  async (_, { rejectWithValue }) => {
+    const token = localStorage.getItem('foodyai_token');
+    const userId = localStorage.getItem('foodyai_user_id');
+    if (!token || !userId) {
+      return rejectWithValue('No session found');
+    }
+    try {
+      const profile = await getUserProfile(userId);
+      return { token, user: profile };
+    } catch (err) {
+      console.error(err);
+      localStorage.removeItem('foodyai_token');
+      localStorage.removeItem('foodyai_user_id');
+      localStorage.removeItem('foodyai_profile');
+      return rejectWithValue('Session expired');
+    }
+  }
+);
+
+export const refreshProfileThunk = createAsyncThunk(
+  'auth/refreshProfile',
+  async (_, { getState, rejectWithValue }) => {
+    const { auth } = getState();
+    const userId = auth.user?.id || auth.user?._id;
+    if (!userId) return rejectWithValue('User not logged in');
+    try {
+      const profile = await getUserProfile(userId);
+      localStorage.setItem('foodyai_profile', JSON.stringify(profile));
+      return profile;
+    } catch (err) {
+      console.error(err);
+      return rejectWithValue('Failed to refresh profile');
+    }
+  }
+);
+
+const initialState = {
+  token: localStorage.getItem('foodyai_token'),
+  user: null,
+  isLoading: true,
+  error: null,
+};
+
+const authSlice = createSlice({
+  name: 'auth',
+  initialState,
+  reducers: {
+    logout: (state) => {
+      localStorage.removeItem('foodyai_token');
+      localStorage.removeItem('foodyai_user_id');
+      localStorage.removeItem('foodyai_profile');
+      state.token = null;
+      state.user = null;
+      state.error = null;
+      state.isLoading = false;
+    },
+    clearError: (state) => {
+      state.error = null;
+    }
+  },
+  extraReducers: (builder) => {
+    builder
+      // Login
+      .addCase(loginUserThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(loginUserThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.token = action.payload.token;
+        state.user = action.payload.user;
+      })
+      .addCase(loginUserThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Register
+      .addCase(registerUserThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(registerUserThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.token = action.payload.token;
+        state.user = action.payload.user;
+      })
+      .addCase(registerUserThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Restore Session
+      .addCase(restoreSessionThunk.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(restoreSessionThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.token = action.payload.token;
+        state.user = action.payload.user;
+      })
+      .addCase(restoreSessionThunk.rejected, (state) => {
+        state.isLoading = false;
+        state.token = null;
+        state.user = null;
+      })
+      // Refresh Profile
+      .addCase(refreshProfileThunk.fulfilled, (state, action) => {
+        state.user = action.payload;
+      });
+  },
+});
+
+export const { logout, clearError } = authSlice.actions;
+export default authSlice.reducer;
+```
 
 ### File: ./backend/app/routers/plan.py
 ```

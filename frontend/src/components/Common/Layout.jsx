@@ -12,7 +12,7 @@ export default function Layout() {
         <div className="layout-container">
             <nav className="navbar">
                 <div className="logo">
-                    <Link to="/">FoodyAI</Link>
+                    <Link to="/">Foody<span>AI</span></Link>
                 </div>
                 <div className="linksContainer">
                     <Link to="/" className={!isProfilePage ? "active" : ""}>Home</Link>

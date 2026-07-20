@@ -10,7 +10,6 @@ export default function DayView({
   const [customMeals, setCustomMeals] = useState({});
   const [openDropdown, setOpenDropdown] = useState(null);
   
-  // Open modal state: stores the current meal section (Breakfast/Lunch/Dinner)
   const [activeModalSection, setActiveModalSection] = useState(null);
 
   const handleStatusToggle = (section, status) => {
@@ -50,12 +49,12 @@ export default function DayView({
     }
 
     if (section === 'Lunch' && breakfastSkipped) {
-      return "✨ Regenerating a new meal with AI to reach your goal.";
+      return "Regenerating a new meal with AI to reach your goal.";
     }
 
     if (section === 'Dinner') {
       if ((breakfastSkipped && lunchSkipped) || lunchSkipped || breakfastSkipped) {
-        return "✨ Regenerating a new meal with AI to reach your goal.";
+        return "Regenerating a new meal with AI to reach your goal.";
       }
     }
 
@@ -80,15 +79,12 @@ export default function DayView({
               <div className="time-label">
                 <span className="time-label-text">{section}</span>
 
+                {/* הבועה הצפה מחוץ לטבלה עם החץ */}
                 {promptMessage && (
-                  <div className="adjustment-prompt-container">
-                    <button
-                      type="button"
-                      className={`adjust-plan-btn ${promptMessage.startsWith('✕') ? 'notice-only' : ''}`}
-                      disabled={promptMessage.startsWith('✕')}
-                    >
+                  <div className="ai-tooltip-container">
+                    <div className={`ai-tooltip-bubble ${promptMessage.startsWith('✕') ? 'notice-only' : ''}`}>
                       {promptMessage}
-                    </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -96,15 +92,15 @@ export default function DayView({
               <div className="meal-cell flex-1">
                 {meal ? (
                   <div className={`meal-content-container ${isSkipped ? 'skipped-meal' : ''}`}>
-                    <h3 className="meal-title" style={{ fontSize: '15px', fontWeight: '600', margin: '0 0 4px 0', textAlign: 'left' }}>
+                    <h3 className="meal-title">
                       {isReplaced && meal.replaced_with_meal_name
-                        ? `AI Custom: ${meal.replaced_with_meal_name}`
+                        ? `Custom: ${meal.replaced_with_meal_name}`
                         : meal.name}
                     </h3>
-                    <p className="meal-description" style={{ fontSize: '13px', color: 'var(--text)', margin: '0 0 8px 0', textAlign: 'left' }}>
+                    <p className="meal-description">
                       {currentCustomMeal ? `Custom meal added: ${currentCustomMeal.name}` : meal.description}
                     </p>
-                    <div className="meal-macros-badges" style={{ display: 'flex', gap: '8px', fontSize: '12px' }}>
+                    <div className="meal-macros-badges">
                       <span className="macro-badge calories">🔥 {currentCustomMeal ? currentCustomMeal.calories : meal.planned_macros?.calories} kcal</span>
                       <span className="macro-badge protein">🥩 {currentCustomMeal ? currentCustomMeal.protein : meal.planned_macros?.protein}g Pro</span>
                       <span className="macro-badge carbs">🍞 {currentCustomMeal ? currentCustomMeal.carbs : meal.planned_macros?.carbs}g Carb</span>
@@ -118,8 +114,6 @@ export default function DayView({
                 )}
                 
                 <div className="meal-actions">
-
-                  {/* Dropdown 1: Planned / Eaten / Skipped */}
                   {!isFutureDay && (
                     <div className="dropdown-wrapper">
                       <button
@@ -127,31 +121,30 @@ export default function DayView({
                         className={`action-btn dropdown-toggle ${isEaten ? 'active-eaten' : isSkipped ? 'active-skipped' : isReplaced ? 'active-replaced' : ''}`}
                         onClick={() => toggleDropdown(`${section}-planned`)}
                       >
-                        {isEaten ? '✓ Eaten' : isSkipped ? '✕ Skipped' : isReplaced ? '✨ AI Custom' : 'Planned ▾'}
+                        {isEaten ? '✓ Eaten' : isSkipped ? '✕ Skipped' : isReplaced ? '✨ Custom' : 'Planned ▾'}
                       </button>
 
                       {openDropdown === `${section}-planned` && (
                         <div className="dropdown-menu">
                           <button
                             type="button"
-                            className="dropdown-item success-text"
+                            className="dropdown-item"
                             onClick={() => handleStatusToggle(section, 'eaten')}
                           >
-                            <span className="icon">✓</span> Eaten
+                            ✓ Eaten
                           </button>
                           <button
                             type="button"
-                            className="dropdown-item danger-text"
+                            className="dropdown-item"
                             onClick={() => handleStatusToggle(section, 'skipped')}
                           >
-                            <span className="icon">✕</span> Skipped
+                            ✕ Skipped
                           </button>
                         </div>
                       )}
                     </div>
                   )}
                   
-                  {/* Dropdown 2: Replace Meal (Custom / AI) */}
                   <div className="dropdown-wrapper">
                     <button 
                       type="button" 
@@ -165,28 +158,26 @@ export default function DayView({
                       <div className="dropdown-menu">
                         <button 
                           type="button" 
-                          className="dropdown-item primary-text"
+                          className="dropdown-item"
                           onClick={() => {
                             setActiveModalSection(section);
                             setOpenDropdown(null);
                           }}
                         >
-                          <span className="icon">✨</span> Custom (AI)
+                          ✨ Custom
                         </button>
                         <button 
                           type="button" 
-                          className="dropdown-item accent-text"
+                          className="dropdown-item"
                           onClick={() => setOpenDropdown(null)}
                         >
-                          <span className="icon">🔄</span> AI Regenerate
+                          🔄 Regenerate
                         </button>
                       </div>
                     )}
                   </div>
-
                 </div>
               </div>
-
             </div>
           );
         })}

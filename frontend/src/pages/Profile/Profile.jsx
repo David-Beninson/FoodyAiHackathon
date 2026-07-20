@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useProfile } from '../../hooks/useProfile';
 import { useAuth } from '../../context/AuthContext';
 import ProfileHeader from '../../components/Profile/ProfileHeader';
@@ -7,6 +8,7 @@ import MacrosCard from '../../components/Profile/MacrosCard';
 import TagManagerCard from '../../components/Profile/TagManagerCard';
 import LoadingSpinner from '../../components/Common/LoadingSpinner';
 import OnboardingQuestionnaire from '../../components/Profile/OnboardingQuestionnaire';
+import FamilySettingsCard from '../../components/Profile/FamilySettingsCard';
 import './Profile.css';
 
 export default function Profile() {
@@ -32,7 +34,12 @@ export default function Profile() {
         addTag,
         removeTag,
         isLoading,
-        error
+        error,
+        handleToggleFamilyMode,
+        handleAddFamilyMember,
+        handleRemoveFamilyMember,
+        handleUpdateFamilyMember,
+        displayMacros
     } = useProfile();
 
     const handleFormSubmit = (e) => {
@@ -92,7 +99,7 @@ export default function Profile() {
                     email={currentProfile.email || 'No email registered'}
                 />
 
-                <form onSubmit={handleSave}>
+                <form onSubmit={(e) => e.preventDefault()}>
                     {/* הפריסה המקבילה - רשת של כרטיסיות */}
                     <div className="profile-dashboard-grid">
                         <WeightCard
@@ -107,13 +114,14 @@ export default function Profile() {
                         />
 
                         <MacrosCard
-                            targetMacros={currentProfile.targetMacros}
+                            targetMacros={displayMacros}
                             onChange={handleChange}
                             isEditing={isEditing}
                             proteinPct={proteinPct}
                             carbsPct={carbsPct}
                             fatsPct={fatsPct}
                             isLoading={isLoading}
+                            isFamilyMode={currentProfile.is_family_mode}
                         />
 
                         <div className="card">
@@ -156,11 +164,21 @@ export default function Profile() {
                                 emptyMessage="No preferences recorded"
                             />
                         </div>
+
+                        <FamilySettingsCard
+                            currentProfile={currentProfile}
+                            isEditing={isEditing}
+                            handleToggleFamilyMode={handleToggleFamilyMode}
+                            handleAddFamilyMember={handleAddFamilyMember}
+                            handleRemoveFamilyMember={handleRemoveFamilyMember}
+                            handleUpdateFamilyMember={handleUpdateFamilyMember}
+                            handleStartEdit={handleStartEdit}
+                        />
                     </div>
 
                     {isEditing && (
                         <div className="profile-form-actions">
-                            <button type="submit" className="btn btn-primary btn-large">
+                            <button type="button" className="btn btn-primary btn-large" onClick={handleSave}>
                                 Save Changes
                             </button>
                             <button type="button" className="btn btn-secondary btn-large" onClick={handleCancelEdit}>

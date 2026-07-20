@@ -95,6 +95,23 @@ async def onboard_user(user_id: str, payload: OnboardRequest):
     user.allergies = payload.allergies
     user.preferences = payload.preferences
     user.daily_macros_target = macros
+    user.is_family_mode = payload.is_family_mode if payload.is_family_mode is not None else False
+
+    # Process family members and compute their macros if missing
+    processed_members = []
+    if payload.family_members:
+        for m in payload.family_members:
+            if not m.daily_macros_target:
+                m.daily_macros_target = calculate_target_macros(
+                    age=m.age,
+                    weight=m.weight,
+                    height=m.height,
+                    gender=m.gender,
+                    activity_level=m.activity_level,
+                    goals=m.goals
+                )
+            processed_members.append(m)
+    user.family_members = processed_members
 
     await user.save()
     return user

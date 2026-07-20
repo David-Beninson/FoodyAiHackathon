@@ -1,0 +1,551 @@
+.apple-calendar-container {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 73px);
+  width: 100%;
+  background-color: var(--bg);
+  color: var(--text-h);
+  direction: ltr;
+  padding-bottom: 40px;
+}
+
+.calendar-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 36px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  margin-top: 12px; /* רווח נוסף מה-Navbar העליון */
+  margin-bottom: 24px; /* רווח נקי מהטבלה */
+}
+
+.toolbar-left, .toolbar-right, .toolbar-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.toolbar-center {
+  justify-content: center;
+  gap: 20px;
+}
+
+.toolbar-right {
+  justify-content: flex-end;
+}
+
+.today-btn, .arrow-btn {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--text-h);
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.today-btn:hover, .arrow-btn:hover {
+  border-color: var(--accent);
+  box-shadow: var(--accent-glow);
+}
+
+.current-date-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.segment-control {
+  display: flex;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+  gap: 4px;
+}
+
+.segment-control button {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.segment-control button.active {
+  background: var(--accent);
+  color: #000;
+  font-weight: 700;
+  box-shadow: var(--accent-glow);
+}
+
+.segment-control button:hover:not(.active) {
+  color: var(--text-h);
+  background: var(--surface);
+}
+
+/* -------------------- Week View -------------------- */
+.apple-week-view {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.week-header {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 14px 0;
+  background: var(--surface);
+  width: 100%;
+}
+
+.time-axis-spacer {
+  width: 130px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+}
+
+.day-header-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.day-header-cell:hover .day-name {
+  color: var(--accent);
+}
+
+.day-name {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.day-number {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-h);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.day-number.active-day {
+  background: var(--accent);
+  color: #000;
+  box-shadow: var(--accent-glow);
+}
+
+.week-grid {
+  display: flex;
+  width: 100%;
+}
+
+.time-axis {
+  width: 130px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.time-label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+  border-bottom: 1px solid var(--border);
+  min-height: 120px;
+}
+
+.days-columns {
+  display: flex;
+  flex: 1;
+}
+
+.day-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+}
+
+.day-column:last-child {
+  border-right: none;
+}
+
+.meal-cell {
+  flex: 1;
+  min-height: 120px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  transition: all 0.25s ease;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.meal-cell.clickable:hover {
+  transform: translateY(-2px);
+  background-color: rgba(56, 204, 224, 0.04);
+  box-shadow: inset 0 0 12px rgba(56, 204, 224, 0.08);
+  z-index: 10;
+}
+
+.meal-cell.planned {
+  background-color: var(--surface);
+  border-left: 4px solid var(--border);
+}
+
+.meal-cell.eaten {
+  background-color: rgba(34, 197, 94, 0.08);
+  border-left: 4px solid #22c55e;
+}
+
+.meal-cell.skipped {
+  background-color: rgba(239, 68, 68, 0.08);
+  border-left: 4px solid #ef4444;
+}
+
+.meal-cell.replaced {
+  background-color: var(--accent-bg);
+  border-left: 4px solid var(--accent);
+  box-shadow: inset 0 0 15px rgba(56, 204, 224, 0.1);
+}
+
+.week-meal-info {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+  gap: 6px;
+}
+
+.week-meal-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-h);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.week-meal-calories {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* -------------------- Single Day View Layout -------------------- */
+.apple-day-view {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.day-sections {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: visible;
+  box-shadow: var(--shadow);
+  width: 100%;
+}
+
+.day-meal-row {
+  display: flex;
+  min-height: 150px;
+  border-bottom: 1px solid var(--border);
+  overflow: visible;
+  position: relative;
+}
+
+.day-meal-row:last-child {
+  border-bottom: none;
+}
+
+.day-meal-row .time-label {
+  flex: 0 0 150px; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--code-bg);
+  border-right: 1px solid var(--border);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-h);
+  position: relative;
+  overflow: visible;
+}
+
+.day-meal-row .meal-cell {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  gap: 24px;
+  flex: 1;
+  background: transparent;
+  border-bottom: none;
+}
+
+.meal-content-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.meal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.meal-description {
+  font-size: 14px;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.meal-macros-badges {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.macro-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--text-h);
+}
+
+.macro-badge.calories { border-color: rgba(56, 204, 224, 0.3); color: var(--accent); }
+
+/* -------------------- AI Tooltip Message (עבר לצד שמאל ועם רקע תכלת) -------------------- */
+.ai-tooltip-container {
+  position: absolute;
+  right: 100%; /* ממוקם משמאל לעמודת הארוחות (או מימין לשעות) */
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 20px;
+  width: 230px;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.ai-tooltip-bubble {
+  background-color: var(--accent); /* רקע בצבע תכלת מלא */
+  border: 2px solid var(--accent);
+  color: #000000; /* טקסט כהה לקריאות מושלמת על רקע תכלת */
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: var(--accent-glow);
+  position: relative;
+  text-align: left;
+}
+
+.ai-tooltip-bubble::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -12px; /* חץ מצביע ימינה אל תוך הקוביה */
+  transform: translateY(-50%);
+  border-width: 10px 0 10px 10px;
+  border-style: solid;
+  border-color: transparent transparent transparent var(--accent);
+}
+
+.ai-tooltip-bubble.notice-only {
+  background-color: #ef4444; /* אדום התראתי במקרה הצורך */
+  border-color: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
+}
+.ai-tooltip-bubble.notice-only::after {
+  border-color: transparent transparent transparent #ef4444;
+}
+
+/* -------------------- Actions & Dropdowns -------------------- */
+.meal-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  position: relative;
+}
+
+.dropdown-wrapper {
+  position: relative;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--text-h);
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 160px;
+}
+
+.action-btn:hover {
+  background: var(--surface);
+  border-color: var(--accent);
+}
+
+.action-btn.active-eaten {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border-color: #22c55e;
+}
+
+.action-btn.active-skipped {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.action-btn.active-replaced {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: var(--accent-glow);
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  background: transparent;
+  border: none;
+  color: var(--text-h);
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background: var(--code-bg);
+  color: var(--accent);
+}
+
+/* Month & Year Views Polish */
+.apple-month-view, .apple-year-view {
+  padding: 24px 36px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.month-grid, .apple-year-view {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+}
+
+.apple-year-view {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.year-month-card, .month-cell {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.mini-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.mini-day {
+  padding: 6px;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mini-day.clickable:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.mini-active-day {
+  background: var(--accent);
+  color: #000;
+  padding: 2px 6px;
+  border-radius: 50%;
+  font-weight: 700;
+}

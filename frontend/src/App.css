@@ -1,0 +1,79 @@
+:root {
+  --text: #555555;
+  --text-h: #111111;
+  --bg: #ffffff;
+  --border: #e0e0e0;
+  --code-bg: #f9f9f9;
+  --accent: #38cce0;
+  --accent-hover: #2bb8cc;
+  --accent-bg: rgba(56, 204, 224, 0.1);
+  --radius: 6px;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  --sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 16px/150% var(--sans);
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #a0a0a0;
+    --text-h: #ffffff;
+    --bg: #121212;
+    --border: #2e2e2e;
+    --code-bg: #1e1e1e;
+    --accent: #38cce0;
+    --accent-hover: #4dd5e8;
+    --accent-bg: rgba(56, 204, 224, 0.15);
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+}
+
+#root {
+  width: 100%;
+  max-width: none; /* מאפשר לאתר להתפרס על כל המסך */
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+h1 {
+  font-family: var(--heading);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text-h);
+  letter-spacing: -0.01em;
+  margin: 24px 0;
+}
+
+h2 {
+  font-family: var(--heading);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-h);
+  line-height: 120%;
+  margin: 0 0 12px;
+}
+
+p {
+  margin: 0;
+}

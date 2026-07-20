@@ -83,4 +83,15 @@ export const saveDraftWeeklyPlan = async (userId, weekStartDate, days) => {
   return response.data;
 };
 
+export const regenerateSingleMeal = async (userId, weekStartDate, day, mealType, promptOverride = null) => {
+  const response = await apiClient.post('/plans/regenerate-meal', {
+    user_id: userId,
+    week_start_date: weekStartDate,
+    day,
+    meal_type: mealType.toLowerCase(),
+    prompt_override: promptOverride
+  });
+  return response.data;
+};
+
 export default apiClient;

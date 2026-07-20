@@ -195,7 +195,7 @@ class AIService:
                 logger.error(f"OpenAI single meal generation failed: {e}")
 
         # 3. Fallback mock
-        return cls._generate_mock_meal(meal_type, user.daily_macros_target, user)
+        return cls._generate_mock_meal(meal_type, user.daily_macros_target, user, prompt_override)
 
     @classmethod
     def generate_completion_meal(
@@ -360,7 +360,7 @@ class AIService:
         return AIWeeklyPlanResponse(**result)
 
     @classmethod
-    def _generate_mock_meal(cls, meal_type: str, daily_target: Macros, user: UserProfile) -> AIMeal:
+    def _generate_mock_meal(cls, meal_type: str, daily_target: Macros, user: UserProfile, prompt_override: Optional[str] = None) -> AIMeal:
         # Split target macros: breakfast (30%), lunch (40%), dinner (30%)
         multiplier = 0.3 if meal_type in ["breakfast", "dinner", "completion"] else 0.4
         
@@ -368,6 +368,18 @@ class AIService:
         target_protein = daily_target.protein * multiplier
         target_carbs = daily_target.carbs * multiplier
         target_fat = daily_target.fat * multiplier
+
+        if prompt_override:
+            scale = random.uniform(0.9, 1.1)
+            return AIMeal(
+                name=f"Custom {meal_type.capitalize()} ({prompt_override.title()})",
+                description=f"A healthy option tailored to your request: '{prompt_override}'.",
+                calories=round(target_calories * scale, 1),
+                protein=round(target_protein * scale, 1),
+                carbs=round(target_carbs * scale, 1),
+                fat=round(target_fat * scale, 1),
+                ai_explanation=f"This customized meal fits your daily target macros and includes your request: '{prompt_override}'."
+            )
 
         is_veg = "vegetarian" in [p.lower() for p in user.preferences] or "vegan" in [p.lower() for p in user.preferences]
 

@@ -2,7 +2,6 @@ import { useState } from 'react';
 
 export default function CustomMealModal({ isOpen, onClose, onSave, mealSection }) {
   const [promptText, setPromptText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
 
@@ -10,17 +9,9 @@ export default function CustomMealModal({ isOpen, onClose, onSave, mealSection }
     e.preventDefault();
     if (!promptText.trim()) return;
 
-    setIsLoading(true);
-    // מדמים קריאה ל-AI (או מעבירים את הטקסט החופשי לשמירה)
-    setTimeout(() => {
-      onSave({
-        prompt: promptText.trim(),
-        name: `Custom ${mealSection} (AI Adjusted)`,
-      });
-      setIsLoading(false);
-      setPromptText('');
-      onClose();
-    }, 600);
+    onSave(promptText.trim());
+    setPromptText('');
+    onClose();
   };
 
   return (
@@ -45,11 +36,11 @@ export default function CustomMealModal({ isOpen, onClose, onSave, mealSection }
           </div>
 
           <div className="modal-actions-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose} disabled={isLoading}>
+            <button type="button" className="btn btn-secondary" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={isLoading}>
-              {isLoading ? 'Generating with AI...' : '✨ Send to AI'}
+            <button type="submit" className="btn btn-primary">
+              ✨ Send to AI
             </button>
           </div>
         </form>

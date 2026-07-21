@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getWeeklyPlan, updateMealStatus as apiUpdateMealStatus } from '../api/apiClient';
+import { getWeeklyPlan, updateMealStatus as apiUpdateMealStatus, regenerateSingleMeal as apiRegenerateSingleMeal } from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
 
 import { getLocalDateString, getWeekStartLocalDate } from '../utils/calendarUtils';
@@ -55,10 +55,10 @@ export function useWeeklyPlan(currentDateString) {
     return () => {
       isCurrent = false;
     };
-  }, [weekStartDate]);
+  }, [weekStartDate, userId, currentDateString]);
 
   // Update meal status with optimistic updates
-  const handleUpdateMealStatus = async (dayName, mealType, status, replacedWithMealName = null) => {
+  const handleUpdateMealStatus = async (dayName, mealType, status, replacedWithMealName = null, isFavorite = null) => {
     if (!weeklyPlan) return;
 
     // Save previous state for rollback if server request fails
@@ -72,18 +72,27 @@ export function useWeeklyPlan(currentDateString) {
       const updatedMeals = { ...updatedDayPlan.meals };
       const updatedMeal = { ...updatedMeals[mealType.toLowerCase()] };
 
-      updatedMeal.status = status;
-      updatedMeal.replaced_with_meal_name = replacedWithMealName;
+      if (status !== null) {
+        updatedMeal.status = status;
+      }
+      if (replacedWithMealName !== null) {
+        updatedMeal.replaced_with_meal_name = replacedWithMealName;
+      }
+      if (isFavorite !== null) {
+        updatedMeal.is_favorite = isFavorite;
+      }
 
       // Re-calculate actual eaten macros optimistically
-      if (status === 'eaten') {
-        updatedMeal.actual_macros = { ...updatedMeal.planned_macros };
-      } else if (status === 'skipped') {
-        updatedMeal.actual_macros = { calories: 0, protein: 0, carbs: 0, fat: 0 };
-      } else if (status === 'replaced' || status === 'planned') {
-        updatedMeal.actual_macros = { ...updatedMeal.planned_macros };
-        if (status === 'replaced' && replacedWithMealName) {
-          updatedMeal.name = replacedWithMealName;
+      if (status !== null) {
+        if (status === 'eaten') {
+          updatedMeal.actual_macros = { ...updatedMeal.planned_macros };
+        } else if (status === 'skipped') {
+          updatedMeal.actual_macros = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+        } else if (status === 'replaced' || status === 'planned') {
+          updatedMeal.actual_macros = { ...updatedMeal.planned_macros };
+          if (status === 'replaced' && replacedWithMealName) {
+            updatedMeal.name = replacedWithMealName;
+          }
         }
       }
 
@@ -99,11 +108,12 @@ export function useWeeklyPlan(currentDateString) {
 
     try {
       const updatedPlanFromServer = await apiUpdateMealStatus(
-        weeklyPlan._id,
+        weeklyPlan.id || weeklyPlan._id,
         dayName,
         mealType,
         status,
-        replacedWithMealName
+        replacedWithMealName,
+        isFavorite
       );
       setWeeklyPlan(updatedPlanFromServer);
     } catch (err) {
@@ -114,11 +124,32 @@ export function useWeeklyPlan(currentDateString) {
     }
   };
 
+  const handleRegenerateMeal = async (dayName, mealType, promptOverride = null) => {
+    if (!weeklyPlan || !userId) return;
+    setError(null);
+    try {
+      const weekStartStr = getLocalDateString(weekStartDate);
+      const updatedPlanFromServer = await apiRegenerateSingleMeal(
+        userId,
+        weekStartStr,
+        dayName,
+        mealType,
+        promptOverride
+      );
+      setWeeklyPlan(updatedPlanFromServer);
+    } catch (err) {
+      console.error('Failed to regenerate meal:', err);
+      setError(err.response?.data?.detail || 'Failed to regenerate meal.');
+      throw err;
+    }
+  };
+
   return {
     weeklyPlan,
     isLoading,
     error,
     updateMealStatus: handleUpdateMealStatus,
+    regenerateMeal: handleRegenerateMeal,
     weekStartDate
   };
 }

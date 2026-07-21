@@ -14,13 +14,12 @@
 }
 
 .auth-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 40px;
+  background: transparent; /* ללא רקע של כרטיסיה */
+  border: none;
+  box-shadow: none;
+  padding: 20px;
   width: 100%;
-  max-width: 440px;
-  box-shadow: var(--shadow);
+  max-width: 420px;
   text-align: left;
   direction: ltr;
 }
@@ -48,10 +47,10 @@
 
 .form-input {
   width: 100%;
-  padding: 12px 14px;
+  padding: 14px 16px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  background: var(--code-bg);
+  background: var(--surface); /* שילוב חלק עם הרקע העמוק */
   color: var(--text-h);
   font-size: 15px;
   box-sizing: border-box;

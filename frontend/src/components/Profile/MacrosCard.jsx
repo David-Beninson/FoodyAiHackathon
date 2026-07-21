@@ -5,13 +5,18 @@ export default function MacrosCard({
     proteinPct,
     carbsPct,
     fatsPct,
-    isLoading
+    isLoading,
+    isFamilyMode
 }) {
     return (
         <div className={`card ${isLoading ? 'loading-card' : ''}`}>
-            <h2 className="card-title">Daily Goals (Macros)</h2>
+            <h2 className="card-title">
+                {isFamilyMode ? 'Combined Family Goals (Macros)' : 'Daily Goals (Macros)'}
+            </h2>
             <p className="card-subtitle">
-                These goals are calculated automatically based on your physical metrics and goals.
+                {isFamilyMode 
+                    ? 'These goals represent the combined nutritional needs for your entire family.' 
+                    : 'These goals are calculated automatically based on your physical metrics and goals.'}
             </p>
             
             <div className="form-group">

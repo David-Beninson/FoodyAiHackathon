@@ -26,6 +26,8 @@ const mapBackendToFrontend = (data) => {
         ...data,
         userName: data.username || 'User',
         goalWeight: data.goalWeight || (data.weight ? data.weight - 5 : 75),
+        is_family_mode: data.is_family_mode || false,
+        family_members: data.family_members || [],
         targetMacros: {
             calories: data.daily_macros_target?.calories || 2000,
             protein: data.daily_macros_target?.protein || 150,
@@ -44,7 +46,9 @@ const mapFrontendToBackend = (data) => {
         activity_level: data.activity_level || 'moderately_active',
         goals: data.goals || [],
         allergies: data.allergies || [],
-        preferences: data.preferences || []
+        preferences: data.preferences || [],
+        is_family_mode: data.is_family_mode || false,
+        family_members: data.family_members || []
     };
 };
 
@@ -59,6 +63,8 @@ const defaultProfileState = {
     goals: [],
     allergies: [],
     preferences: [],
+    is_family_mode: false,
+    family_members: [],
     targetMacros: {
         calories: 2000,
         protein: 150,
@@ -116,7 +122,7 @@ export function useProfile() {
                 console.error('Error fetching profile from API:', err);
                 if (err.response && err.response.status === 404) {
                     // Profile not found - this is fine, we will let the user onboard
-                    console.log('Profile not found, using local default state.');
+                    console.error('Profile not found, using local default state.');
                 } else if (!err.response) {
                     setError('Connection error: Cannot connect to the server. Make sure the Backend is running.');
                 } else {
@@ -146,7 +152,10 @@ export function useProfile() {
 
     const handleSave = async (e) => {
         if (e) e.preventDefault();
-        if (!userId) return;
+        if (!userId) {
+            console.warn('Cannot save profile: userId is undefined or null');
+            return;
+        }
         setIsLoading(true);
         setError(null);
         try {
@@ -156,10 +165,10 @@ export function useProfile() {
             setProfile(mapped);
             localStorage.setItem('foodyai_profile', JSON.stringify(mapped));
             localStorage.removeItem('foodyai_temp_profile');
-            
+
             // Sync with global auth state (updates isOnboarded flag)
             await refreshProfile();
-            
+
             setIsEditing(false);
             setShowSuccessToast(true);
             setTimeout(() => setShowSuccessToast(false), 3000);
@@ -209,8 +218,115 @@ export function useProfile() {
         }));
     };
 
+    const handleToggleFamilyMode = (enabled) => {
+        setTempProfile(prev => ({
+            ...prev,
+            is_family_mode: enabled
+        }));
+    };
+
+    const handleAddFamilyMember = (newMember) => {
+        setTempProfile(prev => ({
+            ...prev,
+            family_members: [
+                ...(prev.family_members || []),
+                newMember
+            ]
+        }));
+    };
+
+    const handleRemoveFamilyMember = (index) => {
+        setTempProfile(prev => ({
+            ...prev,
+            family_members: (prev.family_members || []).filter((_, idx) => idx !== index)
+        }));
+    };
+
+    const handleUpdateFamilyMember = (index, updatedMember) => {
+        setTempProfile(prev => {
+            const list = [...(prev.family_members || [])];
+            list[index] = updatedMember;
+            return {
+                ...prev,
+                family_members: list
+            };
+        });
+    };
+
+
     const currentProfile = isEditing ? tempProfile : profile;
-    const { proteinPct, carbsPct, fatsPct } = getMacroMetrics(currentProfile.targetMacros);
+
+    const estimateMacros = (member) => {
+        const age = Number(member.age) || 25;
+        const weight = Number(member.weight) || 70;
+        const height = Number(member.height) || 170;
+        const gender = member.gender || 'male';
+        const activity_level = member.activity_level || 'moderately_active';
+
+        const genderOffset = gender.toLowerCase() === 'male' ? 5 : -161;
+        const bmr = (10 * weight) + (6.25 * height) - (5 * age) + genderOffset;
+
+        const multipliers = {
+            sedentary: 1.2,
+            lightly_active: 1.375,
+            moderately_active: 1.55,
+            very_active: 1.725,
+            extremely_active: 1.9
+        };
+        const multiplier = multipliers[activity_level] || 1.2;
+        let calories = bmr * multiplier;
+
+        let hasLose = false;
+        let hasGain = false;
+        (member.goals || []).forEach(g => {
+            if (g.includes('lose')) hasLose = true;
+            if (g.includes('gain') || g.includes('build')) hasGain = true;
+        });
+
+        if (hasLose) calories -= 500;
+        else if (hasGain) calories += 300;
+
+        calories = Math.max(calories, 1200);
+
+        return {
+            calories: Math.round(calories * 10) / 10,
+            protein: Math.round(((calories * 0.3) / 4) * 10) / 10,
+            carbs: Math.round(((calories * 0.4) / 4) * 10) / 10,
+            fats: Math.round(((calories * 0.3) / 9) * 10) / 10
+        };
+    };
+
+    let displayMacros = { ...(currentProfile.targetMacros || {}) };
+    if (currentProfile.is_family_mode && currentProfile.family_members?.length > 0) {
+        let totalCalories = displayMacros.calories || 2000;
+        let totalProtein = displayMacros.protein || 150;
+        let totalCarbs = displayMacros.carbs || 180;
+        let totalFats = displayMacros.fats || 70;
+
+        currentProfile.family_members.forEach(member => {
+            if (member.daily_macros_target) {
+                totalCalories += member.daily_macros_target.calories || 0;
+                totalProtein += member.daily_macros_target.protein || 0;
+                totalCarbs += member.daily_macros_target.carbs || 0;
+                totalFats += member.daily_macros_target.fat || 0;
+            } else {
+                const est = estimateMacros(member);
+                totalCalories += est.calories;
+                totalProtein += est.protein;
+                totalCarbs += est.carbs;
+                totalFats += est.fats;
+            }
+        });
+
+        displayMacros = {
+            calories: Math.round(totalCalories * 10) / 10,
+            protein: Math.round(totalProtein * 10) / 10,
+            carbs: Math.round(totalCarbs * 10) / 10,
+            fats: Math.round(totalFats * 10) / 10
+        };
+    }
+
+    const { proteinPct, carbsPct, fatsPct } = getMacroMetrics(displayMacros);
 
     return {
         currentProfile,
@@ -233,6 +349,11 @@ export function useProfile() {
         addTag,
         removeTag,
         isLoading,
-        error
+        error,
+        handleToggleFamilyMode,
+        handleAddFamilyMember,
+        handleRemoveFamilyMember,
+        handleUpdateFamilyMember,
+        displayMacros
     };
 }

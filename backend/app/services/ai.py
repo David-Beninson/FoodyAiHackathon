@@ -2,12 +2,17 @@ import logging
 import json
 import random
 from typing import List, Optional, Dict
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from app.config import settings
 from app.models.user import UserProfile, Macros
 from app.models.plan import MealPlan, DayPlan
 
 logger = logging.getLogger("uvicorn")
+
+class ShoppingListResponse(BaseModel):
+    missing_ingredients: List[str] = Field(
+        description="List of ingredients needed for the menu that are NOT present in the pantry."
+    )
 
 # --- Pydantic models for structured AI output ---
 class AIMeal(BaseModel):
@@ -62,23 +67,77 @@ class AIService:
             return None
 
     @classmethod
+    def _get_effective_profile(cls, user: UserProfile):
+        """
+        Aggregates profile stats if in family mode.
+        """
+        if not getattr(user, "is_family_mode", False) or not getattr(user, "family_members", None):
+            return {
+                "description": f"User: {user.username} (Age: {user.age}, Weight: {user.weight} kg, Height: {user.height} cm)",
+                "allergies": ", ".join(user.allergies) if user.allergies else "None",
+                "preferences": ", ".join(user.preferences) if user.preferences else "None",
+                "goals": ", ".join(user.goals) if user.goals else "None",
+                "calories": user.daily_macros_target.calories if user.daily_macros_target else 2000,
+                "protein": user.daily_macros_target.protein if user.daily_macros_target else 150,
+                "carbs": user.daily_macros_target.carbs if user.daily_macros_target else 180,
+                "fat": user.daily_macros_target.fat if user.daily_macros_target else 70
+            }
+
+        # Family mode aggregation
+        member_names = [f"{user.username} (Age: {user.age})"]
+        all_allergies = set(user.allergies)
+        all_preferences = set(user.preferences)
+        all_goals = set(user.goals)
+        
+        tot_cal = user.daily_macros_target.calories if user.daily_macros_target else 2000
+        tot_prot = user.daily_macros_target.protein if user.daily_macros_target else 150
+        tot_carb = user.daily_macros_target.carbs if user.daily_macros_target else 180
+        tot_fat = user.daily_macros_target.fat if user.daily_macros_target else 70
+
+        for m in user.family_members:
+            member_names.append(f"{m.name} (Age: {m.age})")
+            if m.allergies:
+                all_allergies.update(m.allergies)
+            if m.preferences:
+                all_preferences.update(m.preferences)
+            if m.goals:
+                all_goals.update(m.goals)
+            if m.daily_macros_target:
+                tot_cal += m.daily_macros_target.calories
+                tot_prot += m.daily_macros_target.protein
+                tot_carb += m.daily_macros_target.carbs
+                tot_fat += m.daily_macros_target.fat
+
+        return {
+            "description": f"Family plan for: {', '.join(member_names)}",
+            "allergies": ", ".join(all_allergies) if all_allergies else "None",
+            "preferences": ", ".join(all_preferences) if all_preferences else "None",
+            "goals": ", ".join(all_goals) if all_goals else "None",
+            "calories": round(tot_cal, 1),
+            "protein": round(tot_prot, 1),
+            "carbs": round(tot_carb, 1),
+            "fat": round(tot_fat, 1)
+        }
+
+    @classmethod
     def generate_weekly_plan(
         cls, user: UserProfile, prompt_override: Optional[str] = None
     ) -> AIWeeklyPlanResponse:
         """
         Generates a 7-day weekly meal plan based on user profile and optional custom requests.
         """
+        profile = cls._get_effective_profile(user)
+        pantry_list = getattr(user, "pantry", [])
+        pantry_str = ", ".join(pantry_list) if pantry_list else "None"
+
         system_prompt = f"""
         You are FoodyAI, an expert nutritionist. Generate a personalized 7-day weekly meal plan (Sunday to Saturday) based on:
-        Age: {user.age}
-        Weight: {user.weight} kg
-        Height: {user.height} cm
-        Gender: {user.gender}
-        Activity Level: {user.activity_level}
-        Goals: {", ".join(user.goals)}
-        Allergies: {", ".join(user.allergies) if user.allergies else 'None'}
-        Preferences: {", ".join(user.preferences) if user.preferences else 'None'}
-        Daily Target Macros: Calories: {user.daily_macros_target.calories} kcal, Protein: {user.daily_macros_target.protein}g, Carbs: {user.daily_macros_target.carbs}g, Fat: {user.daily_macros_target.fat}g
+        {profile['description']}
+        Goals: {profile['goals']}
+        Allergies: {profile['allergies']}
+        Preferences: {profile['preferences']}
+        Available Ingredients in house (Pantry/Fridge): {pantry_str}
+        Daily Target Macros: Calories: {profile['calories']} kcal, Protein: {profile['protein']}g, Carbs: {profile['carbs']}g, Fat: {profile['fat']}g
 
         Strict Rules:
         1. 90% of meals must follow the user's preferences and completely avoid all listed allergies.
@@ -86,6 +145,7 @@ class AIService:
         3. The sum of macros for breakfast, lunch, and dinner each day must match the daily target macros (within 10% tolerance).
         4. Meals should be described in English to match the user's interface language.
         5. Provide a short explanation (in English) for why this meal fits their goal in the 'ai_explanation' field.
+        6. Prioritize using the available ingredients in the house (Pantry/Fridge) as much as possible to minimize purchasing new items.
         """
 
         user_prompt = "Generate the 7-day meal plan conforming to the requested schema."
@@ -140,20 +200,19 @@ class AIService:
         """
         Generates a single meal (breakfast, lunch, dinner) matching the user's macros and preferences.
         """
+        profile = cls._get_effective_profile(user)
         multiplier = 0.3 if meal_type in ["breakfast", "dinner"] else 0.4
-        target_calories = user.daily_macros_target.calories * multiplier
-        target_protein = user.daily_macros_target.protein * multiplier
-        target_carbs = user.daily_macros_target.carbs * multiplier
-        target_fat = user.daily_macros_target.fat * multiplier
+        target_calories = profile["calories"] * multiplier
+        target_protein = profile["protein"] * multiplier
+        target_carbs = profile["carbs"] * multiplier
+        target_fat = profile["fat"] * multiplier
 
         system_prompt = f"""
-        You are FoodyAI, an expert nutritionist. Generate a single healthy meal of type '{meal_type}' based on the user's profile:
-        Age: {user.age}
-        Weight: {user.weight} kg
-        Height: {user.height} cm
-        Goals: {", ".join(user.goals)}
-        Allergies: {", ".join(user.allergies) if user.allergies else 'None'}
-        Preferences: {", ".join(user.preferences) if user.preferences else 'None'}
+        You are FoodyAI, an expert nutritionist. Generate a single healthy meal of type '{meal_type}' based on:
+        {profile['description']}
+        Goals: {profile['goals']}
+        Allergies: {profile['allergies']}
+        Preferences: {profile['preferences']}
         Target macros for this specific meal: Calories: {target_calories} kcal, Protein: {target_protein}g, Carbs: {target_carbs}g, Fat: {target_fat}g
 
         Strict Rules:
@@ -195,7 +254,7 @@ class AIService:
                 logger.error(f"OpenAI single meal generation failed: {e}")
 
         # 3. Fallback mock
-        return cls._generate_mock_meal(meal_type, user.daily_macros_target, user)
+        return cls._generate_mock_meal(meal_type, user.daily_macros_target, user, prompt_override)
 
     @classmethod
     def generate_completion_meal(
@@ -204,6 +263,7 @@ class AIService:
         """
         Generates a small meal or snack to make up for missed calories and protein from a skipped meal.
         """
+        profile = cls._get_effective_profile(user)
         system_prompt = f"""
         You are FoodyAI. The user skipped their '{skipped_meal_type}' today and has a nutritional deficit of:
         Calories: {missing_macros.calories} kcal
@@ -212,8 +272,8 @@ class AIService:
         Fat: {missing_macros.fat}g
 
         Generate a single meal or snack (called a 'Completion Meal') that closely matches these missing macros.
-        - Respect allergies: {", ".join(user.allergies) if user.allergies else 'None'}
-        - Respect preferences: {", ".join(user.preferences) if user.preferences else 'None'}
+        - Respect allergies: {profile['allergies']}
+        - Respect preferences: {profile['preferences']}
         - Language: English.
         """
 
@@ -256,14 +316,14 @@ class AIService:
         """
         Maintains an interactive chat conversation with the user as an AI food advisor.
         """
+        profile = cls._get_effective_profile(user)
         system_prompt = f"""
         You are FoodyAI, a friendly AI Food Adviser helping the user organize their meals.
-        User Profile details:
-        Age: {user.age}, Weight: {user.weight} kg, Height: {user.height} cm, Gender: {user.gender}
-        Goals: {", ".join(user.goals)}
-        Allergies: {", ".join(user.allergies) if user.allergies else 'None'}
-        Preferences: {", ".join(user.preferences) if user.preferences else 'None'}
-        Daily Target: {user.daily_macros_target.calories} kcal, Protein: {user.daily_macros_target.protein}g
+        {profile['description']}
+        Goals: {profile['goals']}
+        Allergies: {profile['allergies']}
+        Preferences: {profile['preferences']}
+        Daily Target: {profile['calories']} kcal, Protein: {profile['protein']}g
 
         Help the user, answer questions, recommend healthy substitutions, and give friendly nutritional tips.
         Speak in English. Keep responses concise, friendly, and supportive.
@@ -314,8 +374,9 @@ class AIService:
         """
         Generates an explanation for why a specific meal is suitable for the user (info button logic).
         """
+        profile = cls._get_effective_profile(user)
         system_prompt = f"""
-        Explain in English why the meal '{meal_name}' ({meal_description}) fits a user with goals: {', '.join(user.goals)} and target calories: {user.daily_macros_target.calories} kcal.
+        Explain in English why the meal '{meal_name}' ({meal_description}) fits a user/family with goals: {profile['goals']} and target calories: {profile['calories']} kcal.
         Keep the explanation positive, brief (2-3 sentences), and scientifically grounded but easy to read.
         """
 
@@ -351,16 +412,32 @@ class AIService:
     def _generate_mock_weekly_plan(cls, user: UserProfile, prompt_override: Optional[str] = None) -> AIWeeklyPlanResponse:
         days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
         result = {}
+        profile = cls._get_effective_profile(user)
+        aggregated_macros = Macros(
+            calories=profile["calories"],
+            protein=profile["protein"],
+            carbs=profile["carbs"],
+            fat=profile["fat"]
+        )
+        
+        # Create a temp copy with aggregated preferences so that vegetarian/vegan logic works
+        temp_user = UserProfile(
+            email=user.email,
+            username=user.username,
+            hashed_password=user.hashed_password,
+            preferences=profile["preferences"].split(", ") if profile["preferences"] != "None" else []
+        )
+        
         for d in days:
             result[d] = AIDay(
-                breakfast=cls._generate_mock_meal("breakfast", user.daily_macros_target, user),
-                lunch=cls._generate_mock_meal("lunch", user.daily_macros_target, user),
-                dinner=cls._generate_mock_meal("dinner", user.daily_macros_target, user)
+                breakfast=cls._generate_mock_meal("breakfast", aggregated_macros, temp_user),
+                lunch=cls._generate_mock_meal("lunch", aggregated_macros, temp_user),
+                dinner=cls._generate_mock_meal("dinner", aggregated_macros, temp_user)
             )
         return AIWeeklyPlanResponse(**result)
 
     @classmethod
-    def _generate_mock_meal(cls, meal_type: str, daily_target: Macros, user: UserProfile) -> AIMeal:
+    def _generate_mock_meal(cls, meal_type: str, daily_target: Macros, user: UserProfile, prompt_override: Optional[str] = None) -> AIMeal:
         # Split target macros: breakfast (30%), lunch (40%), dinner (30%)
         multiplier = 0.3 if meal_type in ["breakfast", "dinner", "completion"] else 0.4
         
@@ -368,6 +445,18 @@ class AIService:
         target_protein = daily_target.protein * multiplier
         target_carbs = daily_target.carbs * multiplier
         target_fat = daily_target.fat * multiplier
+
+        if prompt_override:
+            scale = random.uniform(0.9, 1.1)
+            return AIMeal(
+                name=f"Custom {meal_type.capitalize()} ({prompt_override.title()})",
+                description=f"A healthy option tailored to your request: '{prompt_override}'.",
+                calories=round(target_calories * scale, 1),
+                protein=round(target_protein * scale, 1),
+                carbs=round(target_carbs * scale, 1),
+                fat=round(target_fat * scale, 1),
+                ai_explanation=f"This customized meal fits your daily target macros and includes your request: '{prompt_override}'."
+            )
 
         is_veg = "vegetarian" in [p.lower() for p in user.preferences] or "vegan" in [p.lower() for p in user.preferences]
 
@@ -425,3 +514,77 @@ class AIService:
             fat=round(target_fat * scale, 1),
             ai_explanation="This meal is perfectly tailored to your targets, providing a high-quality source of protein and maintaining an optimal caloric balance that supports your goals."
         )
+
+    @classmethod
+    def generate_shopping_list(cls, user: UserProfile, days_dict: dict) -> List[str]:
+        """
+        Generates a list of missing ingredients that are required for the planned meals but not present in the user's pantry.
+        """
+        meal_summaries = []
+        for day, day_data in days_dict.items():
+            meals_dict = day_data.get("meals", {}) if isinstance(day_data, dict) else getattr(day_data, "meals", {})
+            if hasattr(meals_dict, "items"):
+                meals_items = meals_dict.items()
+            else:
+                meals_items = []
+                
+            for meal_type, meal in meals_items:
+                meal_name = meal.get("name", "") if isinstance(meal, dict) else getattr(meal, "name", "")
+                meal_desc = meal.get("description", "") if isinstance(meal, dict) else getattr(meal, "description", "")
+                meal_summaries.append(f"{day} {meal_type}: {meal_name} ({meal_desc})")
+        
+        meals_text = "\n".join(meal_summaries)
+        pantry_list = getattr(user, "pantry", [])
+        pantry_text = ", ".join(pantry_list) if pantry_list else "None"
+        
+        system_prompt = """You are FoodyAI Shopping List generator. Your task is to analyze the weekly meals plan and the ingredients currently in the user's pantry/fridge.
+Determine which ingredients are needed to cook/prepare the meals but are NOT already in the pantry.
+Generate a structured shopping list of missing ingredients.
+Be smart about matches: if the pantry has "eggs" and a meal has "omelette with 2 eggs", the user doesn't need to buy eggs unless you suspect they need more, but in general assume simple ingredient names map directly.
+Return a list of missing ingredients that need to be purchased."""
+
+        user_prompt = f"Weekly Meals Plan:\n{meals_text}\n\nUser Pantry/Fridge Inventory:\n{pantry_text}\n\nList the missing ingredients to buy."
+
+        # 1. Try Gemini
+        gemini_client = cls._get_gemini_client()
+        if gemini_client:
+            logger.info("Generating shopping list using Gemini API...")
+            try:
+                from google.genai import types
+                response = gemini_client.models.generate_content(
+                    model='gemini-3.5-flash',
+                    contents=f"{system_prompt}\n\n{user_prompt}",
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        response_schema=ShoppingListResponse,
+                        temperature=0.3,
+                    ),
+                )
+                data = json.loads(response.text)
+                return data.get("missing_ingredients", [])
+            except Exception as e:
+                logger.error(f"Gemini shopping list generation failed: {e}. Trying OpenAI...")
+
+        # 2. Try OpenAI
+        openai_client = cls._get_openai_client()
+        if openai_client:
+            logger.info("Generating shopping list using OpenAI API...")
+            try:
+                response = openai_client.beta.chat.completions.parse(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    response_format=ShoppingListResponse,
+                    temperature=0.3,
+                )
+                if response.choices[0].message.parsed:
+                    return response.choices[0].message.parsed.missing_ingredients
+            except Exception as e:
+                logger.error(f"OpenAI shopping list generation failed: {e}.")
+
+        # 3. Basic fallback (empty list or simple heuristic)
+        logger.warning("No API keys set or APIs failed. Using fallback empty list.")
+        return ["Eggs", "Milk", "Bread", "Chicken Breast", "Vegetables Mix"]
+

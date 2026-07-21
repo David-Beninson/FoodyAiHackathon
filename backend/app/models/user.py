@@ -23,6 +23,18 @@ class Macros(BaseModel):
     carbs: float = 0.0    # in grams
     fat: float = 0.0      # in grams
 
+class FamilyMember(BaseModel):
+    name: str
+    age: int
+    weight: float
+    height: float
+    gender: str
+    activity_level: ActivityLevel
+    goals: List[UserGoal] = Field(default_factory=list)
+    allergies: List[str] = Field(default_factory=list)
+    preferences: List[str] = Field(default_factory=list)
+    daily_macros_target: Optional[Macros] = None
+
 class UserProfile(Document):
     email: str = Field(unique=True, index=True)
     username: str
@@ -36,6 +48,9 @@ class UserProfile(Document):
     allergies: List[str] = Field(default_factory=list)      # e.g. ["nuts", "gluten", "dairy"]
     preferences: List[str] = Field(default_factory=list)    # e.g. ["vegetarian", "low-carb", "kosher"]
     daily_macros_target: Optional[Macros] = None
+    is_family_mode: bool = False
+    family_members: List[FamilyMember] = Field(default_factory=list)
+    pantry: List[str] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     @field_validator("activity_level", mode="before")

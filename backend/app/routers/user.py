@@ -5,6 +5,7 @@ from app.utils import calculate_target_macros
 from app.schemas.user import UserCreate, OnboardRequest, UserLogin, TokenResponse
 from app.services.auth import AuthService
 from typing import List
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -95,6 +96,23 @@ async def onboard_user(user_id: str, payload: OnboardRequest):
     user.allergies = payload.allergies
     user.preferences = payload.preferences
     user.daily_macros_target = macros
+    user.is_family_mode = payload.is_family_mode if payload.is_family_mode is not None else False
+
+    # Process family members and compute their macros if missing
+    processed_members = []
+    if payload.family_members:
+        for m in payload.family_members:
+            if not m.daily_macros_target:
+                m.daily_macros_target = calculate_target_macros(
+                    age=m.age,
+                    weight=m.weight,
+                    height=m.height,
+                    gender=m.gender,
+                    activity_level=m.activity_level,
+                    goals=m.goals
+                )
+            processed_members.append(m)
+    user.family_members = processed_members
 
     await user.save()
     return user
@@ -118,3 +136,70 @@ async def get_user_profile(user_id: str):
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     return user
+
+
+class PantryUpdateRequest(BaseModel):
+    pantry: List[str]
+
+
+class PantryAddRequest(BaseModel):
+    item: str
+
+
+@router.get("/{user_id}/pantry", response_model=List[str])
+async def get_pantry(user_id: str):
+    """Retrieve user's pantry/fridge ingredients."""
+    try:
+        obj_id = PydanticObjectId(user_id)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID format."
+        )
+    user = await UserProfile.get(obj_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found."
+        )
+    return getattr(user, "pantry", [])
+
+
+@router.post("/{user_id}/pantry", response_model=List[str])
+async def update_pantry(user_id: str, payload: PantryUpdateRequest):
+    """Save the complete pantry/fridge ingredients list."""
+    try:
+        obj_id = PydanticObjectId(user_id)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID format."
+        )
+    user = await UserProfile.get(obj_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found."
+        )
+    user.pantry = payload.pantry
+    await user.save()
+    return user.pantry
+
+
+@router.post("/{user_id}/pantry/add", response_model=List[str])
+async def add_to_pantry(user_id: str, payload: PantryAddRequest):
+    """Add a single item to the pantry if not already there."""
+    try:
+        obj_id = PydanticObjectId(user_id)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID format."
+        )
+    user = await UserProfile.get(obj_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found."
+        )
+    if not hasattr(user, "pantry") or user.pantry is None:
+        user.pantry = []
+    if payload.item not in user.pantry:
+        user.pantry.append(payload.item)
+        await user.save()
+    return user.pantry
+

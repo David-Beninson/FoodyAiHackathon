@@ -2,7 +2,7 @@ from enum import Enum
 from beanie import Document
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from app.models.user import Macros
 
 class MealStatus(str, Enum):
@@ -18,6 +18,7 @@ class MealPlan(BaseModel):
     actual_macros: Macros = Field(default_factory=Macros)
     ai_explanation: Optional[str] = None
     is_completion: bool = False
+    is_favorite: bool = False
 
     def update_actual_macros(self):
         """Helper to sync actual macros according to status."""
@@ -49,6 +50,7 @@ class WeeklyPlan(Document):
     user_id: str = Field(index=True)
     week_start_date: str = Field(index=True)  # YYYY-MM-DD (Always a Sunday, e.g. "2026-07-19")
     days: Dict[str, DayPlan]  # Keys: "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+    shopping_list: List[str] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 

@@ -5,7 +5,7 @@ from app.models.user import UserProfile, Macros
 from app.models.plan import WeeklyPlan, DayPlan, MealPlan, MealStatus
 from app.schemas.plan import GeneratePlanRequest, UpdateMealStatusRequest, RegenerateMealRequest, SaveDraftPlanRequest
 from app.services.ai import AIService
-from typing import Optional
+from typing import Optional, List
 
 router = APIRouter(prefix="/plans", tags=["Plans"])
 
@@ -46,6 +46,31 @@ async def get_weekly_plan(
             detail=f"Weekly plan not found for week starting {week_start}."
         )
     return plan
+
+@router.get("/user/{user_id}/favorites")
+async def get_user_favorite_meals(user_id: str):
+    """
+    Retrieve all meals marked as favorite across all weekly plans of the user.
+    """
+    plans = await WeeklyPlan.find(WeeklyPlan.user_id == user_id).to_list()
+    favorites = []
+    seen_names = set()
+    for plan in plans:
+        for day, day_plan in plan.days.items():
+            for meal_type, meal in day_plan.meals.items():
+                if getattr(meal, 'is_favorite', False):
+                    if meal.name.lower() not in seen_names:
+                        favorites.append({
+                            "plan_id": str(plan.id),
+                            "name": meal.name,
+                            "description": meal.description,
+                            "planned_macros": meal.planned_macros,
+                            "meal_type": meal_type,
+                            "day": day,
+                            "week_start_date": plan.week_start_date
+                        })
+                        seen_names.add(meal.name.lower())
+    return favorites
 
 @router.post("/generate", response_model=WeeklyPlan, status_code=status.HTTP_201_CREATED)
 async def generate_weekly_plan(payload: GeneratePlanRequest):
@@ -179,8 +204,16 @@ async def update_meal_status(
         )
 
     meal = day_plan.meals[meal_type]
-    meal.status = payload.status
-    meal.update_actual_macros()
+
+    if payload.is_favorite is not None:
+        meal.is_favorite = payload.is_favorite
+
+    if payload.status is not None:
+        meal.status = payload.status
+        meal.update_actual_macros()
+
+    day_plan.meals[meal_type] = meal
+    plan.days[day] = day_plan
 
     plan.updated_at = datetime.utcnow()
     await plan.save()
@@ -253,14 +286,30 @@ async def save_draft_weekly_plan(payload: SaveDraftPlanRequest):
     """
     week_start = get_week_start_date(payload.week_start_date)
     
-    # Check if a plan already exists for this user and week
+    # 1. Fetch user to get pantry and generate shopping list
+    shopping_list = []
+    try:
+        user_obj_id = PydanticObjectId(payload.user_id)
+        user = await UserProfile.get(user_obj_id)
+        if user:
+            shopping_list = AIService.generate_shopping_list(user, payload.days)
+    except Exception as e:
+        print(f"Failed to generate shopping list on save: {e}")
+
+    # 2. Check if a plan already exists for this user and week
     existing = await WeeklyPlan.find_one(
+        WeeklyPlan.find_one(
+            WeeklyPlan.user_id == payload.user_id,
+            WeeklyPlan.week_start_date == week_start
+        )
+    ) if False else await WeeklyPlan.find_one(
         WeeklyPlan.user_id == payload.user_id,
         WeeklyPlan.week_start_date == week_start
     )
     
     if existing:
         existing.days = payload.days
+        existing.shopping_list = shopping_list
         existing.updated_at = datetime.utcnow()
         await existing.save()
         return existing
@@ -268,8 +317,92 @@ async def save_draft_weekly_plan(payload: SaveDraftPlanRequest):
         new_plan = WeeklyPlan(
             user_id=payload.user_id,
             week_start_date=week_start,
-            days=payload.days
+            days=payload.days,
+            shopping_list=shopping_list
         )
         await new_plan.insert()
         return new_plan
+
+
+from pydantic import BaseModel
+
+
+class CheckShoppingItemRequest(BaseModel):
+    item: str
+    checked: bool
+
+
+@router.post("/{user_id}/{week_start_date}/shopping-list/check")
+async def check_shopping_item(user_id: str, week_start_date: str, payload: CheckShoppingItemRequest):
+    """
+    Checks or unchecks an item on the shopping list.
+    If checked: removes from shopping list and adds to pantry.
+    If unchecked: adds back to shopping list and removes from pantry.
+    """
+    week_start = get_week_start_date(week_start_date)
+    
+    # Fetch weekly plan
+    plan = await WeeklyPlan.find_one(
+        WeeklyPlan.user_id == user_id,
+        WeeklyPlan.week_start_date == week_start
+    )
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Weekly plan not found."
+        )
+
+    # Fetch user profile
+    try:
+        user_obj_id = PydanticObjectId(user_id)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID format."
+        )
+    user = await UserProfile.get(user_obj_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found."
+        )
+
+    if not hasattr(plan, "shopping_list") or plan.shopping_list is None:
+        plan.shopping_list = []
+    if not hasattr(user, "pantry") or user.pantry is None:
+        user.pantry = []
+
+    item_name = payload.item.strip()
+
+    if payload.checked:
+        # Check off: remove from shopping list, add to pantry
+        if item_name in plan.shopping_list:
+            plan.shopping_list.remove(item_name)
+        # Find case-insensitive match in pantry or add
+        lower_pantry = [x.lower() for x in user.pantry]
+        if item_name.lower() not in lower_pantry:
+            user.pantry.append(item_name)
+    else:
+        # Uncheck: add back to shopping list, remove from pantry
+        if item_name not in plan.shopping_list:
+            plan.shopping_list.append(item_name)
+        # Remove from pantry
+        user.pantry = [x for x in user.pantry if x.lower() != item_name.lower()]
+
+    plan.updated_at = datetime.utcnow()
+    await plan.save()
+    await user.save()
+
+    return {
+        "shopping_list": plan.shopping_list,
+        "pantry": user.pantry
+    }
+
+
+@router.get("/user/{user_id}", response_model=List[WeeklyPlan])
+async def get_user_weekly_plans(user_id: str):
+    """
+    Fetch all weekly plans for a specific user.
+    """
+    plans = await WeeklyPlan.find(WeeklyPlan.user_id == user_id).to_list()
+    return plans
+
 

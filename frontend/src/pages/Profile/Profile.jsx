@@ -1,16 +1,19 @@
+import { useState } from 'react';
 import { useProfile } from '../../hooks/useProfile';
 import { useAuth } from '../../context/AuthContext';
 import ProfileHeader from '../../components/Profile/ProfileHeader';
-import UserMetaCard from '../../components/Profile/UserMetaCard';
 import WeightCard from '../../components/Profile/WeightCard';
 import MacrosCard from '../../components/Profile/MacrosCard';
 import TagManagerCard from '../../components/Profile/TagManagerCard';
 import LoadingSpinner from '../../components/Common/LoadingSpinner';
 import OnboardingQuestionnaire from '../../components/Profile/OnboardingQuestionnaire';
+import FamilySettingsCard from '../../components/Profile/FamilySettingsCard';
+import FavoritesModal from '../../components/Profile/FavoritesModal';
 import './Profile.css';
 
 export default function Profile() {
-    const { isOnboarded } = useAuth();
+    const { isOnboarded, user, logout } = useAuth();
+    const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
     const {
         currentProfile,
         tempProfile,
@@ -32,7 +35,12 @@ export default function Profile() {
         addTag,
         removeTag,
         isLoading,
-        error
+        error,
+        handleToggleFamilyMode,
+        handleAddFamilyMember,
+        handleRemoveFamilyMember,
+        handleUpdateFamilyMember,
+        displayMacros
     } = useProfile();
 
     const handleFormSubmit = (e) => {
@@ -75,7 +83,7 @@ export default function Profile() {
 
             {error && (
                 <div className="error-banner">
-                    ⚠️ {error}
+                    {error}
                 </div>
             )}
 
@@ -84,15 +92,14 @@ export default function Profile() {
                 onStartEdit={handleStartEdit}
                 onSave={handleSave}
                 onCancel={handleCancelEdit}
+                onViewFavorites={() => setIsFavoritesOpen(true)}
+                userName={currentProfile.username ? currentProfile.username.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ') : 'User'}
+                onLogout={logout}
             />
 
             <div className="profile-content-area">
-                <UserMetaCard
-                    userName={currentProfile.username || 'User'}
-                    email={currentProfile.email || 'No email registered'}
-                />
 
-                <form onSubmit={handleSave}>
+                <form onSubmit={(e) => e.preventDefault()}>
                     {/* הפריסה המקבילה - רשת של כרטיסיות */}
                     <div className="profile-dashboard-grid">
                         <WeightCard
@@ -107,13 +114,14 @@ export default function Profile() {
                         />
 
                         <MacrosCard
-                            targetMacros={currentProfile.targetMacros}
+                            targetMacros={displayMacros}
                             onChange={handleChange}
                             isEditing={isEditing}
                             proteinPct={proteinPct}
                             carbsPct={carbsPct}
                             fatsPct={fatsPct}
                             isLoading={isLoading}
+                            isFamilyMode={currentProfile.is_family_mode}
                         />
 
                         <div className="card">
@@ -156,11 +164,21 @@ export default function Profile() {
                                 emptyMessage="No preferences recorded"
                             />
                         </div>
+
+                        <FamilySettingsCard
+                            currentProfile={currentProfile}
+                            isEditing={isEditing}
+                            handleToggleFamilyMode={handleToggleFamilyMode}
+                            handleAddFamilyMember={handleAddFamilyMember}
+                            handleRemoveFamilyMember={handleRemoveFamilyMember}
+                            handleUpdateFamilyMember={handleUpdateFamilyMember}
+                            handleStartEdit={handleStartEdit}
+                        />
                     </div>
 
                     {isEditing && (
                         <div className="profile-form-actions">
-                            <button type="submit" className="btn btn-primary btn-large">
+                            <button type="button" className="btn btn-primary btn-large" onClick={handleSave}>
                                 Save Changes
                             </button>
                             <button type="button" className="btn btn-secondary btn-large" onClick={handleCancelEdit}>
@@ -170,6 +188,12 @@ export default function Profile() {
                     )}
                 </form>
             </div>
+            
+            <FavoritesModal
+                isOpen={isFavoritesOpen}
+                onClose={() => setIsFavoritesOpen(false)}
+                userId={user?.id || user?._id}
+            />
         </div>
     );
 }
